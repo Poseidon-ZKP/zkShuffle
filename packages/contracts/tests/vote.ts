@@ -86,8 +86,8 @@ describe('Vote test', function () {
                 identity,
                 group,
                 rand,
-                'https://p0x-labs.s3.amazonaws.com/test/group.wasm',
-                'https://p0x-labs.s3.amazonaws.com/test/group.zkey'
+                resolve(resourceBasePath, './wasm/group.wasm'),
+                resolve(resourceBasePath, './zkey/group.zkey'),
             )
             // console.log("groupProof : ", groupProof)
         
@@ -100,8 +100,8 @@ describe('Vote test', function () {
                 rand,
                 externalNullifier,
                 msg,
-                'https://p0x-labs.s3.amazonaws.com/test/signal.wasm',
-                'https://p0x-labs.s3.amazonaws.com/test/signal.zkey'
+                resolve(resourceBasePath, './wasm/signal.wasm'),
+                resolve(resourceBasePath, './zkey/signal.zkey')
             )
             let soliditySignalProof: SolidityProof = packToSolidityProof(signalProof.proof)
             await (await v.vote(
