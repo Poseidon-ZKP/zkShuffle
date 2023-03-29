@@ -1,0 +1,31 @@
+== Solidity API
+
+=== Example
+
+==== verifier
+
+[source,solidity]
+----
+address verifier
+----
+
+==== mulResult
+
+[source,solidity]
+----
+uint256 mulResult
+----
+
+==== constructor
+
+[source,solidity]
+----
+constructor(address verifier_) public
+----
+
+==== joinGameWithProof
+
+[source,solidity]
+----
+function joinGameWithProof(uint256[2] a, uint256[2][2] b, uint256[2] c, uint256[2] input) external view
+----

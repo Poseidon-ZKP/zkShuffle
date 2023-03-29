@@ -1,0 +1,38 @@
+node_modules
+artifacts
+cache
+temp
+typechain
+.openzeppelin/unknown-*.json*
+.vscode
+third-party
+.env*
+*.rej
+*.orig
+*.r1cs
+*.sym
+*.log
+circuit_js
+contracts/dummy/*verifier.sol
+circuits/build
+circuits/semaphore_constraints.json
+circuits/semaphore_js/
+test/java
+generate_witness.js
+witness_calculator.js
+*_constraints.json
+scripts/types/
+.DS_STORE
+
+# circuits
+*.vkey.json
+
+# yarn
+.pnp.*
+.yarn/install-state.gz
+
+# dev
+*.backup
+
+.gitattributes
+*zkey*

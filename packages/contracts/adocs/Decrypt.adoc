@@ -1,0 +1,10 @@
+== Solidity API
+
+=== Decrypt
+
+==== constructor
+
+[source,solidity]
+----
+constructor() public
+----

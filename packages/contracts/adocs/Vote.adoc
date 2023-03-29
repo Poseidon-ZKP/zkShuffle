@@ -1,0 +1,59 @@
+== Solidity API
+
+=== Vote
+
+==== group
+
+[source,solidity]
+----
+contract IGroup group
+----
+
+==== signal
+
+[source,solidity]
+----
+contract ISignal signal
+----
+
+==== voteStat
+
+[source,solidity]
+----
+mapping(uint256 => mapping(bytes32 => uint256)) voteStat
+----
+
+==== GROUP_ID
+
+[source,solidity]
+----
+uint256 GROUP_ID
+----
+
+==== constructor
+
+[source,solidity]
+----
+constructor(contract IGroup _group, contract ISignal _signal) public
+----
+
+==== createGroup
+
+[source,solidity]
+----
+function createGroup(uint256 merkleTreeDepth, address admin) external returns (uint256)
+----
+
+==== addMember
+
+[source,solidity]
+----
+function addMember(uint256 groupId, uint256 identityCommitment) public
+----
+
+==== vote
+
+[source,solidity]
+----
+function vote(uint256 rc, uint256 groupId, uint256[8] group_proof, bytes32 voteMsg, uint256 nullifierHash, uint256 externalNullifier, uint256[8] signal_proof) public
+----

@@ -1,0 +1,68 @@
+== Solidity API
+
+=== CurveBabyJubJub
+
+==== A
+
+[source,solidity]
+----
+uint256 A
+----
+
+==== D
+
+[source,solidity]
+----
+uint256 D
+----
+
+==== Q
+
+[source,solidity]
+----
+uint256 Q
+----
+
+==== pointAdd
+
+[source,solidity]
+----
+function pointAdd(uint256 _x1, uint256 _y1, uint256 _x2, uint256 _y2) internal view returns (uint256[2] point)
+----
+
+==== pointMul
+
+[source,solidity]
+----
+function pointMul(uint256 _x1, uint256 _y1, uint256 _d) internal view returns (uint256[2] point)
+----
+
+==== isOnCurve
+
+[source,solidity]
+----
+function isOnCurve(uint256 _x, uint256 _y) internal pure returns (bool)
+----
+
+==== submod
+
+[source,solidity]
+----
+function submod(uint256 _a, uint256 _b, uint256 _mod) internal pure returns (uint256)
+----
+
+==== inverse
+
+[source,solidity]
+----
+function inverse(uint256 _a) internal view returns (uint256)
+----
+
+==== expmod
+
+[source,solidity]
+----
+function expmod(uint256 _b, uint256 _e, uint256 _m) internal view returns (uint256 o)
+----
+
+_Helper function to call the bigModExp precompile_
