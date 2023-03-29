@@ -8,7 +8,7 @@ import generateGroupProof, { Group } from '@p0x-labs/poseidon-zk-proof/src/group
 
 import { GroupVerifier__factory, Group__factory, PoseidonT3__factory, SignalVerifier__factory, Signal__factory, Vote__factory } from '../types';
 
-const resourceBasePath = resolve(__dirname, '../node_modules/@p0x-labs/poseidon-zk-circuits');
+const resourceBasePath = "/Users/sam/bak/poseidon-zk-contracts/packages/circuits";
 
 const TREE_DEPTH = 10;
 
