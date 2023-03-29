@@ -36,3 +36,4 @@ scripts/types/
 
 .gitattributes
 *zkey*
+*.wasm
