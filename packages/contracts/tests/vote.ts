@@ -3,8 +3,8 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { BigNumber } from 'ethers';
 import { ethers } from 'hardhat';
 import { resolve } from 'path';
-import generateSignalProof, { Identity, packToSolidityProof, poseidon, poseidon_gencontract as poseidonContract, SolidityProof } from '@p0x-labs/poseidon-zk-proof/src/signal/proof';
-import generateGroupProof, { Group } from '@p0x-labs/poseidon-zk-proof/src/group/proof';
+import generateSignalProof, { Identity, packToSolidityProof, poseidon, poseidon_gencontract as poseidonContract, SolidityProof } from '@poseidon-zkps/poseidon-zk-proof/src/signal/proof';
+import generateGroupProof, { Group } from '@poseidon-zkps/poseidon-zk-proof/src/group/proof';
 
 import { GroupVerifier__factory, Group__factory, PoseidonT3__factory, SignalVerifier__factory, Signal__factory, Vote__factory } from '../types';
 import { exit } from 'process';

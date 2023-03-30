@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17 || ^0.8.4;
 
-import "@p0x-labs/poseidon-zk-circuits/contracts/example_verifier.sol";
+import "@poseidon-zkps/poseidon-zk-circuits/contracts/example_verifier.sol";
 
 // A simple example contract to demostrate how to integrate the verifier contract
 contract Example {

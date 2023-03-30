@@ -1,5 +1,5 @@
 {
-  "name": "@p0x-labs/poseidon-zk-jssdk",
+  "name": "@poseidon-zkps/poseidon-zk-jssdk",
   "version": "0.0.1",
   "main": "index.js",
   "license": "MIT",

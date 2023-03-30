@@ -1,7 +1,7 @@
 import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address';
-import { shuffleEncryptV2Plaintext } from '@p0x-labs/poseidon-zk-proof/src/shuffle/plaintext';
-import { generateDecryptProof, generateShuffleEncryptProof, generateShuffleEncryptV2Proof } from '@p0x-labs/poseidon-zk-proof/src/shuffle/proof';
-import { initDeck, keyGen, sampleFieldElements, samplePermutation, compressDeck, recoverDeck, string2Bigint, assert } from '@p0x-labs/poseidon-zk-proof/src/shuffle/utilities';
+import { shuffleEncryptV2Plaintext } from '@poseidon-zkps/poseidon-zk-proof/src/shuffle/plaintext';
+import { generateDecryptProof, generateShuffleEncryptProof, generateShuffleEncryptV2Proof } from '@poseidon-zkps/poseidon-zk-proof/src/shuffle/proof';
+import { initDeck, keyGen, sampleFieldElements, samplePermutation, compressDeck, recoverDeck, string2Bigint, assert } from '@poseidon-zkps/poseidon-zk-proof/src/shuffle/utilities';
 import { ethers } from 'hardhat';
 import { resolve } from 'path';
 import { readFileSync } from 'fs';

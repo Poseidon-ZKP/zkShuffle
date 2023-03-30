@@ -1,5 +1,5 @@
 {
-  "name": "@p0x-labs/poseidon-zk-proof",
+  "name": "@poseidon-zkps/poseidon-zk-proof",
   "version": "0.0.1",
   "main": "index.js",
   "license": "MIT",

@@ -1,5 +1,5 @@
 {
-  "name": "@p0x-labs/poseidon-zk-circuits",
+  "name": "@poseidon-zkps/poseidon-zk-circuits",
   "version": "0.0.1",
   "main": "index.js",
   "license": "MIT",
@@ -7,7 +7,7 @@
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.2.1",
     "@nomiclabs/hardhat-waffle": "^2.0.3",
-    "@p0x-labs/poseidon-zk-proof": "0.0.1",
+    "@poseidon-zkps/poseidon-zk-proof": "0.0.1",
     "@typechain/ethers-v5": "^10.1.1",
     "@typechain/hardhat": "^6.1.4",
     "@types/chai": "^4.3.4",
