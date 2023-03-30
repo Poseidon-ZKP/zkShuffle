@@ -7,11 +7,39 @@ import generateSignalProof, { Identity, packToSolidityProof, poseidon, poseidon_
 import generateGroupProof, { Group } from '@p0x-labs/poseidon-zk-proof/src/group/proof';
 
 import { GroupVerifier__factory, Group__factory, PoseidonT3__factory, SignalVerifier__factory, Signal__factory, Vote__factory } from '../types';
+import { exit } from 'process';
+const fs = require('fs');
+const path = require('path');
+const https = require('https')
 
-const resourceBasePath = "/Users/sam/bak/poseidon-zk-contracts/packages/circuits";
-//const resourceBasePath = "https://p0x-labs.s3.amazonaws.com/test"
+const resourceBasePath = resolve(__dirname, './');
+const URL = "https://p0x-labs.s3.amazonaws.com/refactor/"
+const WASM_DIR = resolve(__dirname, './wasm')
+const ZKEY_DIR = resolve(__dirname, './zkey')
+fs.mkdir(WASM_DIR, () => {})
+fs.mkdir(ZKEY_DIR, () => {})
+
+const WASM_SIGNAL = 'wasm/signal.wasm'
+const WASM_GROUP = 'wasm/group.wasm'
+const ZKEY_SIGNAL = 'zkey/signal.zkey'
+const ZKEY_GROUP = 'zkey/group.zkey'
 
 const TREE_DEPTH = 10;
+
+async function dnld_aws(file_name : string) {
+    return new Promise((reslv, reject) => {
+        if (!fs.existsSync(resolve(__dirname, file_name))) {
+            const file = fs.createWriteStream(resolve(__dirname, file_name))
+            https.get(URL + file_name, (resp) => {
+                file.on("finish", () => {
+                    file.close();
+                    reslv(0)
+                });
+                resp.pipe(file)
+            });
+        }
+    });
+}
 
 describe('Vote test', function () {
     let signers: SignerWithAddress[] = [];
@@ -20,6 +48,12 @@ describe('Vote test', function () {
     beforeEach(async () => {
         signers = await ethers.getSigners();
         owner = signers[0];
+
+        await Promise.all([WASM_SIGNAL, WASM_GROUP, ZKEY_SIGNAL, ZKEY_GROUP].map(
+            async (e) => {
+                await dnld_aws(e)
+            }
+        ));
     });
 
     it('Vote contract can function normally', async () => {
