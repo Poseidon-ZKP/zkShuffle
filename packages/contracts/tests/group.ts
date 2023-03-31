@@ -5,12 +5,12 @@ import { readFileSync } from 'fs';
 import { ethers } from 'hardhat';
 import { resolve } from 'path';
 import { PoseidonT3__factory, Group__factory, GroupVerifier__factory } from '../types';
-import generateProof, { Group, Identity, packToSolidityProof, poseidon, poseidon_gencontract as poseidonContract, SolidityProof } from '@poseidon-zkps/poseidon-zk-proof/src/group/proof';
+import generateProof, { Group, Identity, packToSolidityProof, poseidon, poseidon_gencontract as poseidonContract, SolidityProof } from '@poseidon-zkp/poseidon-zk-proof/src/group/proof';
 const snarkjs = require('snarkjs');
 
 const TREE_DEPTH = 10; // 10 need 43s ,  16 need 10mins, 20need ~ 160mins
 
-const resourceBasePath = resolve(__dirname, '../node_modules/@poseidon-zkps/poseidon-zk-circuits');
+const resourceBasePath = resolve(__dirname, '../node_modules/@poseidon-zkp/poseidon-zk-circuits');
 
 describe('Group test', function () {
     let signers: SignerWithAddress[] = [];

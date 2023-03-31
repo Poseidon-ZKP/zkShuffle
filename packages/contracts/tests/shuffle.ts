@@ -2,15 +2,15 @@ import { assert } from 'chai';
 import { readFileSync } from 'fs';
 import { ethers } from 'hardhat';
 import { resolve } from 'path';
-import { generateDecryptProof, generateShuffleEncryptProof, generateShuffleEncryptV2Proof, packToSolidityProof, SolidityProof, FullProof, shuffle, deal } from '@poseidon-zkps/poseidon-zk-proof/src/shuffle/proof';
-import { convertPk, initDeck, keyGen, keyAggregate, sampleFieldElements, samplePermutation, searchDeck, compressDeck, recoverDeck, string2Bigint, prepareDecryptData } from '@poseidon-zkps/poseidon-zk-proof/src/shuffle/utilities';
-import { shuffleEncryptPlaintext, shuffleEncryptV2Plaintext } from '@poseidon-zkps/poseidon-zk-proof/src/shuffle/plaintext';
-import { DecryptVerifier } from 'types/@poseidon-zkps/poseidon-zk-circuits/contracts/decrypt_verifier.sol';
+import { generateDecryptProof, generateShuffleEncryptProof, generateShuffleEncryptV2Proof, packToSolidityProof, SolidityProof, FullProof, shuffle, deal } from '@poseidon-zkp/poseidon-zk-proof/src/shuffle/proof';
+import { convertPk, initDeck, keyGen, keyAggregate, sampleFieldElements, samplePermutation, searchDeck, compressDeck, recoverDeck, string2Bigint, prepareDecryptData } from '@poseidon-zkp/poseidon-zk-proof/src/shuffle/utilities';
+import { shuffleEncryptPlaintext, shuffleEncryptV2Plaintext } from '@poseidon-zkp/poseidon-zk-proof/src/shuffle/plaintext';
+import { DecryptVerifier } from 'types/@poseidon-zkp/poseidon-zk-circuits/contracts/decrypt_verifier.sol';
 import { BigNumber } from 'ethers';
 const buildBabyjub = require('circomlibjs').buildBabyjub;
 const snarkjs = require('snarkjs');
 
-const resourceBasePath = resolve(__dirname, '../node_modules/@poseidon-zkps/poseidon-zk-circuits');
+const resourceBasePath = resolve(__dirname, '../node_modules/@poseidon-zkp/poseidon-zk-circuits');
 
 // Deploys contract for shuffle encrypt v1.
 async function deployShuffleEncrypt() {

@@ -4,11 +4,11 @@ import { BigNumber } from 'ethers';
 import { readFileSync } from 'fs';
 import { ethers } from 'hardhat';
 import { resolve } from 'path';
-import generateProof, { Identity, packToSolidityProof, poseidon, SolidityProof } from '@poseidon-zkps/poseidon-zk-proof/src/signal/proof';
+import generateProof, { Identity, packToSolidityProof, poseidon, SolidityProof } from '@poseidon-zkp/poseidon-zk-proof/src/signal/proof';
 import { SignalVerifier__factory, Signal__factory } from '../types';
 const snarkjs = require('snarkjs');
 
-const resourceBasePath = resolve(__dirname, '../node_modules/@poseidon-zkps/poseidon-zk-circuits');
+const resourceBasePath = resolve(__dirname, '../node_modules/@poseidon-zkp/poseidon-zk-circuits');
 
 describe('Signal test', function () {
     let signers: SignerWithAddress[] = [];

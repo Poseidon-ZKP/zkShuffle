@@ -3,7 +3,7 @@ pragma solidity 0.8.4;
 
 import "@semaphore-protocol/contracts/base/SemaphoreGroups.sol";
 // Import this contract so we can compile it
-import "@poseidon-zkps/poseidon-zk-circuits/contracts/group_verifier.sol";
+import "@poseidon-zkp/poseidon-zk-circuits/contracts/group_verifier.sol";
 
 interface IGroup {
     struct Verifier {

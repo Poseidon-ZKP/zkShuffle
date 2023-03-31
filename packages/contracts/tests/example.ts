@@ -5,10 +5,10 @@ import { expect } from 'chai';
 import { artifacts, ethers, waffle } from 'hardhat';
 import { resolve } from 'path';
 import { Example } from '../types';
-import { ExampleVerifier } from '../types/@poseidon-zkps/poseidon-zk-circuits/contracts/example_verifier.sol';
+import { ExampleVerifier } from '../types/@poseidon-zkp/poseidon-zk-circuits/contracts/example_verifier.sol';
 const snarkjs = require('snarkjs');
 
-const resourceBasePath = resolve(__dirname, '../node_modules/@poseidon-zkps/poseidon-zk-circuits');
+const resourceBasePath = resolve(__dirname, '../node_modules/@poseidon-zkp/poseidon-zk-circuits');
 
 describe('Example test', function () {
     let signers: SignerWithAddress[] = [];
