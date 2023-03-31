@@ -9,8 +9,33 @@ import { DecryptVerifier } from 'types/@poseidon-zkp/poseidon-zk-circuits/contra
 import { BigNumber } from 'ethers';
 const buildBabyjub = require('circomlibjs').buildBabyjub;
 const snarkjs = require('snarkjs');
+const fs = require('fs');
+const path = require('path');
+const https = require('https')
 
-const resourceBasePath = resolve(__dirname, '../node_modules/@poseidon-zkp/poseidon-zk-circuits');
+const resourceBasePath = resolve(__dirname, './');
+const URL = "https://p0x-labs.s3.amazonaws.com/refactor/"
+const WASM_DIR = resolve(__dirname, './wasm')
+const ZKEY_DIR = resolve(__dirname, './zkey')
+fs.mkdir(WASM_DIR, () => {})
+fs.mkdir(ZKEY_DIR, () => {})
+
+async function dnld_aws(file_name : string) {
+    return new Promise((reslv, reject) => {
+        if (!fs.existsSync(resolve(__dirname, file_name))) {
+            const file = fs.createWriteStream(resolve(__dirname, file_name))
+            https.get(URL + file_name, (resp) => {
+                file.on("finish", () => {
+                    file.close();
+                    reslv(0)
+                });
+                resp.pipe(file)
+            });
+        } else {
+            reslv(0)
+        }
+    });
+}
 
 // Deploys contract for shuffle encrypt v1.
 async function deployShuffleEncrypt() {
@@ -53,7 +78,13 @@ async function deployStateMachine(numPlayers: bigint) {
 describe('Shuffle test', function () {
     const NumCard2Deal = 5;
     const numPlayers = 9;
-    beforeEach(async () => { });
+    beforeEach(async () => {
+        await Promise.all(['wasm/shuffle_encrypt.wasm', 'wasm/decrypt.wasm', 'zkey/shuffle_encrypt.zkey', 'zkey/decrypt.zkey', 'wasm/shuffle_encrypt_v2.wasm', 'zkey/shuffle_encrypt_v2.zkey'].map(
+            async (e) => {
+                await dnld_aws(e)
+            }
+        ));
+    });
 
     it('Shuffle contract can function normally', async () => {
         // Load metadata.
