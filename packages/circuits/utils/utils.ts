@@ -73,7 +73,7 @@ async function dnld_aws(file_name : string) {
     return new Promise((reslv, reject) => {
         if (!fs.existsSync(resolve(__dirname, file_name))) {
             const file = fs.createWriteStream(resolve(__dirname, file_name))
-            https.get(URL + file_name, (resp) => {
+            https.get(URL + file_name, (resp: { pipe: (arg0: fs.WriteStream) => void; }) => {
                 file.on("finish", () => {
                     file.close();
                     reslv(0)
