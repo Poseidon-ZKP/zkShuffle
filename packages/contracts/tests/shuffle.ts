@@ -14,13 +14,11 @@ const path = require('path');
 const https = require('https')
 
 const resourceBasePath = resolve(__dirname, './');
-const URL = "https://p0x-labs.s3.amazonaws.com/refactor/"
-const WASM_DIR = resolve(__dirname, './wasm')
-const ZKEY_DIR = resolve(__dirname, './zkey')
-fs.mkdir(WASM_DIR, () => {})
-fs.mkdir(ZKEY_DIR, () => {})
 
 async function dnld_aws(file_name : string) {
+    const URL = "https://p0x-labs.s3.amazonaws.com/refactor/"
+    fs.mkdir(resolve(__dirname, './wasm'), () => {})
+    fs.mkdir(resolve(__dirname, './zkey'), () => {})
     return new Promise((reslv, reject) => {
         if (!fs.existsSync(resolve(__dirname, file_name))) {
             const file = fs.createWriteStream(resolve(__dirname, file_name))

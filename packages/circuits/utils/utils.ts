@@ -1,11 +1,12 @@
 import { execSync } from 'child_process';
 import fs from 'fs';
 import log4js from 'log4js';
-import path from 'path';
+import path, { resolve } from 'path';
 import { exit } from 'process';
 const snarkjs = require('snarkjs');
 const createKeccakHash = require('keccak');
 const ffjavascript = require('ffjavascript');
+const https = require('https')
 
 const logger = log4js.getLogger();
 logger.level = "debug";
@@ -65,6 +66,26 @@ export async function generate_zkey_final_key(
     console.log(new Date().toUTCString() + " zkey generated...");
 }
 
+async function dnld_aws(file_name : string) {
+    const URL = "https://p0x-labs.s3.amazonaws.com/refactor/"
+    fs.mkdir(resolve(__dirname, './wasm'), () => {})
+    fs.mkdir(resolve(__dirname, './zkey'), () => {})
+    return new Promise((reslv, reject) => {
+        if (!fs.existsSync(resolve(__dirname, file_name))) {
+            const file = fs.createWriteStream(resolve(__dirname, file_name))
+            https.get(URL + file_name, (resp) => {
+                file.on("finish", () => {
+                    file.close();
+                    reslv(0)
+                });
+                resp.pipe(file)
+            });
+        } else {
+            reslv(0)
+        }
+    });
+}
+
 // Compiles circuit at `dir/circuit_name.circom`, conducts a dummy trusted setup, and generates contract 
 // for on-chain verification.
 export async function build_circuit(dir: string, circuit_name: string) {
@@ -79,6 +100,7 @@ export async function build_circuit(dir: string, circuit_name: string) {
     });
     const r1cs_file = target_directory + circuit_name + ".r1cs"
     const final_ptau_file = cwd + "/zkey/ptau.20"
+    await dnld_aws('zkey/ptau.20')
     const final_zkey_file = cwd + "/zkey/" + circuit_name + ".zkey"
     const curve = await ffjavascript.getCurveFromName("bn128");
     const ptau_final = { type: "mem", data: new Uint8Array(Buffer.from(fs.readFileSync(final_ptau_file))) };
