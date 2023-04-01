@@ -104,6 +104,8 @@ export async function build_circuit(dir: string, circuit_name: string) {
     const r1cs_file = target_directory + circuit_name + ".r1cs"
     const final_ptau_file = P0X_DIR + "/zkey/ptau.20"
     await dnld_aws('zkey/ptau.20')
+    fs.mkdir(resolve(cwd, './wasm'), () => {})
+    fs.mkdir(resolve(cwd, './zkey'), () => {})
     const final_zkey_file = cwd + "/zkey/" + circuit_name + ".zkey"
     const curve = await ffjavascript.getCurveFromName("bn128");
     const ptau_final = { type: "mem", data: new Uint8Array(Buffer.from(fs.readFileSync(final_ptau_file))) };
