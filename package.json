@@ -9,7 +9,7 @@
   },
   "scripts": {
     "compile": "yarn workspaces foreach run compile",
-    "test": "yarn workspaces foreach run test",
+    "test": "cd packages/contracts && yarn test && cd ../proof && yarn test",
     "doc": "cd packages/contracts && yarn doc"
   },
   "installConfig": {
