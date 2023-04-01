@@ -13,16 +13,17 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https')
 
-const resourceBasePath = resolve(__dirname, './');
-
+const HOME_DIR = require('os').homedir();
+const P0X_DIR = resolve(HOME_DIR, "./.poseidon-zkp")
+const P0X_AWS_URL = "https://p0x-labs.s3.amazonaws.com/refactor/"
 async function dnld_aws(file_name : string) {
-    const URL = "https://p0x-labs.s3.amazonaws.com/refactor/"
-    fs.mkdir(resolve(__dirname, './wasm'), () => {})
-    fs.mkdir(resolve(__dirname, './zkey'), () => {})
+    fs.mkdir(P0X_DIR, () => {})
+    fs.mkdir(resolve(P0X_DIR, './wasm'), () => {})
+    fs.mkdir(resolve(P0X_DIR, './zkey'), () => {})
     return new Promise((reslv, reject) => {
-        if (!fs.existsSync(resolve(__dirname, file_name))) {
-            const file = fs.createWriteStream(resolve(__dirname, file_name))
-            https.get(URL + file_name, (resp) => {
+        if (!fs.existsSync(resolve(P0X_DIR, file_name))) {
+            const file = fs.createWriteStream(resolve(P0X_DIR, file_name))
+            https.get(P0X_AWS_URL + file_name, (resp) => {
                 file.on("finish", () => {
                     file.close();
                     reslv(0)
@@ -34,6 +35,7 @@ async function dnld_aws(file_name : string) {
         }
     });
 }
+const resourceBasePath = P0X_DIR;
 
 // Deploys contract for shuffle encrypt v1.
 async function deployShuffleEncrypt() {

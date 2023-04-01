@@ -66,14 +66,17 @@ export async function generate_zkey_final_key(
     console.log(new Date().toUTCString() + " zkey generated...");
 }
 
+const HOME_DIR = require('os').homedir();
+const P0X_DIR = resolve(HOME_DIR, "./.poseidon-zkp")
+const P0X_AWS_URL = "https://p0x-labs.s3.amazonaws.com/refactor/"
 async function dnld_aws(file_name : string) {
-    const URL = "https://p0x-labs.s3.amazonaws.com/refactor/"
-    fs.mkdir(resolve(__dirname, './wasm'), () => {})
-    fs.mkdir(resolve(__dirname, './zkey'), () => {})
+    fs.mkdir(P0X_DIR, () => {})
+    fs.mkdir(resolve(P0X_DIR, './wasm'), () => {})
+    fs.mkdir(resolve(P0X_DIR, './zkey'), () => {})
     return new Promise((reslv, reject) => {
-        if (!fs.existsSync(resolve(__dirname, file_name))) {
-            const file = fs.createWriteStream(resolve(__dirname, file_name))
-            https.get(URL + file_name, (resp: { pipe: (arg0: fs.WriteStream) => void; }) => {
+        if (!fs.existsSync(resolve(P0X_DIR, file_name))) {
+            const file = fs.createWriteStream(resolve(P0X_DIR, file_name))
+            https.get(P0X_AWS_URL + file_name, (resp: { pipe: (arg0: fs.WriteStream) => void; }) => {
                 file.on("finish", () => {
                     file.close();
                     reslv(0)
@@ -99,7 +102,7 @@ export async function build_circuit(dir: string, circuit_name: string) {
         output: target_directory
     });
     const r1cs_file = target_directory + circuit_name + ".r1cs"
-    const final_ptau_file = cwd + "/zkey/ptau.20"
+    const final_ptau_file = P0X_DIR + "/zkey/ptau.20"
     await dnld_aws('zkey/ptau.20')
     const final_zkey_file = cwd + "/zkey/" + circuit_name + ".zkey"
     const curve = await ffjavascript.getCurveFromName("bn128");
