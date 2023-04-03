@@ -1,0 +1,12 @@
+== Solidity API
+
+=== PollState
+
+[source,solidity]
+----
+enum PollState {
+  Created,
+  Ongoing,
+  Ended
+}
+----

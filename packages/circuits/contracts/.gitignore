@@ -1,0 +1,6 @@
+babyjubjub_verifier.sol
+boolean_verifier.sol
+elgamalDecrypt_verifier.sol
+elgamalEncrypt_verifier.sol
+matrix_verifier.sol
+permutation_verifier.sol

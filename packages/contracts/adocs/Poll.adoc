@@ -1,0 +1,14 @@
+== Solidity API
+
+=== Poll
+
+[source,solidity]
+----
+struct Poll {
+  uint256 group_id;
+  uint256 id;
+  string[] msgs;
+  enum PollState state;
+  string title;
+}
+----

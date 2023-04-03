@@ -1,0 +1,44 @@
+{
+  "name": "@poseidon-zkp/poseidon-zk-proof",
+  "version": "0.0.1",
+  "main": "index.js",
+  "license": "MIT",
+  "description": "A library to generate proofs",
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.2.1",
+    "@nomiclabs/hardhat-waffle": "^2.0.3",
+    "@typechain/ethers-v5": "^10.1.1",
+    "@typechain/hardhat": "^6.1.4",
+    "@types/chai": "^4.3.4",
+    "@types/mocha": "^10.0.0",
+    "@types/node": "^18.11.9",
+    "chai": "^4.3.7",
+    "circomlibjs-0-1-7": "npm:circomlibjs@^0.1.7",
+    "ethereum-waffle": "^3.4.4",
+    "ethers": "^5.7.2",
+    "hardhat": "^2.12.2",
+    "patch-package": "^6.5.0",
+    "ts-node": "^10.9.1",
+    "typechain": "^8.1.1",
+    "typescript": "^4.9.3"
+  },
+  "scripts": {
+    "compile": "patch-package && tsc",
+    "watch": "tsc --watch",
+    "test": "hardhat test"
+  },
+  "dependencies": {
+    "@semaphore-protocol/group": "^2.6.1",
+    "@semaphore-protocol/identity": "^2.6.1",
+    "@semaphore-protocol/proof": "^2.6.1",
+    "@types/debug": "^4.1.7",
+    "@zk-kit/incremental-merkle-tree": "^1.0.0",
+    "dotenv": "^16.0.3",
+    "ethers": "^5.7.2",
+    "snarkjs": "^0.5.0"
+  },
+  "files": [
+    "src",
+    "dist"
+  ]
+}

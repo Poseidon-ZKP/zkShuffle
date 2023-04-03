@@ -1,0 +1,178 @@
+== Solidity API
+
+=== Shuffle
+
+==== shuffleEncryptVerifier
+
+[source,solidity]
+----
+contract IShuffleEncryptVerifier shuffleEncryptVerifier
+----
+
+==== decryptVerifier
+
+[source,solidity]
+----
+contract IDecryptVerifier decryptVerifier
+----
+
+==== numPlayers
+
+[source,solidity]
+----
+uint256 numPlayers
+----
+
+==== deck
+
+[source,solidity]
+----
+struct Deck deck
+----
+
+==== cardDeal
+
+[source,solidity]
+----
+struct CardDeal cardDeal
+----
+
+==== playerInfo
+
+[source,solidity]
+----
+struct PlayerInfo playerInfo
+----
+
+==== playerIdx
+
+[source,solidity]
+----
+uint256 playerIdx
+----
+
+==== state
+
+[source,solidity]
+----
+enum State state
+----
+
+==== inDealingPhase
+
+[source,solidity]
+----
+modifier inDealingPhase()
+----
+
+==== constructor
+
+[source,solidity]
+----
+constructor(address shuffleEncryptContract, address decryptContract, uint256 specifiedNumPlayer) public
+----
+
+==== resetRegistration
+
+[source,solidity]
+----
+function resetRegistration() internal
+----
+
+==== resetShuffle
+
+[source,solidity]
+----
+function resetShuffle() internal
+----
+
+==== resetDeal
+
+[source,solidity]
+----
+function resetDeal() internal
+----
+
+==== initDeck
+
+[source,solidity]
+----
+function initDeck() internal
+----
+
+==== register
+
+[source,solidity]
+----
+function register(uint256[2] pk) external
+----
+
+==== queryAggregatedPk
+
+[source,solidity]
+----
+function queryAggregatedPk() external view returns (uint256[2])
+----
+
+==== queryDeck
+
+[source,solidity]
+----
+function queryDeck() external view returns (struct Deck)
+----
+
+==== queryCardFromDeck
+
+[source,solidity]
+----
+function queryCardFromDeck(uint256 index) external view returns (uint256[4] card)
+----
+
+==== queryCardInDeal
+
+[source,solidity]
+----
+function queryCardInDeal(uint256 index) external view returns (uint256[4] card)
+----
+
+==== prepareShuffleData
+
+[source,solidity]
+----
+function prepareShuffleData(uint256 nonce, uint256[52] shuffledX0, uint256[52] shuffledX1, uint256[2] selector) internal view returns (uint256[215] input)
+----
+
+==== updateDeck
+
+[source,solidity]
+----
+function updateDeck(uint256[52] shuffledX0, uint256[52] shuffledX1, uint256[2] selector) internal
+----
+
+==== shuffle
+
+[source,solidity]
+----
+function shuffle(uint256[8] proof, uint256 nonce, uint256[52] shuffledX0, uint256[52] shuffledX1, uint256[2] selector) external
+----
+
+==== decompressEC
+
+[source,solidity]
+----
+function decompressEC(uint256 x, uint256 delta, uint256 selector) internal pure returns (uint256)
+----
+
+==== decompressCard
+
+[source,solidity]
+----
+function decompressCard(uint256 cardIdx, uint256[2] delta) internal view returns (uint256[2] Y)
+----
+
+==== deal
+
+[source,solidity]
+----
+function deal(uint256 cardIdx, uint256 curPlayerIdx, uint256[8] proof, uint256[2] decryptedCard, uint256[2] initDelta) external
+----

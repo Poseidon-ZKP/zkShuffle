@@ -1,0 +1,132 @@
+== Solidity API
+
+=== Pairing
+
+==== InvalidProof
+
+[source,solidity]
+----
+error InvalidProof()
+----
+
+==== BASE_MODULUS
+
+[source,solidity]
+----
+uint256 BASE_MODULUS
+----
+
+==== SCALAR_MODULUS
+
+[source,solidity]
+----
+uint256 SCALAR_MODULUS
+----
+
+==== G1Point
+
+[source,solidity]
+----
+struct G1Point {
+  uint256 X;
+  uint256 Y;
+}
+----
+
+==== G2Point
+
+[source,solidity]
+----
+struct G2Point {
+  uint256[2] X;
+  uint256[2] Y;
+}
+----
+
+==== P1
+
+[source,solidity]
+----
+function P1() internal pure returns (struct Pairing.G1Point)
+----
+
+===== Return Values
+
+[cols=",,",options="header",]
+|===
+|Name |Type |Description
+|[0] |struct Pairing.G1Point |the generator of G1
+|===
+
+==== P2
+
+[source,solidity]
+----
+function P2() internal pure returns (struct Pairing.G2Point)
+----
+
+===== Return Values
+
+[cols=",,",options="header",]
+|===
+|Name |Type |Description
+|[0] |struct Pairing.G2Point |the generator of G2
+|===
+
+==== negate
+
+[source,solidity]
+----
+function negate(struct Pairing.G1Point p) internal pure returns (struct Pairing.G1Point r)
+----
+
+===== Return Values
+
+[width="100%",cols="22%,21%,57%",options="header",]
+|===
+|Name |Type |Description
+|r |struct Pairing.G1Point |the negation of p,
+i.e. p.addition(p.negate()) should be zero.
+|===
+
+==== addition
+
+[source,solidity]
+----
+function addition(struct Pairing.G1Point p1, struct Pairing.G1Point p2) internal view returns (struct Pairing.G1Point r)
+----
+
+===== Return Values
+
+[cols=",,",options="header",]
+|===
+|Name |Type |Description
+|r |struct Pairing.G1Point |the sum of two points of G1
+|===
+
+==== scalar_mul
+
+[source,solidity]
+----
+function scalar_mul(struct Pairing.G1Point p, uint256 s) internal view returns (struct Pairing.G1Point r)
+----
+
+===== Return Values
+
+[width="100%",cols="22%,21%,57%",options="header",]
+|===
+|Name |Type |Description
+|r |struct Pairing.G1Point |the product of a point on G1 and a scalar,
+i.e. p == p.scalar_mul(1) and p.addition(p) == p.scalar_mul(2) for all
+points p.
+|===
+
+==== pairingCheck
+
+[source,solidity]
+----
+function pairingCheck(struct Pairing.G1Point[] p1, struct Pairing.G2Point[] p2) internal view
+----
+
+Asserts the pairing check e(p1[0], p2[0]) * …. * e(p1[n], p2[n]) == 1
+For example pairing([P1(), P1().negate()], [P2(), P2()]) should succeed

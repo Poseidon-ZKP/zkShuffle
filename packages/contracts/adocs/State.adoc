@@ -1,0 +1,12 @@
+== Solidity API
+
+=== State
+
+[source,solidity]
+----
+enum State {
+  Registration,
+  ShufflingDeck,
+  DealingCard
+}
+----
