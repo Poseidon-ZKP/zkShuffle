@@ -2,16 +2,43 @@ import { assert } from 'chai';
 import { readFileSync } from 'fs';
 import { ethers } from 'hardhat';
 import { resolve } from 'path';
-import { generateDecryptProof, generateShuffleEncryptProof, generateShuffleEncryptV2Proof, packToSolidityProof, SolidityProof, FullProof, shuffle, deal } from '@p0x-labs/poseidon-zk-proof/src/shuffle/proof';
-import { convertPk, initDeck, keyGen, keyAggregate, sampleFieldElements, samplePermutation, searchDeck, compressDeck, recoverDeck, string2Bigint, prepareDecryptData } from '@p0x-labs/poseidon-zk-proof/src/shuffle/utilities';
-import { shuffleEncryptPlaintext, shuffleEncryptV2Plaintext } from '@p0x-labs/poseidon-zk-proof/src/shuffle/plaintext';
-import { DecryptVerifier } from 'types/@p0x-labs/poseidon-zk-circuits/contracts/decrypt_verifier.sol';
+import { generateDecryptProof, generateShuffleEncryptProof, generateShuffleEncryptV2Proof, packToSolidityProof, SolidityProof, FullProof, shuffle, deal } from '@poseidon-zkp/poseidon-zk-proof/src/shuffle/proof';
+import { convertPk, initDeck, keyGen, keyAggregate, sampleFieldElements, samplePermutation, searchDeck, compressDeck, recoverDeck, string2Bigint, prepareDecryptData } from '@poseidon-zkp/poseidon-zk-proof/src/shuffle/utilities';
+import { shuffleEncryptPlaintext, shuffleEncryptV2Plaintext } from '@poseidon-zkp/poseidon-zk-proof/src/shuffle/plaintext';
+import { DecryptVerifier } from 'types/@poseidon-zkp/poseidon-zk-circuits/contracts/decrypt_verifier.sol';
 import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 const buildBabyjub = require('circomlibjs').buildBabyjub;
 const snarkjs = require('snarkjs');
 
-const resourceBasePath = resolve(__dirname, '../node_modules/@p0x-labs/poseidon-zk-circuits');
+const fs = require('fs');
+const path = require('path');
+const https = require('https')
+ 
+const HOME_DIR = require('os').homedir();
+const P0X_DIR = resolve(HOME_DIR, "./.poseidon-zkp")
+const P0X_AWS_URL = "https://p0x-labs.s3.amazonaws.com/refactor/"
+async function dnld_aws(file_name : string) {
+    fs.mkdir(P0X_DIR, () => {})
+    fs.mkdir(resolve(P0X_DIR, './wasm'), () => {})
+    fs.mkdir(resolve(P0X_DIR, './zkey'), () => {})
+    return new Promise((reslv, reject) => {
+        if (!fs.existsSync(resolve(P0X_DIR, file_name))) {
+            const file = fs.createWriteStream(resolve(P0X_DIR, file_name))
+            https.get(P0X_AWS_URL + file_name, (resp) => {
+                file.on("finish", () => {
+                    file.close();
+                    reslv(0)
+                });
+                resp.pipe(file)
+            });
+        } else {
+            reslv(0)
+        }
+    });
+}
+
+const resourceBasePath = P0X_DIR;
 
 // Deploys contract for shuffle encrypt v1.
 async function deployShuffleEncrypt() {
@@ -54,6 +81,13 @@ describe('Shuffle test', function () {
     const NumCard2Deal = 5;
     const numPlayers = 9;
     beforeEach(async () => { });
+    beforeEach(async () => {
+        await Promise.all(['wasm/shuffle_encrypt.wasm', 'wasm/decrypt.wasm', 'zkey/shuffle_encrypt.zkey', 'zkey/decrypt.zkey', 'wasm/shuffle_encrypt_v2.wasm', 'zkey/shuffle_encrypt_v2.zkey'].map(
+            async (e) => {
+                await dnld_aws(e)
+            }
+        ));
+    });
 
     it('Shuffle contract can function normally', async () => {
         // Load metadata.
