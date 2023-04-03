@@ -17,7 +17,7 @@ export function elgamalDecrypt(babyJub: BabyJub, c0: EC, c1: EC, sk: bigint): EC
     // Scalar Field Size of Baby JubJub curve
     let r = 2736030358979909402780800718157159386076813972158567259200215660948447373041n;
     // c1 - sk * c0
-    return babyJub.addPoint(c1, babyJub.mulPointEscalar(c0, r-sk));
+    return babyJub.addPoint(c1, babyJub.mulPointEscalar(c0, r - sk));
 }
 
 /// Shuffles `numCards` cards and encrypts individual cards, given an randomness array `R`, a permutation matrix `A`, 
@@ -48,8 +48,8 @@ export function shuffleEncryptPlaintext(babyjub: BabyJub, numCards: number, A: b
     for (let i = 0; i < 2; i++) {
         for (let j = 0; j < 2; j++) {
             for (let k = 0; k < ECOutArr.length; k++) {
-                Y[(i*2+j)*numCards + k] = BigInt(babyjub.F.toString(ECOutArr[k][i][j]));
-            }    
+                Y[(i * 2 + j) * numCards + k] = BigInt(babyjub.F.toString(ECOutArr[k][i][j]));
+            }
         }
     }
     return Y;

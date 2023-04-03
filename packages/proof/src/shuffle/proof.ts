@@ -2,6 +2,7 @@ import { Proof, packToSolidityProof, SolidityProof } from "@semaphore-protocol/p
 import { BabyJub, Deck, ecX2Delta, prepareDecryptData, prepareShuffleDeck } from './utilities';
 import { shuffleEncryptV2Plaintext } from './plaintext';
 const snarkjs = require('snarkjs');
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 export { packToSolidityProof, SolidityProof };
 
@@ -80,11 +81,14 @@ export async function shuffle(
     R: bigint[],
     aggregatedPk: bigint[],
     numCards: number,
+    gameId: number,
+    playerAddr: string,
+    gameContract: SignerWithAddress,
     stateMachineContract: Contract,
     shuffleEncryptV2WasmFile: string,
     shuffleEncryptV2ZkeyFile: string,
 ) {
-    let deck: Deck = await stateMachineContract.queryDeck();
+    let deck: Deck = await stateMachineContract.queryDeck(gameId);
     let aggregatedPkEC = [babyjub.F.e(aggregatedPk[0]), babyjub.F.e(aggregatedPk[1])];
     let preprocessedDeck = prepareShuffleDeck(babyjub, deck, numCards);
     let plaintext_output = shuffleEncryptV2Plaintext(
@@ -104,12 +108,14 @@ export async function shuffle(
         shuffleEncryptV2WasmFile, shuffleEncryptV2ZkeyFile,
     );
     let solidityProof: SolidityProof = packToSolidityProof(shuffleEncryptV2Output.proof);
-    await stateMachineContract.shuffle(
+    await stateMachineContract.connect(gameContract).shuffle(
+        playerAddr,
         solidityProof,
         shuffleEncryptV2Output.publicSignals[0],
         shuffleEncryptV2Output.publicSignals.slice(107, 159),
         shuffleEncryptV2Output.publicSignals.slice(159, 211),
         [shuffleEncryptV2Output.publicSignals[213], shuffleEncryptV2Output.publicSignals[214]],
+        gameId,
     );
 }
 
@@ -118,10 +124,13 @@ export async function shuffle(
 export async function deal(
     babyjub: BabyJub,
     numCards: number,
+    gameId: number,
     cardIdx: number,
     curPlayerIdx: number,
     sk: bigint,
     pk: bigint[],
+    playerAddr: string,
+    gameContract: SignerWithAddress,
     stateMachineContract: Contract,
     decryptWasmFile: string,
     decryptZkeyFile: string,
@@ -131,10 +140,13 @@ export async function deal(
         await dealCompressedCard(
             babyjub,
             numCards,
+            gameId,
             cardIdx,
             curPlayerIdx,
             sk,
             pk,
+            playerAddr,
+            gameContract,
             stateMachineContract,
             decryptWasmFile,
             decryptZkeyFile,
@@ -142,10 +154,13 @@ export async function deal(
         return [];
     } else {
         return await dealUncompressedCard(
+            gameId,
             cardIdx,
             curPlayerIdx,
             sk,
             pk,
+            playerAddr,
+            gameContract,
             stateMachineContract,
             decryptWasmFile,
             decryptZkeyFile,
@@ -157,15 +172,18 @@ export async function deal(
 export async function dealCompressedCard(
     babyjub: BabyJub,
     numCards: number,
+    gameId: number,
     cardIdx: number,
     curPlayerIdx: number,
     sk: bigint,
     pk: bigint[],
+    playerAddr: string,
+    gameContract: SignerWithAddress,
     stateMachineContract: Contract,
     decryptWasmFile: string,
     decryptZkeyFile: string,
 ) {
-    let card = await stateMachineContract.queryCardFromDeck(cardIdx);
+    let card = await stateMachineContract.queryCardFromDeck(cardIdx, gameId);
     let Y = prepareDecryptData(
         babyjub,
         card[0],
@@ -177,37 +195,44 @@ export async function dealCompressedCard(
     );
     let decryptProof = await generateDecryptProof(Y, sk, pk, decryptWasmFile, decryptZkeyFile);
     let solidityProof: SolidityProof = packToSolidityProof(decryptProof.proof)
-    await stateMachineContract.deal(
+    await stateMachineContract.connect(gameContract).deal(
+        playerAddr,
         cardIdx,
         curPlayerIdx,
         solidityProof,
         [decryptProof.publicSignals[0], decryptProof.publicSignals[1]],
         [ecX2Delta(babyjub, Y[0]), ecX2Delta(babyjub, Y[2])],
+        gameId,
     );
 }
 
 // Queries uncompressed card from contract, generate zkp, and verify on contract.
 export async function dealUncompressedCard(
+    gameId: number,
     cardIdx: number,
     curPlayerIdx: number,
     sk: bigint,
     pk: bigint[],
+    playerAddr: string,
+    gameContract: SignerWithAddress,
     stateMachineContract: Contract,
     decryptWasmFile: string,
     decryptZkeyFile: string,
 ): Promise<bigint[]> {
-    let card = await stateMachineContract.queryCardInDeal(cardIdx);
+    let card = await stateMachineContract.queryCardInDeal(cardIdx, gameId);
     let decryptProof = await generateDecryptProof(
         [card[0].toBigInt(), card[1].toBigInt(), card[2].toBigInt(), card[3].toBigInt()],
         sk, pk,
         decryptWasmFile, decryptZkeyFile);
     let solidityProof: SolidityProof = packToSolidityProof(decryptProof.proof)
-    await stateMachineContract.deal(
+    await stateMachineContract.connect(gameContract).deal(
+        playerAddr,
         cardIdx,
         curPlayerIdx,
         solidityProof,
         [decryptProof.publicSignals[0], decryptProof.publicSignals[1]],
         [0, 0],
+        gameId,
     );
     // publicSignals contain 8 values.
     // 1~2 is the card value, 3~6 is the Y, 7～8 is the personal public key.
