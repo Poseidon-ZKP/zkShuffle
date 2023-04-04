@@ -73,7 +73,7 @@ contract Shuffle is IShuffle, Ownable {
     // Initializes deck before shuffling.
     function initDeck(uint256 gameId) internal {
         Deck memory deck;
-        for (uint256 i = 0; i < 52; i++) {
+        for (uint256 i = 0; i < CARDNUM; i++) {
             deck.X0[i] = 0;
         }
         deck.X1[
@@ -315,19 +315,19 @@ contract Shuffle is IShuffle, Ownable {
     // Prepares public signal array for verifying card shuffling.
     function prepareShuffleData(
         uint256 nonce,
-        uint256[52] memory shuffledX0,
-        uint256[52] memory shuffledX1,
+        uint256[CARDNUM] memory shuffledX0,
+        uint256[CARDNUM] memory shuffledX1,
         uint256[2] memory selector,
         uint256 gameId
     ) internal view returns (uint256[215] memory input) {
         input[0] = nonce;
         input[1] = playerInfos[gameId].aggregatedPk[0];
         input[2] = playerInfos[gameId].aggregatedPk[1];
-        for (uint256 i = 0; i < 52; i++) {
+        for (uint256 i = 0; i < CARDNUM; i++) {
             input[i + 3] = decks[gameId].X0[i];
-            input[i + 55] = decks[gameId].X1[i];
-            input[i + 107] = shuffledX0[i];
-            input[i + 159] = shuffledX1[i];
+            input[i + 3 + CARDNUM] = decks[gameId].X1[i];
+            input[i + 3 + CARDNUM * 2] = shuffledX0[i];
+            input[i + 3 + CARDNUM * 3] = shuffledX1[i];
         }
         input[211] = decks[gameId].Selector[0];
         input[212] = decks[gameId].Selector[1];
@@ -337,12 +337,12 @@ contract Shuffle is IShuffle, Ownable {
 
     // Updates deck with the shuffled deck.
     function updateDeck(
-        uint256[52] memory shuffledX0,
-        uint256[52] memory shuffledX1,
+        uint256[CARDNUM] memory shuffledX0,
+        uint256[CARDNUM] memory shuffledX1,
         uint256[2] memory selector,
         uint256 gameId
     ) internal {
-        for (uint256 i = 0; i < 52; i++) {
+        for (uint256 i = 0; i < CARDNUM; i++) {
             decks[gameId].X0[i] = shuffledX0[i];
             decks[gameId].X1[i] = shuffledX1[i];
         }
@@ -355,8 +355,8 @@ contract Shuffle is IShuffle, Ownable {
         address permanentAccount,
         uint256[8] memory proof,
         uint256 nonce,
-        uint256[52] memory shuffledX0,
-        uint256[52] memory shuffledX1,
+        uint256[CARDNUM] memory shuffledX0,
+        uint256[CARDNUM] memory shuffledX1,
         uint256[2] memory selector,
         uint256 gameId
     ) external override onlyGameContract {
@@ -473,7 +473,7 @@ contract Shuffle is IShuffle, Ownable {
             "Card has not been fully decrypted"
         );
         uint256 X1 = cardDeals[gameId].cards[cardIndex].X1;
-        for (uint256 i = 0; i < 52; i++) {
+        for (uint256 i = 0; i < CARDNUM; i++) {
             if (initialDeck.X1[i] == X1) {
                 return i;
             }
