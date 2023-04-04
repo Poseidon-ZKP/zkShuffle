@@ -68,10 +68,11 @@ async function deployShuffleEncryptV2() {
 }
 
 // Deploys contract for shuffle state machine.
-async function deployStateMachine(shuffleStateMachineOwner: SignerWithAddress) {
+async function deployStateMachine(shuffleStateMachineOwner: SignerWithAddress, numCards : BigNumber) {
     const shuffle_encrypt_v2_verifier_contract = await deployShuffleEncryptV2();
     const decrypt_verifier_contract = await deployDecrypt();
     return await (await ethers.getContractFactory('Shuffle')).connect(shuffleStateMachineOwner).deploy(
+        numCards,
         shuffle_encrypt_v2_verifier_contract.address,
         decrypt_verifier_contract.address,
     );
@@ -362,7 +363,7 @@ describe('Shuffle test', function () {
         }
 
         // Deploy Contracts
-        const stateMachineContract = await deployStateMachine(shuffleStateMachineOwner);
+        const stateMachineContract = await deployStateMachine(shuffleStateMachineOwner, BigNumber.from(52));
         stateMachineContract.setGameContract(gameContract.address);
         stateMachineContract.connect(gameContract).setGameSettings(numPlayers, gameId);
 
