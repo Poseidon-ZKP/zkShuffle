@@ -20,12 +20,14 @@ interface IDecryptVerifier {
     ) external view;
 }
 
+uint256 constant CARDNUM = 52;
+
 // Deck of cards
 struct Deck {
-    // x0 of 52 cards
-    uint256[52] X0;
-    // x1 of 52 cards
-    uint256[52] X1;
+    // x0 of cards
+    uint256[CARDNUM] X0;
+    // x1 of cards
+    uint256[CARDNUM] X1;
     // 2 selectors for recovering y coordinates
     uint256[2] Selector;
 }
@@ -40,10 +42,10 @@ struct Card {
 
 // Cards in dealing
 struct CardDeal {
-    Card[52] cards;
+    Card[CARDNUM] cards;
     // Record which player has decrypted individual cards
     // Warning: Support at most 256 players
-    uint256[52] record;
+    uint256[CARDNUM] record;
 }
 
 // Player information
@@ -102,8 +104,8 @@ interface IShuffle {
         address permanentAccount,
         uint256[8] memory proof,
         uint256 nonce,
-        uint256[52] memory shuffledX0,
-        uint256[52] memory shuffledX1,
+        uint256[CARDNUM] memory shuffledX0,
+        uint256[CARDNUM] memory shuffledX1,
         uint256[2] memory selector,
         uint256 gameId
     ) external;
