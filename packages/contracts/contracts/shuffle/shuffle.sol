@@ -245,9 +245,6 @@ contract Shuffle is IShuffle, Ownable {
         } else {
             decks[gameId] = deck;
         }
-
-        cardDeals[gameId].cards = new Card[](numCards[gameId]);
-        cardDeals[gameId].record = new uint256[](numCards[gameId]);
     }
 
     // Registers a player with the `permanentAccount`, public key `pk`, and `gameId`.

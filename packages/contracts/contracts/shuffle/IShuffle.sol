@@ -40,10 +40,10 @@ struct Card {
 
 // Cards in dealing
 struct CardDeal {
-    Card[] cards;
+    mapping(uint256 => Card) cards;
     // Record which player has decrypted individual cards
     // Warning: Support at most 256 players
-    uint256[] record;
+    mapping(uint256 => uint256) record;
 }
 
 // Player information
