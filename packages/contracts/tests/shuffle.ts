@@ -389,6 +389,7 @@ describe('Shuffle test', function () {
                 playerAddrs[i],
                 [pkArray[i][0], pkArray[i][1]],
                 gameId,
+                numCards
             );
         }
 

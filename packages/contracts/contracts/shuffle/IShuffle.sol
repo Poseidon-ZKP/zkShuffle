@@ -20,14 +20,12 @@ interface IDecryptVerifier {
     ) external view;
 }
 
-uint256 constant CARDNUM = 52;
-
 // Deck of cards
 struct Deck {
     // x0 of cards
-    uint256[CARDNUM] X0;
+    uint256[] X0;
     // x1 of cards
-    uint256[CARDNUM] X1;
+    uint256[] X1;
     // 2 selectors for recovering y coordinates
     uint256[2] Selector;
 }
@@ -42,10 +40,10 @@ struct Card {
 
 // Cards in dealing
 struct CardDeal {
-    Card[CARDNUM] cards;
+    Card[] cards;
     // Record which player has decrypted individual cards
     // Warning: Support at most 256 players
-    uint256[CARDNUM] record;
+    uint256[] record;
 }
 
 // Player information
@@ -76,7 +74,8 @@ interface IShuffle {
     function register(
         address permanentAccount,
         uint256[2] memory pk,
-        uint256 gameId
+        uint256 gameId,
+        uint256 numCards
     ) external;
 
     // Returns the aggregated public key for all players.

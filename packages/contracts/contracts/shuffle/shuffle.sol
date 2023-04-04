@@ -20,6 +20,9 @@ contract Shuffle is IShuffle, Ownable {
     // The mapping of game id => deck
     mapping(uint256 => Deck) decks;
 
+    // The mapping of game id => Number of cards
+    mapping(uint256 => uint256) public numCards;
+
     // Initial deck which is the same for all games
     Deck initialDeck;
 
@@ -48,11 +51,11 @@ contract Shuffle is IShuffle, Ownable {
         _;
     }
 
-    constructor(address shuffleEncryptContract_, address decryptContract_) {
-        shuffleEncryptVerifier[CARDNUM] = IShuffleEncryptVerifier(
+    constructor(uint256 numCards, address shuffleEncryptContract_, address decryptContract_) {
+        shuffleEncryptVerifier[numCards] = IShuffleEncryptVerifier(
             shuffleEncryptContract_
         );
-        decryptVerifier[CARDNUM] = IDecryptVerifier(decryptContract_);
+        decryptVerifier[numCards] = IDecryptVerifier(decryptContract_);
     }
 
     // Sets game settings.
@@ -73,7 +76,9 @@ contract Shuffle is IShuffle, Ownable {
     // Initializes deck before shuffling.
     function initDeck(uint256 gameId) internal {
         Deck memory deck;
-        for (uint256 i = 0; i < CARDNUM; i++) {
+        deck.X0 = new uint256[](numCards[gameId]);
+        deck.X1 = new uint256[](numCards[gameId]);
+        for (uint256 i = 0; i < numCards[gameId]; i++) {
             deck.X0[i] = 0;
         }
         deck.X1[
@@ -240,16 +245,25 @@ contract Shuffle is IShuffle, Ownable {
         } else {
             decks[gameId] = deck;
         }
+
+        cardDeals[gameId].cards = new Card[](numCards[gameId]);
+        cardDeals[gameId].record = new uint256[](numCards[gameId]);
     }
 
     // Registers a player with the `permanentAccount`, public key `pk`, and `gameId`.
     function register(
         address permanentAccount,
         uint256[2] memory pk,
-        uint256 gameId
+        uint256 gameId,
+        uint256 _numCards
     ) external onlyGameContract override {
         require(states[gameId] == State.Registration, "Not in register phase");
         require(CurveBabyJubJub.isOnCurve(pk[0], pk[1]), "Invalid public key");
+        if (playerIndexes[gameId] == 0) {
+            numCards[gameId] = _numCards;
+        } else {
+            require(numCards[gameId] == _numCards, "Invalid numCards");
+        }
         playerInfos[gameId].playerAddr.push(permanentAccount);
         playerInfos[gameId].playerPk.push(pk[0]);
         playerInfos[gameId].playerPk.push(pk[1]);
@@ -320,16 +334,16 @@ contract Shuffle is IShuffle, Ownable {
         uint256[2] memory selector,
         uint256 gameId
     ) internal view returns (uint256[215] memory input) {
-        require(shuffledX0.length == CARDNUM, "ds0");
-        require(shuffledX1.length == CARDNUM, "ds1");
+        require(shuffledX0.length == numCards[gameId], "ds0");
+        require(shuffledX1.length == numCards[gameId], "ds1");
         input[0] = nonce;
         input[1] = playerInfos[gameId].aggregatedPk[0];
         input[2] = playerInfos[gameId].aggregatedPk[1];
-        for (uint256 i = 0; i < CARDNUM; i++) {
+        for (uint256 i = 0; i < numCards[gameId]; i++) {
             input[i + 3] = decks[gameId].X0[i];
-            input[i + 3 + CARDNUM] = decks[gameId].X1[i];
-            input[i + 3 + CARDNUM * 2] = shuffledX0[i];
-            input[i + 3 + CARDNUM * 3] = shuffledX1[i];
+            input[i + 3 + numCards[gameId]] = decks[gameId].X1[i];
+            input[i + 3 + numCards[gameId] * 2] = shuffledX0[i];
+            input[i + 3 + numCards[gameId] * 3] = shuffledX1[i];
         }
         input[211] = decks[gameId].Selector[0];
         input[212] = decks[gameId].Selector[1];
@@ -344,7 +358,7 @@ contract Shuffle is IShuffle, Ownable {
         uint256[2] memory selector,
         uint256 gameId
     ) internal {
-        for (uint256 i = 0; i < CARDNUM; i++) {
+        for (uint256 i = 0; i < numCards[gameId]; i++) {
             decks[gameId].X0[i] = shuffledX0[i];
             decks[gameId].X1[i] = shuffledX1[i];
         }
@@ -368,7 +382,7 @@ contract Shuffle is IShuffle, Ownable {
                 playerInfos[gameId].playerAddr[playerIndexes[gameId]],
             "Not your turn yet"
         );
-        shuffleEncryptVerifier[CARDNUM].verifyProof(
+        shuffleEncryptVerifier[numCards[gameId]].verifyProof(
             [proof[0], proof[1]],
             [[proof[2], proof[3]], [proof[4], proof[5]]],
             [proof[6], proof[7]],
@@ -444,7 +458,7 @@ contract Shuffle is IShuffle, Ownable {
             cardDeals[gameId].cards[cardIdx].Y0 = Y[0];
             cardDeals[gameId].cards[cardIdx].Y1 = Y[1];
         }
-        decryptVerifier[CARDNUM].verifyProof(
+        decryptVerifier[numCards[gameId]].verifyProof(
             [proof[0], proof[1]],
             [[proof[2], proof[3]], [proof[4], proof[5]]],
             [proof[6], proof[7]],
@@ -475,7 +489,7 @@ contract Shuffle is IShuffle, Ownable {
             "Card has not been fully decrypted"
         );
         uint256 X1 = cardDeals[gameId].cards[cardIndex].X1;
-        for (uint256 i = 0; i < CARDNUM; i++) {
+        for (uint256 i = 0; i < numCards[gameId]; i++) {
             if (initialDeck.X1[i] == X1) {
                 return i;
             }
