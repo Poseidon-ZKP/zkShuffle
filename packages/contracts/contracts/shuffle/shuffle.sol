@@ -315,11 +315,13 @@ contract Shuffle is IShuffle, Ownable {
     // Prepares public signal array for verifying card shuffling.
     function prepareShuffleData(
         uint256 nonce,
-        uint256[CARDNUM] memory shuffledX0,
-        uint256[CARDNUM] memory shuffledX1,
+        uint256[] memory shuffledX0,
+        uint256[] memory shuffledX1,
         uint256[2] memory selector,
         uint256 gameId
     ) internal view returns (uint256[215] memory input) {
+        require(shuffledX0.length == CARDNUM, "ds0");
+        require(shuffledX1.length == CARDNUM, "ds1");
         input[0] = nonce;
         input[1] = playerInfos[gameId].aggregatedPk[0];
         input[2] = playerInfos[gameId].aggregatedPk[1];
@@ -337,8 +339,8 @@ contract Shuffle is IShuffle, Ownable {
 
     // Updates deck with the shuffled deck.
     function updateDeck(
-        uint256[CARDNUM] memory shuffledX0,
-        uint256[CARDNUM] memory shuffledX1,
+        uint256[] memory shuffledX0,
+        uint256[] memory shuffledX1,
         uint256[2] memory selector,
         uint256 gameId
     ) internal {
@@ -355,8 +357,8 @@ contract Shuffle is IShuffle, Ownable {
         address permanentAccount,
         uint256[8] memory proof,
         uint256 nonce,
-        uint256[CARDNUM] memory shuffledX0,
-        uint256[CARDNUM] memory shuffledX1,
+        uint256[] memory shuffledX0,
+        uint256[] memory shuffledX1,
         uint256[2] memory selector,
         uint256 gameId
     ) external override onlyGameContract {
