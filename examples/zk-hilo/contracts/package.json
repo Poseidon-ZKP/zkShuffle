@@ -1,0 +1,39 @@
+{
+  "name": "@p0x-labs/zk-hilo",
+  "version": "0.0.1",
+  "main": "index.js",
+  "license": "MIT",
+  "description": "Example integtration",
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.2.1",
+    "@nomiclabs/hardhat-waffle": "^2.0.3",
+    "@typechain/ethers-v5": "^10.1.1",
+    "@typechain/hardhat": "^6.1.4",
+    "@types/chai": "^4.3.4",
+    "@types/mocha": "^10.0.0",
+    "@types/node": "^18.11.9",
+    "chai": "^4.3.7",
+    "dotenv": "^16.0.3",
+    "ethereum-waffle": "^3.4.4",
+    "ethers": "^5.7.2",
+    "hardhat": "^2.12.5",
+    "hardhat-contract-sizer": "^2.6.1",
+    "solhint": "^3.3.7",
+    "ts-node": "^10.9.1",
+    "typechain": "^8.1.1",
+    "typescript": "^4.9.3"
+  },
+  "dependencies": {
+    "@ethersproject/abi": "^5.7.0",
+    "@morgan-stanley/ts-mocking-bird": "^0.7.0",
+    "@openzeppelin/contracts": "^4.8.2"
+  },
+  "scripts": {
+    "compile": "hardhat compile --verbose",
+    "lint:sol": "solhint --config ./.solhint.json  \"contracts/**/*.sol\"",
+    "test": "hardhat test",
+    "deploy": "hardhat deploy",
+    "contract-size": "hardhat size-contracts",
+    "doc": "hardhat docgen"
+  }
+}
