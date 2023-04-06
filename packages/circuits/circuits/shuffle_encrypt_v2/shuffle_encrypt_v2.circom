@@ -7,8 +7,7 @@ include "../common/permutation.circom";
 include "./shuffle_encrypt_v2_template.circom";
 include "../../node_modules/circomlib/circuits/bitify.circom";
 
-template ShuffleEncryptV2() {
-    var numCards = 52;
+template ShuffleEncryptV2(numCards) {
     var numBits = 251;
     // Base8 generator of Baby JubJub curve: https://github.com/iden3/circomlibjs/blob/main/src/babyjub.js#L18-L21
     var base[2] = [5299619240641551281634865583518297030282874472190772894086521144482721001553,
@@ -55,4 +54,4 @@ template ShuffleEncryptV2() {
     }
 }
 
-component main {public [pk, UX0, UX1, VX0, VX1, s_u, s_v]}  = ShuffleEncryptV2();
+component main {public [pk, UX0, UX1, VX0, VX1, s_u, s_v]}  = ShuffleEncryptV2(30);

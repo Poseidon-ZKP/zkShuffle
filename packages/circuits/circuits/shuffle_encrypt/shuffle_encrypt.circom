@@ -5,8 +5,7 @@ include "../common/matrix.circom";
 include "../common/permutation.circom";
 include "./shuffle_encrypt_template.circom";
 
-template ShuffleEncrypt() {
-    var numCards = 52;
+template ShuffleEncrypt(numCards) {
     var numBits = 251;
     var base[2] = [5299619240641551281634865583518297030282874472190772894086521144482721001553,
                    16950150798460657717958625567821834550301663161624707787222815936182638968203];
@@ -32,4 +31,4 @@ template ShuffleEncrypt() {
     }
 }
 
-component main {public [X, pk]}  = ShuffleEncrypt();
+component main {public [X, pk]}  = ShuffleEncrypt(52);
