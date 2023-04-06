@@ -51,11 +51,12 @@ contract Shuffle is IShuffle, Ownable {
         _;
     }
 
-    constructor(uint256 numCards, address shuffleEncryptContract_, address decryptContract_) {
-        shuffleEncryptVerifier[numCards] = IShuffleEncryptVerifier(
-            shuffleEncryptContract_
-        );
-        decryptVerifier[numCards] = IDecryptVerifier(decryptContract_);
+    //constructor(uint256 numCards, address shuffleEncryptContract_, address decryptContract_) {
+    constructor(Verifier[] memory verifier) {
+        for (uint256 i = 0; i < verifier.length; i++) {
+            shuffleEncryptVerifier[verifier[i].numCards] = IShuffleEncryptVerifier(verifier[i].encrypt);
+            decryptVerifier[verifier[i].numCards] = IDecryptVerifier(verifier[i].encrypt);
+        }
     }
 
     // Sets game settings.
@@ -252,14 +253,14 @@ contract Shuffle is IShuffle, Ownable {
         address permanentAccount,
         uint256[2] memory pk,
         uint256 gameId,
-        uint256 _numCards
+        uint256 numCards_
     ) external onlyGameContract override {
         require(states[gameId] == State.Registration, "Not in register phase");
         require(CurveBabyJubJub.isOnCurve(pk[0], pk[1]), "Invalid public key");
         if (playerIndexes[gameId] == 0) {
-            numCards[gameId] = _numCards;
+            numCards[gameId] = numCards_;
         } else {
-            require(numCards[gameId] == _numCards, "Invalid numCards");
+            require(numCards[gameId] == numCards_, "Invalid numCards");
         }
         playerInfos[gameId].playerAddr.push(permanentAccount);
         playerInfos[gameId].playerPk.push(pk[0]);

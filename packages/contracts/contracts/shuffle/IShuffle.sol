@@ -63,6 +63,12 @@ enum State {
     DealingCard
 }
 
+struct Verifier {
+    uint256 numCards;
+    address encrypt;
+    address decrypt;
+}
+
 interface IShuffle {
     // A constant indicating the card is not found in the deck
     function INVALID_CARD_INDEX() external view returns (uint256);

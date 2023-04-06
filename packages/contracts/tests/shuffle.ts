@@ -72,16 +72,19 @@ async function deployStateMachine(shuffleStateMachineOwner: SignerWithAddress, n
     const shuffle_encrypt_v2_verifier_contract = await deployShuffleEncryptV2();
     const decrypt_verifier_contract = await deployDecrypt();
     return await (await ethers.getContractFactory('Shuffle')).connect(shuffleStateMachineOwner).deploy(
-        numCards,
-        shuffle_encrypt_v2_verifier_contract.address,
-        decrypt_verifier_contract.address,
+        [
+            {
+                numCards : numCards,
+                encrypt  : shuffle_encrypt_v2_verifier_contract.address,
+                decrypt  :decrypt_verifier_contract.address
+            }
+        ]
     );
 }
 
 describe('Shuffle test', function () {
     const NumCard2Deal = 5;
     const numPlayers = 9;
-    beforeEach(async () => { });
     beforeEach(async () => {
         await Promise.all(['wasm/shuffle_encrypt.wasm', 'wasm/decrypt.wasm', 'zkey/shuffle_encrypt.zkey', 'zkey/decrypt.zkey', 'wasm/shuffle_encrypt_v2.wasm', 'zkey/shuffle_encrypt_v2.zkey'].map(
             async (e) => {
