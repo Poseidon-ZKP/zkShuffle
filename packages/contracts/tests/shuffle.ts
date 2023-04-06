@@ -73,7 +73,7 @@ describe('Shuffle test', function () {
     const NumCard2Deal = 5;
     const numPlayers = 9;
     beforeEach(async () => {
-        await Promise.all(['wasm/shuffle_encrypt.wasm', 'wasm/decrypt.wasm', 'zkey/shuffle_encrypt.zkey', 'zkey/decrypt.zkey', 'wasm/shuffle_encrypt_v2.wasm', 'zkey/shuffle_encrypt_v2.zkey'].map(
+        await Promise.all(['wasm/decrypt.wasm', 'zkey/decrypt.zkey', 'wasm/shuffle_encrypt_v2.wasm', 'zkey/shuffle_encrypt_v2.zkey', 'wasm/shuffle_encrypt_v2.wasm.30', 'zkey/shuffle_encrypt_v2.zkey.30'].map(
             async (e) => {
                 await dnld_aws(e)
             }
