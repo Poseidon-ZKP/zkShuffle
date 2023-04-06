@@ -54,16 +54,27 @@ async function deployShuffleEncryptV2() {
     })).deploy();
 }
 
+async function deployShuffleEncryptV2CARD30() {
+    const vk = await (await ethers.getContractFactory('ShuffleEncryptV2VerifierKey')).deploy();
+    return await (await ethers.getContractFactory('Shuffle_encrypt_v2Verifier_30card')).deploy();
+}
+
 // Deploys contract for shuffle state machine.
-async function deployStateMachine(shuffleStateMachineOwner: SignerWithAddress, numCards : BigNumber) {
+async function deployStateMachine(shuffleStateMachineOwner: SignerWithAddress) {
     const shuffle_encrypt_v2_verifier_contract = await deployShuffleEncryptV2();
+    const shuffleEncryptV2Verifier30CardContract = await deployShuffleEncryptV2CARD30();
     const decrypt_verifier_contract = await deployDecrypt();
     return await (await ethers.getContractFactory('Shuffle')).connect(shuffleStateMachineOwner).deploy(
         [
             {
-                numCards : numCards,
+                numCards : 52,
                 encrypt  : shuffle_encrypt_v2_verifier_contract.address,
-                decrypt  :decrypt_verifier_contract.address
+                decrypt  : decrypt_verifier_contract.address
+            },
+            {
+                numCards : 30,
+                encrypt  : shuffleEncryptV2Verifier30CardContract.address,
+                decrypt  : decrypt_verifier_contract.address
             }
         ]
     );
@@ -217,7 +228,7 @@ describe('Shuffle test', function () {
         const shuffleEncryptV2ZkeyFile = resolve(resourceBasePath, './zkey/shuffle_encrypt_v2.zkey');
         const decryptWasmFile = resolve(resourceBasePath, './wasm/decrypt.wasm');
         const decryptZkeyFile = resolve(resourceBasePath, './zkey/decrypt.zkey');
-        const gameId = 1; // Could be any positive number. 
+        let gameId = 1; // Could be any positive number. 
 
         // Generates eth accounts
         let signers = await ethers.getSigners();
@@ -235,7 +246,6 @@ describe('Shuffle test', function () {
         stateMachineContract.setGameContract(gameContract.address);
         stateMachineContract.connect(gameContract).setGameSettings(numPlayers, gameId);
 
-        const numCards = BigInt(52);
         const numBits = BigInt(251);
         const babyjub = await buildBabyjub();
 
@@ -252,60 +262,64 @@ describe('Shuffle test', function () {
         }
         pkArray = convertPk(babyjub, pkArray);
 
-        // Registers three players
-        for (let i = 0; i < numPlayers; i++) {
-            await stateMachineContract.connect(gameContract).register(
-                playerAddrs[i],
-                [pkArray[i][0], pkArray[i][1]],
-                gameId,
-                numCards
-            );
-        }
-
-        // Queries aggregated public key
-        const key = await stateMachineContract.queryAggregatedPk(gameId);
-        const aggregatePk = [key[0].toBigInt(), key[1].toBigInt()];
-
-        // Now shuffle the cards! Each player should run shuffleEncrypt.
-        // Output is the shuffled card Y and a proof.
-        for (let i = 0; i < numPlayers; i++) {
-            let A = samplePermutation(Number(numCards));
-            let R = sampleFieldElements(babyjub, numBits, numCards);
-            await shuffle(babyjub, A, R, aggregatePk, Number(numCards), gameId, playerAddrs[i], gameContract, stateMachineContract, shuffleEncryptV2WasmFile, shuffleEncryptV2ZkeyFile);
-            console.log('Player' + String(i) + ' shuffled the card!');
-        }
-
-        const initialDeck: bigint[] = initDeck(babyjub, Number(numCards));
-
-        // Decrypts NumCard2Deal cards
-        for (let i = 0; i < NumCard2Deal; i++) {
-            let flag: boolean;
-            let card: bigint[];
-            for (let j = 0; j < numPlayers; j++) {
-                let curPlayerIdx = (Number(i) + j) % numPlayers;
-                if (j === 0) flag = true;
-                else flag = false;
-                card = await deal(
-                    babyjub,
-                    Number(numCards),
+        const SHUFFLE_NUM_CARDS = [52, 30]
+        for (const numCards of SHUFFLE_NUM_CARDS) {
+            // Registers three players
+            for (let i = 0; i < numPlayers; i++) {
+                await stateMachineContract.connect(gameContract).register(
+                    playerAddrs[i],
+                    [pkArray[i][0], pkArray[i][1]],
                     gameId,
-                    i,
-                    curPlayerIdx,
-                    skArray[curPlayerIdx],
-                    pkArray[curPlayerIdx],
-                    playerAddrs[curPlayerIdx],
-                    gameContract,
-                    stateMachineContract,
-                    decryptWasmFile,
-                    decryptZkeyFile,
-                    flag,
+                    numCards
                 );
-                if (j === numPlayers - 1) {
-                    const cardIdx = searchDeck(initialDeck, card[0], Number(numCards));
-                    console.log('cardIdx: ', cardIdx);
+            }
+
+            // Queries aggregated public key
+            const key = await stateMachineContract.queryAggregatedPk(gameId);
+            const aggregatePk = [key[0].toBigInt(), key[1].toBigInt()];
+
+            // Now shuffle the cards! Each player should run shuffleEncrypt.
+            // Output is the shuffled card Y and a proof.
+            for (let i = 0; i < numPlayers; i++) {
+                let A = samplePermutation(Number(numCards));
+                let R = sampleFieldElements(babyjub, numBits, numCards);
+                await shuffle(babyjub, A, R, aggregatePk, Number(numCards), gameId, playerAddrs[i], gameContract, stateMachineContract, shuffleEncryptV2WasmFile, shuffleEncryptV2ZkeyFile);
+                console.log('Player' + String(i) + ' shuffled the card!');
+            }
+
+            const initialDeck: bigint[] = initDeck(babyjub, Number(numCards));
+
+            // Decrypts NumCard2Deal cards
+            for (let i = 0; i < NumCard2Deal; i++) {
+                let flag: boolean;
+                let card: bigint[];
+                for (let j = 0; j < numPlayers; j++) {
+                    let curPlayerIdx = (Number(i) + j) % numPlayers;
+                    if (j === 0) flag = true;
+                    else flag = false;
+                    card = await deal(
+                        babyjub,
+                        Number(numCards),
+                        gameId,
+                        i,
+                        curPlayerIdx,
+                        skArray[curPlayerIdx],
+                        pkArray[curPlayerIdx],
+                        playerAddrs[curPlayerIdx],
+                        gameContract,
+                        stateMachineContract,
+                        decryptWasmFile,
+                        decryptZkeyFile,
+                        flag,
+                    );
+                    if (j === numPlayers - 1) {
+                        const cardIdx = searchDeck(initialDeck, card[0], Number(numCards));
+                        console.log('cardIdx: ', cardIdx);
+                    }
                 }
             }
+            console.log('Decrypt Done!!!');
+            gameId++
         }
-        console.log('Decrypt Done!!!');
     })
 });
