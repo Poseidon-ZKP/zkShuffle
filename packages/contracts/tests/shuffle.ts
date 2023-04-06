@@ -84,7 +84,7 @@ describe('Shuffle test', function () {
     const NumCard2Deal = 5;
     const numPlayers = 9;
     beforeEach(async () => {
-        await Promise.all(['wasm/decrypt.wasm', 'zkey/decrypt.zkey', 'wasm/shuffle_encrypt_v2.wasm', 'zkey/shuffle_encrypt_v2.zkey', 'wasm/shuffle_encrypt_v2.wasm.30', 'zkey/shuffle_encrypt_v2.zkey.30'].map(
+        await Promise.all(['wasm/decrypt.wasm', 'zkey/decrypt.zkey', 'wasm/shuffle_encrypt_v2.wasm.52', 'zkey/shuffle_encrypt_v2.zkey.52', 'wasm/shuffle_encrypt_v2.wasm.30', 'zkey/shuffle_encrypt_v2.zkey.30'].map(
             async (e) => {
                 await dnld_aws(e)
             }
@@ -93,8 +93,8 @@ describe('Shuffle test', function () {
 
     it('Shuffle contract v2 can function normally', async () => {
         // Load metadata.
-        const shuffleEncryptV2WasmFile = resolve(resourceBasePath, './wasm/shuffle_encrypt_v2.wasm');
-        const shuffleEncryptV2ZkeyFile = resolve(resourceBasePath, './zkey/shuffle_encrypt_v2.zkey');
+        const shuffleEncryptV2WasmFile = resolve(resourceBasePath, './wasm/shuffle_encrypt_v2.wasm.52');
+        const shuffleEncryptV2ZkeyFile = resolve(resourceBasePath, './zkey/shuffle_encrypt_v2.zkey.52');
         const shuffleEncryptV2Vkey = await snarkjs.zKey.exportVerificationKey(new Uint8Array(Buffer.from(readFileSync(shuffleEncryptV2ZkeyFile))));
 
         const decryptWasmFile = resolve(resourceBasePath, './wasm/decrypt.wasm');
@@ -224,8 +224,6 @@ describe('Shuffle test', function () {
 
     it('Shuffle state machine is correct', async () => {
         // Load metadata.
-        const shuffleEncryptV2WasmFile = resolve(resourceBasePath, './wasm/shuffle_encrypt_v2.wasm');
-        const shuffleEncryptV2ZkeyFile = resolve(resourceBasePath, './zkey/shuffle_encrypt_v2.zkey');
         const decryptWasmFile = resolve(resourceBasePath, './wasm/decrypt.wasm');
         const decryptZkeyFile = resolve(resourceBasePath, './zkey/decrypt.zkey');
         let gameId = 1; // Could be any positive number. 
@@ -264,6 +262,9 @@ describe('Shuffle test', function () {
 
         const SHUFFLE_NUM_CARDS = [52, 30]
         for (const numCards of SHUFFLE_NUM_CARDS) {
+            const shuffleEncryptV2WasmFile = resolve(resourceBasePath, './wasm/shuffle_encrypt_v2.wasm.' + numCards);
+            const shuffleEncryptV2ZkeyFile = resolve(resourceBasePath, './zkey/shuffle_encrypt_v2.zkey.' + numCards);
+
             // Registers three players
             for (let i = 0; i < numPlayers; i++) {
                 await stateMachineContract.connect(gameContract).register(
