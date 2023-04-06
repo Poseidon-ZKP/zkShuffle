@@ -55,7 +55,6 @@ async function deployShuffleEncryptV2() {
 }
 
 async function deployShuffleEncryptV2CARD30() {
-    const vk = await (await ethers.getContractFactory('ShuffleEncryptV2VerifierKey')).deploy();
     return await (await ethers.getContractFactory('Shuffle_encrypt_v2Verifier_30card')).deploy();
 }
 

@@ -832,12 +832,12 @@ contract Shuffle_encrypt_v2Verifier_30card {
     if (input.length + 1 != vk.IC.length) revert Shuffle_encrypt_v2Pairing_30card.InvalidProof();
     Shuffle_encrypt_v2Pairing_30card.G1Point memory vk_x = vk.IC[0];
     for (uint i = 0; i < input.length; i++) {
-      vk_x = Shuffle_encrypt_v2Pairing_30card.addition(vk_x, Shuffle_encrypt_v2Pairing.scalar_mul(vk.IC[i+1], input[i]));
+      vk_x = Shuffle_encrypt_v2Pairing_30card.addition(vk_x, Shuffle_encrypt_v2Pairing_30card.scalar_mul(vk.IC[i+1], input[i]));
     }
 
     // Check pairing
-    Shuffle_encrypt_v2Pairing_30card.G1Point[] memory p1 = new Shuffle_encrypt_v2Pairing.G1Point[](4);
-    Shuffle_encrypt_v2Pairing_30card.G2Point[] memory p2 = new Shuffle_encrypt_v2Pairing.G2Point[](4);
+    Shuffle_encrypt_v2Pairing_30card.G1Point[] memory p1 = new Shuffle_encrypt_v2Pairing_30card.G1Point[](4);
+    Shuffle_encrypt_v2Pairing_30card.G2Point[] memory p2 = new Shuffle_encrypt_v2Pairing_30card.G2Point[](4);
     p1[0] = Shuffle_encrypt_v2Pairing_30card.negate(proof.A);
     p2[0] = proof.B;
     p1[1] = vk.alfa1;
