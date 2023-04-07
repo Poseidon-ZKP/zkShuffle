@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
+import "../../shuffle/IShuffle.sol";
 
-contract HiLo {
+//Game Logic Contract for HiLo
+contract HiLoEvaluator {
     address public owner;
     uint public maxBet;
 
@@ -17,7 +19,7 @@ contract HiLo {
         maxBet = 1 ether; // set the maximum bet to 1 ether
     }
 
-    function play(
+    function evaluate(
         uint firstCard,
         string memory guess,
         uint secondCard

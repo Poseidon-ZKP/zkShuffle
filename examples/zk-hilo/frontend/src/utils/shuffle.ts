@@ -8,6 +8,7 @@ import { assert } from 'chai';
 import { resolve } from 'path';
 import { ethers } from "ethers";
 import { contracts } from "../const/contracts";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 const numBits = BigInt(251);
 const babyjub = await buildBabyjub();
@@ -63,8 +64,7 @@ const provider = new ethers.providers.JsonRpcProvider("http://localhost:8545");
 const privateKey = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"; // the private key of the account that deploys the game contract
 const signer = new ethers.Wallet(privateKey, provider);
 const gameContract = new ethers.Contract(gameContractAddress, contracts.HiLo.abi, signer);
-const gameContractWithSigner = gameContract.connect(signer);
-const gameContractWithSignerWithAddress = gameContractWithSigner.connect(provider.getSigner(gameContractAddress)) 
+const gameContractSigner  = await SignerWithAddress.create(signer);
 const stateMachineContract = new ethers.Contract(contracts.Shuffle.address, contracts.Shuffle.abi, provider);
 
 // Step 2: register players, 2 for hilo game, one user one server 
@@ -82,7 +82,7 @@ export async function registerPlayers(numPlayers: bigint) {
 
     //sk array need to be stored locally in case user refresh the page
     for (let i = 0; i < numPlayers; i++) {
-        await stateMachineContract.connect(gameContractWithSigner.signer).register(
+        await stateMachineContract.connect(signer).register(
             playerAddrs[i],
             [pkArray[i][0], pkArray[i][1]],
             gameId,
@@ -104,7 +104,7 @@ export async function shuffleCards(numPlayers:bigint, numCards:bigint) {
     for (let i = 0; i < numPlayers; i++) {
         let A = samplePermutation(Number(numCards));
         let R = sampleFieldElements(babyjub, numBits, numCards);
-        await shuffle(babyjub, A, R, aggregatePk, Number(numCards), gameId, playerAddrs[i], gameContract, stateMachineContract, shuffleEncryptV2WasmFile, shuffleEncryptV2ZkeyFile);
+        await shuffle(babyjub, A, R, aggregatePk, Number(numCards), gameId, playerAddrs[i], gameContractSigner, stateMachineContract, shuffleEncryptV2WasmFile, shuffleEncryptV2ZkeyFile);
         console.log('Player' + String(i) + ' shuffled the card!');
     }
 }
@@ -119,7 +119,7 @@ export async function decryptCards(numPlayers:bigint, numCards:bigint,  NumCard2
       for (let j = 0; j < numPlayers; j++) {
         const curPlayerIdx = (i + j) % Number(numPlayers);
         if (j > 0) flag = false;
-        card = await deal(babyjub, Number(numCards), gameId, i, curPlayerIdx, skArray[curPlayerIdx], pkArray[curPlayerIdx], playerAddrs[curPlayerIdx], gameContract, stateMachineContract, decryptWasmFile, decryptZkeyFile, flag);
+        card = await deal(babyjub, Number(numCards), gameId, i, curPlayerIdx, skArray[curPlayerIdx], pkArray[curPlayerIdx], playerAddrs[curPlayerIdx], gameContractSigner, stateMachineContract, decryptWasmFile, decryptZkeyFile, flag);
         if (j === Number(numPlayers)- 1) {
           const cardIdx = searchDeck(initialDeck, card[0], Number(numCards));
           console.log('cardIdx: ', cardIdx);
