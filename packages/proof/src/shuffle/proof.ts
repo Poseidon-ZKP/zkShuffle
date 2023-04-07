@@ -112,9 +112,9 @@ export async function shuffle(
         playerAddr,
         solidityProof,
         shuffleEncryptV2Output.publicSignals[0],
-        shuffleEncryptV2Output.publicSignals.slice(107, 159),
-        shuffleEncryptV2Output.publicSignals.slice(159, 211),
-        [shuffleEncryptV2Output.publicSignals[213], shuffleEncryptV2Output.publicSignals[214]],
+        shuffleEncryptV2Output.publicSignals.slice(3 + numCards * 2, 3 + numCards * 3),
+        shuffleEncryptV2Output.publicSignals.slice(3 + numCards * 3, 3 + numCards * 4),
+        [shuffleEncryptV2Output.publicSignals[5 + numCards * 4], shuffleEncryptV2Output.publicSignals[6 + numCards * 4]],
         gameId,
     );
 }

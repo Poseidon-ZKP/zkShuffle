@@ -250,10 +250,10 @@ contract Shuffle is IShuffle, Ownable {
             input[i + 3 + numCards[gameId] * 2] = shuffledX0[i];
             input[i + 3 + numCards[gameId] * 3] = shuffledX1[i];
         }
-        input[211] = decks[gameId].Selector[0];
-        input[212] = decks[gameId].Selector[1];
-        input[213] = selector[0];
-        input[214] = selector[1];
+        input[3 + 4 * numCards[gameId]] = decks[gameId].Selector[0];
+        input[4 + 4 * numCards[gameId]] = decks[gameId].Selector[1];
+        input[5 + 4 * numCards[gameId]] = selector[0];
+        input[6 + 4 * numCards[gameId]] = selector[1];
     }
 
     // Updates deck with the shuffled deck.

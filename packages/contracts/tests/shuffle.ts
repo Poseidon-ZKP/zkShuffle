@@ -155,7 +155,7 @@ describe('Shuffle test', function () {
             // Output is the shuffled card Y and a proof.
             for (let i = 0; i < numPlayers; i++) {
                 let A = samplePermutation(Number(numCards));
-                let R = sampleFieldElements(babyjub, numBits, numCards);
+                let R = sampleFieldElements(babyjub, numBits, BigInt(numCards));
                 await shuffle(babyjub, A, R, aggregatePk, Number(numCards), gameId, playerAddrs[i], gameContract, stateMachineContract, shuffleEncryptV2WasmFile, shuffleEncryptV2ZkeyFile);
                 console.log('Player' + String(i) + ' shuffled the card!');
             }
