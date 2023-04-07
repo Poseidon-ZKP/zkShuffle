@@ -159,7 +159,7 @@ contract HiLo is Ownable, IHiLo {
     }
 
     // Shuffles the deck without submitting the proof.
-    function shuffleDeck(
+    function shuffle(
         uint256[52] calldata shuffledX0,
         uint256[52] calldata shuffledX1,
         uint256[2] calldata selector,
@@ -170,7 +170,7 @@ contract HiLo is Ownable, IHiLo {
         address permanentAccount = accountManagement.getPermanentAccount(
             msg.sender
         );
-        shuffle.shuffleDeck(
+        shuffle.shuffle(
             permanentAccount,
             shuffledX0,
             shuffledX1,
@@ -325,57 +325,4 @@ contract HiLo is Ownable, IHiLo {
         }
     }
 
-    // Challenges the proof from `playerIdx` in `boardId` game. `isShuffle` indicates
-    // whether challenging shuffle or deal which further specifies `cardIdx` card.
-    function challenge(
-        uint256 boardId,
-        uint256 playerIdx,
-        uint256 cardIdx,
-        bool isShuffle
-    ) external {
-        address challenger = accountManagement.getPermanentAccount(msg.sender);
-        address challenged = boards[boardId].permanentAccounts[playerIdx];
-        if (isShuffle) {
-            try shuffle.verifyShuffle(boardId, playerIdx) returns (bool) {
-                punish(boardId, challenger, challenged, true);
-            } catch (bytes memory) {
-                punish(boardId, challenger, challenged, false);
-            }
-        } else {
-            try shuffle.verifyDeal(boardId, playerIdx, cardIdx) {
-                punish(boardId, challenger, challenged, true);
-            } catch (bytes memory) {
-                punish(boardId, challenger, challenged, false);
-            }
-        }
-    }
-
-    // Punishes `challenger` or `challenged` depending on `punishChallenger`.
-    function punish(
-        uint256 boardId,
-        address challenger,
-        address challenged,
-        bool punishChallenger
-    ) internal {
-        if (punishChallenger) {
-            return;
-        } else {
-            if (boards[boardId].stage != GameStage.Ended) {
-                boards[boardId].stage = GameStage.Ended;
-                address[] memory players = boards[boardId].permanentAccounts;
-                for (uint256 i = 0; i < players.length; ++i) {
-                    accountManagement.settle(
-                        boards[boardId].permanentAccounts[i],
-                        boardId,
-                        0,
-                        true,
-                        false,
-                        true
-                    );
-                }
-            }
-            accountManagement.move(challenged, challenger);
-            emit Challenged(challenged, challenger, boardId, punishChallenger);
-        }
-    }
 }
