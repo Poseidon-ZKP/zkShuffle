@@ -81,7 +81,7 @@ async function deployStateMachine(shuffleStateMachineOwner: SignerWithAddress) {
 
 describe('Shuffle test', function () {
     const NumCard2Deal = 5;
-    const numPlayers = 9;
+    const numPlayers = 1;
     beforeEach(async () => {
         await Promise.all(['wasm/decrypt.wasm', 'zkey/decrypt.zkey', 'wasm/shuffle_encrypt_v2.wasm.52', 'zkey/shuffle_encrypt_v2.zkey.52', 'wasm/shuffle_encrypt_v2.wasm.30', 'zkey/shuffle_encrypt_v2.zkey.30'].map(
             async (e) => {
@@ -239,9 +239,8 @@ describe('Shuffle test', function () {
         }
 
         // Deploy Contracts
-        const stateMachineContract = await deployStateMachine(shuffleStateMachineOwner, BigNumber.from(52));
+        const stateMachineContract = await deployStateMachine(shuffleStateMachineOwner);
         stateMachineContract.setGameContract(gameContract.address);
-        stateMachineContract.connect(gameContract).setGameSettings(numPlayers, gameId);
 
         const numBits = BigInt(251);
         const babyjub = await buildBabyjub();
@@ -259,8 +258,10 @@ describe('Shuffle test', function () {
         }
         pkArray = convertPk(babyjub, pkArray);
 
-        const SHUFFLE_NUM_CARDS = [52, 30]
+        const SHUFFLE_NUM_CARDS = [30, 52]
         for (const numCards of SHUFFLE_NUM_CARDS) {
+            console.log("shuffle ", numCards, " cards!")
+            stateMachineContract.connect(gameContract).setGameSettings(numPlayers, gameId);
             const shuffleEncryptV2WasmFile = resolve(resourceBasePath, './wasm/shuffle_encrypt_v2.wasm.' + numCards);
             const shuffleEncryptV2ZkeyFile = resolve(resourceBasePath, './zkey/shuffle_encrypt_v2.zkey.' + numCards);
 
