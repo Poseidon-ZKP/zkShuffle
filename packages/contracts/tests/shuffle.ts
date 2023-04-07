@@ -130,7 +130,7 @@ describe('Shuffle test', function () {
         }
         pkArray = convertPk(babyjub, pkArray);
 
-        const SHUFFLE_NUM_CARDS = [30, 52]
+        const SHUFFLE_NUM_CARDS = [52, 30]
         for (const numCards of SHUFFLE_NUM_CARDS) {
             console.log("shuffle ", numCards, " cards!")
             stateMachineContract.connect(gameContract).setGameSettings(numPlayers, gameId);

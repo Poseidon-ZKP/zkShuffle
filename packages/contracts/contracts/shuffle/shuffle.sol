@@ -238,9 +238,10 @@ contract Shuffle is IShuffle, Ownable {
         uint256[] memory shuffledX1,
         uint256[2] memory selector,
         uint256 gameId
-    ) internal view returns (uint256[215] memory input) {
-        require(shuffledX0.length == numCards[gameId], "ds0");
-        require(shuffledX1.length == numCards[gameId], "ds1");
+    ) internal view returns (uint256[] memory) {
+        require(shuffledX0.length == numCards[gameId], "invalid X0 len");
+        require(shuffledX1.length == numCards[gameId], "invalid X1 len");
+        uint256[] memory input = new uint256[](7 + numCards[gameId] * 4);
         input[0] = nonce;
         input[1] = playerInfos[gameId].aggregatedPk[0];
         input[2] = playerInfos[gameId].aggregatedPk[1];
@@ -254,6 +255,7 @@ contract Shuffle is IShuffle, Ownable {
         input[4 + 4 * numCards[gameId]] = decks[gameId].Selector[1];
         input[5 + 4 * numCards[gameId]] = selector[0];
         input[6 + 4 * numCards[gameId]] = selector[1];
+        return input;
     }
 
     // Updates deck with the shuffled deck.
