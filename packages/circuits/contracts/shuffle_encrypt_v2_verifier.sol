@@ -1313,7 +1313,7 @@ contract Shuffle_encrypt_v2Verifier {
         uint256[2] memory a,
         uint256[2][2] memory b,
         uint256[2] memory c,
-        uint256[215] memory input
+        uint256[] memory input
     ) public view {
         // If the values are not in the correct range, the Shuffle_encrypt_v2Pairing contract will revert.
         Proof memory proof;

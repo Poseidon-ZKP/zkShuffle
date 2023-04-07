@@ -818,7 +818,7 @@ contract Shuffle_encrypt_v2Verifier_30card {
     uint[2] memory a,
     uint[2][2] memory b,
     uint[2] memory c,
-    uint[127] memory input
+    uint[] memory input
   ) public view {
     // If the values are not in the correct range, the Shuffle_encrypt_v2Pairing_30card contract will revert.
     Proof memory proof;
