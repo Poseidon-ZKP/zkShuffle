@@ -63,10 +63,11 @@ enum State {
     DealingCard
 }
 
-struct Verifier {
+struct CardInfo {
     uint256 numCards;
-    address encrypt;
-    address decrypt;
+    uint256 selector0;
+    uint256 selector1;
+    address encryptVerifier;
 }
 
 interface IShuffle {

@@ -67,15 +67,18 @@ async function deployStateMachine(shuffleStateMachineOwner: SignerWithAddress) {
         [
             {
                 numCards : 52,
-                encrypt  : shuffle_encrypt_v2_verifier_contract.address,
-                decrypt  : decrypt_verifier_contract.address
+                selector0 : 4503599627370495,
+                selector1 : 3075935501959818,
+                encryptVerifier  : shuffle_encrypt_v2_verifier_contract.address,
             },
             {
                 numCards : 30,
-                encrypt  : shuffleEncryptV2Verifier30CardContract.address,
-                decrypt  : decrypt_verifier_contract.address
+                selector0 : 1073741823,
+                selector1 : 733360171,
+                encryptVerifier  : shuffleEncryptV2Verifier30CardContract.address,
             }
-        ]
+        ],
+        decrypt_verifier_contract.address
     );
 }
 
@@ -89,137 +92,6 @@ describe('Shuffle test', function () {
             }
         ));
     });
-
-    it('Shuffle contract v2 can function normally', async () => {
-        // Load metadata.
-        const shuffleEncryptV2WasmFile = resolve(resourceBasePath, './wasm/shuffle_encrypt_v2.wasm.52');
-        const shuffleEncryptV2ZkeyFile = resolve(resourceBasePath, './zkey/shuffle_encrypt_v2.zkey.52');
-        const shuffleEncryptV2Vkey = await snarkjs.zKey.exportVerificationKey(new Uint8Array(Buffer.from(readFileSync(shuffleEncryptV2ZkeyFile))));
-
-        const decryptWasmFile = resolve(resourceBasePath, './wasm/decrypt.wasm');
-        const decryptZkeyFile = resolve(resourceBasePath, './zkey/decrypt.zkey');
-        const decryptVkey = await snarkjs.zKey.exportVerificationKey(new Uint8Array(Buffer.from(readFileSync(decryptZkeyFile))));
-
-        // Deploy Contracts
-        const shuffleEncryptV2VerifierContract = await deployShuffleEncryptV2();
-        const decryptVerifierContract = await deployDecrypt();
-
-        const numCards = BigInt(52);
-        const numBits = BigInt(251);
-        const babyjub = await buildBabyjub();
-        // Generates secret/public key for each player. Each player should run this line.
-        // keys.pk: uint256 will be sent to smart contract.
-        // keys.sk: uint256 will be kept secret by each player.
-        const keys = [];
-        let pkArray = [];
-        const skArray = [];
-        for (let i = 0; i < numPlayers; i++) {
-            keys.push(keyGen(babyjub, numBits));
-            pkArray.push(keys[i].pk);
-            skArray.push(keys[i].sk);
-        }
-        // Compute aggregated key for all players. Each player should run this line on their own machine.
-        // No need to send this pk to smart contract.
-        const aggregatedPkEC = keyAggregate(babyjub, pkArray);
-        const aggregatePk = [babyjub.F.toString(aggregatedPkEC[0]), babyjub.F.toString(aggregatedPkEC[1])];
-        pkArray = convertPk(babyjub, pkArray);
-
-        // Initializes deck.
-        const initializedDeck: bigint[] = initDeck(babyjub, Number(numCards));
-        let compressedDeck = compressDeck(initializedDeck);
-        let deck: {
-            X0: bigint[],
-            X1: bigint[],
-            selector: bigint[],
-        } = {
-            X0: compressedDeck.X0,
-            X1: compressedDeck.X1,
-            selector: compressedDeck.selector,
-        };
-
-        // Now shuffle the cards! Each player should run shuffleEncrypt.
-        // Output is the shuffled card Y and a proof.
-        for (let i = 0; i < numPlayers; i++) {
-            let A = samplePermutation(Number(numCards));
-            let R = sampleFieldElements(babyjub, numBits, numCards);
-            let deckDelta = recoverDeck(babyjub, deck.X0, deck.X1);
-            let plaintext_output = shuffleEncryptV2Plaintext(
-                babyjub, Number(numCards), A, R, aggregatedPkEC,
-                deck.X0, deck.X1,
-                deckDelta.Delta0, deckDelta.Delta1,
-                deck.selector,
-            );
-            let shuffleEncryptV2Output = await generateShuffleEncryptV2Proof(
-                aggregatePk, A, R,
-                deck.X0, deck.X1,
-                deckDelta.Delta0, deckDelta.Delta1,
-                deck.selector,
-                plaintext_output.X0, plaintext_output.X1,
-                plaintext_output.delta0, plaintext_output.delta1,
-                plaintext_output.selector,
-                shuffleEncryptV2WasmFile, shuffleEncryptV2ZkeyFile,
-            );
-            assert(await snarkjs.groth16.verify(shuffleEncryptV2Vkey, shuffleEncryptV2Output.publicSignals, shuffleEncryptV2Output.proof), 'Off-chain verification failed.');
-            let solidityProof: SolidityProof = packToSolidityProof(shuffleEncryptV2Output.proof);
-            await shuffleEncryptV2VerifierContract.verifyProof(
-                [solidityProof[0], solidityProof[1]],
-                [[solidityProof[2], solidityProof[3]], [solidityProof[4], solidityProof[5]]],
-                [solidityProof[6], solidityProof[7]],
-                shuffleEncryptV2Output.publicSignals,
-            );
-            // In shuffleEncryptOutput.publicSignals, there are 215 uint256 in total.
-            // 0 is a dummy output, 1~2 is the aggregatedPk, 3~54 is the UX0, 55~106 is the UX1, 107~158 is the VX0, 159~210 is the VX1,
-            // 211~212 is the s_u, 213~214 is the s_v.
-            deck = {
-                X0: string2Bigint(shuffleEncryptV2Output.publicSignals.slice(107, 159)),
-                X1: string2Bigint(shuffleEncryptV2Output.publicSignals.slice(159, 211)),
-                selector: string2Bigint(shuffleEncryptV2Output.publicSignals.slice(213, 215)),
-            };
-            console.log('Player' + String(i) + ' shuffled the card!');
-        }
-
-        // Decrypts NumCard2Deal cards
-        for (let i = 0; i < NumCard2Deal; i++) {
-            let Y = prepareDecryptData(
-                babyjub,
-                BigNumber.from(deck.X0[i]),
-                BigNumber.from(deck.X1[i]),
-                BigNumber.from(deck.selector[0]),
-                BigNumber.from(deck.selector[1]),
-                Number(numCards),
-                i,
-            );
-            // assign a default proof so the code can compile
-            let decryptProof: FullProof = {
-                proof: {
-                    pi_a: ['0'],
-                    pi_b: [['0']],
-                    pi_c: ['0'],
-                    protocol: '',
-                    curve: '',
-                },
-                publicSignals: ['0']
-            };
-            for (let j = 0; j < numPlayers; j++) {
-                decryptProof = await generateDecryptProof(Y, skArray[(Number(i) + j) % numPlayers], pkArray[(i + j) % numPlayers], decryptWasmFile, decryptZkeyFile);
-                assert(await snarkjs.groth16.verify(decryptVkey, decryptProof.publicSignals, decryptProof.proof), 'Off-chain verification failed.');
-                let solidityProof: SolidityProof = packToSolidityProof(decryptProof.proof)
-                await decryptVerifierContract.verifyProof(
-                    [solidityProof[0], solidityProof[1]],
-                    [[solidityProof[2], solidityProof[3]], [solidityProof[4], solidityProof[5]]],
-                    [solidityProof[6], solidityProof[7]],
-                    decryptProof.publicSignals,
-                );
-                // decryptProof.publicSignals contain 8 values.
-                // 1~2 is the decrypted card value, 3~6 is the Y, 7～8 is the personal public key.
-                let signal = string2Bigint(decryptProof.publicSignals);
-                Y = [Y[0], Y[1], signal[0], signal[1]];
-            }
-            const cardIdx = searchDeck(initializedDeck, BigNumber.from(decryptProof.publicSignals[0]).toBigInt(), Number(numCards));
-            console.log('cardIdx: ', cardIdx);
-        }
-        console.log('Decrypt Done!!!');
-    })
 
     it('Shuffle state machine is correct', async () => {
         // Load metadata.

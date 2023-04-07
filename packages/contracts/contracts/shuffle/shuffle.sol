@@ -13,7 +13,7 @@ contract Shuffle is IShuffle, Ownable {
     uint256 public constant override INVALID_CARD_INDEX = 999999;
 
     mapping(uint256 => IShuffleEncryptVerifier) public shuffleEncryptVerifier;
-    mapping(uint256 => IDecryptVerifier) public decryptVerifier;
+    IDecryptVerifier public decryptVerifier;
     address gameContract;
 
     // The mapping of game id => Number of players
@@ -24,6 +24,8 @@ contract Shuffle is IShuffle, Ownable {
 
     // The mapping of game id => Number of cards
     mapping(uint256 => uint256) public numCards;
+    mapping(uint256 => uint256) public selector0;
+    mapping(uint256 => uint256) public selector1;
 
     // Initial deck which is the same for all games
     Deck initialDeck;
@@ -54,11 +56,13 @@ contract Shuffle is IShuffle, Ownable {
     }
 
     //constructor(uint256 numCards, address shuffleEncryptContract_, address decryptContract_) {
-    constructor(Verifier[] memory verifier) {
-        for (uint256 i = 0; i < verifier.length; i++) {
-            shuffleEncryptVerifier[verifier[i].numCards] = IShuffleEncryptVerifier(verifier[i].encrypt);
-            decryptVerifier[verifier[i].numCards] = IDecryptVerifier(verifier[i].decrypt);
+    constructor(CardInfo[] memory cardInfo, address decryptVerifier_) {
+        for (uint256 i = 0; i < cardInfo.length; i++) {
+            shuffleEncryptVerifier[cardInfo[i].numCards] = IShuffleEncryptVerifier(cardInfo[i].encryptVerifier);
+            selector0[cardInfo[i].numCards] = cardInfo[i].selector0;
+            selector1[cardInfo[i].numCards] = cardInfo[i].selector1;
         }
+        decryptVerifier = IDecryptVerifier(decryptVerifier_);
     }
 
     // Sets game settings.
@@ -140,8 +144,8 @@ contract Shuffle is IShuffle, Ownable {
             deck.X0[i] = 0;
             deck.X1[i] = INIT_X1[i];
         }
-        deck.Selector[0] = 4503599627370495;
-        deck.Selector[1] = 3075935501959818;
+        deck.Selector[0] = selector0[numCards[gameId]];
+        deck.Selector[1] = selector1[numCards[gameId]];
         // `gameId = 0` is reserved for Not-In-Game.
         if (gameId == 0) {
             initialDeck = deck;
@@ -359,7 +363,7 @@ contract Shuffle is IShuffle, Ownable {
             cardDeals[gameId].cards[cardIdx].Y0 = Y[0];
             cardDeals[gameId].cards[cardIdx].Y1 = Y[1];
         }
-        decryptVerifier[numCards[gameId]].verifyProof(
+        decryptVerifier.verifyProof(
             [proof[0], proof[1]],
             [[proof[2], proof[3]], [proof[4], proof[5]]],
             [proof[6], proof[7]],
