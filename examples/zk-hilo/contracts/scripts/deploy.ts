@@ -38,9 +38,13 @@ async function deployShuffle() {
   );
 }
 
-async function deployHiLoToken() {
+async function deployGameToken() {
   return (
-    await (await ethers.getContractFactory("HiLoToken")).deploy(10 ** 8)
+    await (await ethers.getContractFactory("GameToken")).deploy(
+      "HiLoToken",
+      "HILO",
+      10 ** 8
+    )
   );
 }
 
@@ -82,7 +86,7 @@ async function deployGameContract(shuffle: any, gameEvaluator: any, accountManag
 
 async function main() {
 
-  const hiLoToken = await deployHiLoToken();
+  const hiLoToken = await deployGameToken();
   console.log(`HiLoToken deployed to ${hiLoToken.address}`);
 
   const shuffle = await deployShuffle();

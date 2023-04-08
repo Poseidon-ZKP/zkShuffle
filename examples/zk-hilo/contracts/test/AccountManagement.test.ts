@@ -2,14 +2,18 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 const { expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
+import { BigNumber } from "ethers";
 
 describe("AccountManagement", function () {
     let accountManagement;
     let accounts;
     let token;
 
-    // Deploy a new AccountManagement and ERC20 token before each test
     beforeEach(async function () {
+        const Token = await ethers.getContractFactory("GameToken");
+        token = await Token.deploy("Test Token", "TEST", 10 ** 8);
+        await token.deployed();
+
         const AccountManagement = await ethers.getContractFactory("AccountManagement");
         accountManagement = await AccountManagement.deploy(
             token.address,
@@ -20,12 +24,9 @@ describe("AccountManagement", function () {
         );
         await accountManagement.deployed();
 
-        const Token = await ethers.getContractFactory("Token");
-        token = await Token.deploy("Test Token", "TEST", 18);
-        await token.deployed();
-
         accounts = await ethers.getSigners();
     });
+
 
     describe("deposit()", function () {
         it("should allow users to deposit tokens and receive chips", async function () {
@@ -34,9 +35,9 @@ describe("AccountManagement", function () {
 
             await token.approve(accountManagement.address, tokenAmount);
             await accountManagement.deposit(tokenAmount);
-
+            const expectedChipEquity = ethers.BigNumber.from(10000);
             expect(await token.balanceOf(accountManagement.address)).to.equal(tokenAmount);
-            expect(await accountManagement.getChipBalance(user.address)).to.equal(10000);
+            expect(await accountManagement.getChipEquityAmount(user.address)).to.equal(expectedChipEquity);
         });
 
         it("should reject deposits below the minimum amount", async function () {
@@ -214,6 +215,6 @@ describe("AccountManagement", function () {
         });
     });
 
-    
+
 });
 
