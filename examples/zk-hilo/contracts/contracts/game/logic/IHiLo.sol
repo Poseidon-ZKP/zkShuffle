@@ -45,8 +45,7 @@ interface IHiLo {
     // - the current board is not ended yet
     // - parameter checking fails
     function createBoard(
-        uint256 numPlayers,
-        uint256 bigBlindSize
+        uint256 numPlayers
     ) external;
 
     // Joins the `boardId` board with the public key `pk`, the `ephemeralAccount` that `msg.sender`
@@ -58,40 +57,6 @@ interface IHiLo {
         uint256 buyIn,
         uint256 boardId
     ) external payable;
-
-    // player call this function to check, reverts when
-    // - it's not the player's turn
-    // - player is not in the pot anymore
-    // - player can't check according to the game logic
-    // - game stage mismatch
-    function check(uint256 boardId) external;
-
-    // player call this function to raise, reverts when
-    // - it's not the player's turn
-    // - player is not in the pot anymore
-    // - player can't raise according to the game logic
-    // - game stage mismatch
-    function raise(uint256 amount, uint256 boardId) external;
-
-    // player call this function to call, reverts when
-    // - it's not the player's turn
-    // - player is not in the pot anymore
-    // - player can't call according to the game logic
-    // - game stage mismatch
-    function call(uint256 boardId) external;
-
-    // player call this function to fold, reverts when
-    // - it's not the player's turn
-    // - player is not in the pot anymore
-    // - player can't fold according to the game logic
-    // - game stage mismatch
-    function fold(
-        uint256[] calldata cardIdx,
-        uint256[8][] calldata proof,
-        uint256[2][] memory decryptedCard,
-        uint256[2][] memory initDelta,
-        uint256 boardId
-    ) external;
 
     // Shuffles the deck without submitting the proof.
     function shuffleDeck(
@@ -116,43 +81,5 @@ interface IHiLo {
         uint256 boardId
     ) external;
 
-    // call this function the contract will calculate the hands of all players and save the winner
-    // also transfers all the bets on the table to the winner
-    function settleWinner(uint256 boardId)
-        external
-        returns (
-            address winner,
-            uint256 highestScore,
-            uint256 winnerIndex
-        );
 
-    // ========================== View functions ==========================
-    function canCall(
-        address player,
-        uint256 amount,
-        uint256 boardId
-    ) external view returns (bool);
-
-    function canRaise(
-        address player,
-        uint256 amount,
-        uint256 boardId
-    ) external view returns (bool);
-
-    function canCheck(address player, uint256 boardId)
-        external
-        view
-        returns (bool);
-
-    function canFold(address player, uint256 boardId)
-        external
-        view
-        returns (bool);
-
-    function amountToCall(address player, uint256 boardId)
-        external
-        view
-        returns (uint256);
-
-    function highestBet(uint256 boardId) external view returns (uint256 bet);
 }

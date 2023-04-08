@@ -54,12 +54,12 @@ contract HiLo is Ownable, IHiLo {
     // ====================================================================
     constructor(
         address shuffle_,
-        address hiloEvaluator_,
+        address hiLoEvaluator_,
         address accountManagement_,
         bool needPresendGas_
     ) {
         setShuffle(shuffle_);
-        setEvaluator(pokerEvaluator_);
+        setEvaluator(hiLoEvaluator_);
         setAccountManagement(accountManagement_);
         setNeedPresendGas(needPresendGas_);
     }
@@ -94,9 +94,9 @@ contract HiLo is Ownable, IHiLo {
     }
 
     // Sets evaluator contract.
-    function setEvaluator(address pokerEvaluator_) public onlyOwner {
-        require(pokerEvaluator_ != address(0), "empty address");
-        pokerEvaluator = IPokerEvaluator(pokerEvaluator_);
+    function setEvaluator(address hiLoEvaluator_) public onlyOwner {
+        require(hiLoEvaluator_ != address(0), "empty address");
+        hiLoEvaluator = IHiLoEvaluator(hiLoEvaluator_);
     }
 
     // Set the gas required to play a round of game,
@@ -105,10 +105,10 @@ contract HiLo is Ownable, IHiLo {
     }
 
     // Creates a board when starting a new game. Returns the newly created board id.
-    function createBoard(uint256 numPlayers) external override {
+    function createBoard(uint256 numPlayers) external {
         uint256 boardId = accountManagement.generateGameId();
         require(GameStage.NotStarted == boards[boardId].stage, "game created");
-        require(numPlayers = MIN_PLAYERS, "required players == 2");
+        require(numPlayers == MIN_PLAYERS, "required players == 2");
         Board memory board;
         board.stage = GameStage.Started;
         // Number of stages = 7
@@ -159,7 +159,7 @@ contract HiLo is Ownable, IHiLo {
     }
 
     // Shuffles the deck without submitting the proof.
-    function shuffle(
+    function shuffleDeck(
         uint256[52] calldata shuffledX0,
         uint256[52] calldata shuffledX1,
         uint256[2] calldata selector,
@@ -170,7 +170,7 @@ contract HiLo is Ownable, IHiLo {
         address permanentAccount = accountManagement.getPermanentAccount(
             msg.sender
         );
-        shuffle.shuffle(
+        shuffle.shuffleDeck(
             permanentAccount,
             shuffledX0,
             shuffledX1,
@@ -178,7 +178,7 @@ contract HiLo is Ownable, IHiLo {
             boardId
         );
         emit DeckShuffled(permanentAccount, boardId);
-        _moveToTheNextPlayer(boardId);
+        _moveToTheNextStage(boardId);
     }
 
     // Submits the proof for shuffling the deck.
@@ -198,12 +198,14 @@ contract HiLo is Ownable, IHiLo {
         );
         shuffle.shuffleProof(proof, boardId, playerIdx);
     }
-   function dealComputation(
+
+    function dealComputation(
         uint256[] calldata cardIdx,
         uint256[8][] calldata proof,
         uint256[2][] memory decryptedCard,
         uint256[2][] memory initDelta,
-        uint256 boardId
+        uint256 boardId,
+        bool shouldVerifyDeal
     ) internal {
         require(
             cardIdx.length > 0 &&
@@ -222,7 +224,8 @@ contract HiLo is Ownable, IHiLo {
                 proof[i],
                 decryptedCard[i],
                 initDelta[i],
-                boardId
+                boardId,
+                shouldVerifyDeal
             );
         }
         emit BatchDecryptProofProvided(
@@ -231,6 +234,7 @@ contract HiLo is Ownable, IHiLo {
             boardId
         );
     }
+
     function deal(
         uint256[] calldata cardIdx,
         uint256[8][] calldata proof,
@@ -241,41 +245,24 @@ contract HiLo is Ownable, IHiLo {
         // TODO: connect card index with game stage. See `library BoardManagerView`
         // cardIdxMatchesGameStage(cardIdx, boardId);
         ensureYourTurn(boardId);
-        dealComputation(
-            cardIdx,
-            proof,
-            decryptedCard,
-            initDelta,
-            boardId
-        );
-        _moveToTheNextPlayer(boardId);
+        dealComputation(cardIdx, proof, decryptedCard, initDelta, boardId, false);
+        _moveToTheNextStage(boardId);
     }
 
-    // Gets card values for `boardId` and `playerIdx`.
-    function getCardValues(
+    //get card value for one card in hand, customized for HiLo game specifically
+    function getCardValue(
         uint256 boardId,
         uint256 playerIdx
-    ) internal view returns (uint256[] memory) {
-        uint256[] memory actualCardValues = new uint256[](7);
-        for (uint256 i = 0; i < 2; i++) {
-            actualCardValues[i] = shuffle.search(
-                boards[boardId].handCards[playerIdx][i],
-                boardId
-            );
-        }
-        for (uint256 i = 0; i < 5; i++) {
-            actualCardValues[i + 2] = shuffle.search(
-                boards[boardId].communityCards[i],
-                boardId
-            );
-        }
-        for (uint256 i = 0; i < 7; i++) {
-            require(
-                actualCardValues[i] != shuffle.INVALID_CARD_INDEX(),
-                "invalid card, something is wrong"
-            );
-        }
-        return actualCardValues;
+    ) internal view returns (uint256) {
+        uint256 actualCardValue = shuffle.search(
+            boards[boardId].handCards[playerIdx][0],
+            boardId
+        );
+        require(
+            actualCardValue != shuffle.INVALID_CARD_INDEX(),
+            "invalid card, something is wrong"
+        );
+        return actualCardValue;
     }
 
     // ====================================================================
@@ -313,16 +300,31 @@ contract HiLo is Ownable, IHiLo {
             boards[boardId].permanentAccounts.length
         );
         emit GameStageChanged(GameStage(nextStage), boardId);
-        _evaluate(boards[boardId].stage, boardId);
+        _postRound(boards[boardId].stage, boardId);
     }
 
     // Do something right after the game stage updated
-    function _evaluate(GameStage newStage, uint256 boardId) internal {
-        uint256 playerCount = boards[boardId].permanentAccounts.length;
+    function _postRound(
+        GameStage newStage,
+        uint256 boardId
+    ) internal {
         if (newStage == GameStage.Ended) {
-            settleWinner(boardId);
+            // Determine the winner
+            uint winner = 0; // winner 0 is the server by default
+            if (
+                hiLoEvaluator.evaluate(
+                    getCardValue(boardId, 0), // first card server has
+                    boards[boardId].guess,
+                    getCardValue(boardId, 1) // second card player has
+                )
+            ) {
+                winner = 1; // winner 1 is the player, if it evaluates to true, the player wins
+            }
+            // Settle the winner
+            address winnerAddress = boards[boardId].permanentAccounts[winner];
+            // Update game state
+            boards[boardId].winner = winnerAddress;
             return;
         }
     }
-
 }

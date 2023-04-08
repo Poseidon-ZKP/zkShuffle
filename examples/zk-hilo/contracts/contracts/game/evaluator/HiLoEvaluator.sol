@@ -9,9 +9,7 @@ contract HiLoEvaluator {
 
     event GameResult(
         address indexed player,
-        uint indexed bet,
-        bool indexed win,
-        uint payout
+        bool indexed win
     );
 
     constructor() {
@@ -19,12 +17,11 @@ contract HiLoEvaluator {
         maxBet = 1 ether; // set the maximum bet to 1 ether
     }
 
-    function evaluate(
-        uint firstCard,
+    function evalutate(
+        uint256 firstCard,
         string memory guess,
-        uint secondCard
-    ) public payable {
-        require(msg.value > 0 && msg.value <= maxBet, "Invalid bet amount");
+        uint256 secondCard
+    ) public payable returns (bool) {
         require(firstCard >= 0 && firstCard <= 51, "Invalid first card");
         require(secondCard >= 0 && secondCard <= 51, "Invalid second card");
 
@@ -40,21 +37,8 @@ contract HiLoEvaluator {
         ) {
             win = firstCardRank > secondCardRank;
         }
+        emit GameResult(msg.sender, win); // emit the game result event
 
-        uint payout = 0;
-        if (win) {
-            payout = msg.value * 2; // payout is always twice the bet
-            payable(msg.sender).transfer(payout); // send the payout to the player
-        }
-
-        emit GameResult(msg.sender, msg.value, win, payout); // emit the game result event
-    }
-
-    function withdraw() public {
-        require(
-            msg.sender == owner,
-            "Only the contract owner can withdraw funds"
-        );
-        payable(msg.sender).transfer(address(this).balance); // withdraw the contract balance to the owner
+        return win;
     }
 }

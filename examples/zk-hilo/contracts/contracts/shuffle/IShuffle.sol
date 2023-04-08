@@ -28,22 +28,25 @@ struct Deck {
     uint256[52] X1;
     // 2 selectors for recovering y coordinates
     uint256[2] Selector;
+    // proof
+    uint256[8] Proof;
+    // timestamp when receiving X0, X1, and Selector
+    uint256 timestamp;
 }
 
-// Card as two baby jubjub curve points
-struct Card {
-    uint256 X0;
-    uint256 Y0;
-    uint256 X1;
-    uint256 Y1;
-}
-
-// Cards in dealing
+// Cards in dealing assuming at most 9 players.
 struct CardDeal {
-    Card[52] cards;
+    uint256[52] X0;
+    uint256[52] Y0;
+    uint256[10][52] X1;
+    uint256[10][52] Y1;
+    uint256[8][9][52] proof;
+    uint256[9][52] prevPlayerIdx;
     // Record which player has decrypted individual cards
     // Warning: Support at most 256 players
     uint256[52] record;
+    // Index of the last player who dealed a card
+    uint256[52] curPlayerIdx;
 }
 
 // Player information
@@ -54,6 +57,8 @@ struct PlayerInfo {
     uint256[] playerPk;
     // An aggregated public key for all players
     uint256[2] aggregatedPk;
+    // Nonce
+    uint256 nonce;
 }
 
 // State of the game
@@ -67,6 +72,9 @@ interface IShuffle {
     // A constant indicating the card is not found in the deck
     function INVALID_CARD_INDEX() external view returns (uint256);
 
+    // A constant indicating the player is not found in the deck
+    function UNREACHABLE_PLAYER_INDEX() external view returns (uint256);
+
     // Set the game settings of the game of `gameId`
     function setGameSettings(uint256 numPlayers_, uint256 gameId) external;
 
@@ -78,34 +86,49 @@ interface IShuffle {
     ) external;
 
     // Returns the aggregated public key for all players.
-    function queryAggregatedPk(
-        uint256 gameId
-    ) external view returns (uint256[2] memory);
+    function queryAggregatedPk(uint256 gameId)
+        external
+        view
+        returns (uint256[2] memory);
 
     // Queries deck.
-    function queryDeck(uint256 gameId) external view returns (Deck memory);
+    function queryDeck(uint256 gameId, uint256 playerIdx)
+        external
+        view
+        returns (Deck memory);
 
     // Queries the `index`-th card from the deck.
-    function queryCardFromDeck(
-        uint256 index,
-        uint256 gameId
-    ) external view returns (uint256[4] memory card);
+    function queryCardFromDeck(uint256 index, uint256 gameId)
+        external
+        view
+        returns (uint256[4] memory card);
 
     // Queries the `index`-th card in deal.
-    function queryCardInDeal(
-        uint256 index,
-        uint256 gameId
-    ) external view returns (uint256[4] memory card);
+    function queryCardInDeal(uint256 index, uint256 gameId)
+        external
+        view
+        returns (uint256[4] memory card);
+
+    // Queries card deal records.
+    function queryCardDealRecord(uint256 index, uint256 gameId)
+        external
+        view
+        returns (uint256);
 
     // Shuffles the deck for `permanentAccount`.
-    function shuffle(
+    function shuffleDeck(
         address permanentAccount,
-        uint256[8] memory proof,
-        uint256 nonce,
         uint256[52] memory shuffledX0,
         uint256[52] memory shuffledX1,
         uint256[2] memory selector,
         uint256 gameId
+    ) external;
+
+    // Updates the shuffle `proof` for `gameId` and `playerIdx`.
+    function shuffleProof(
+        uint256[8] calldata proof,
+        uint256 gameId,
+        uint256 playerIdx
     ) external;
 
     // Deals the `cardIdx`-th card given the zk `proof` of validity and `out` for decrypted card from `curPlayerIdx`.
@@ -118,12 +141,28 @@ interface IShuffle {
         uint256[8] memory proof,
         uint256[2] memory decryptedCard,
         uint256[2] memory initDelta,
-        uint256 gameId
+        uint256 gameId,
+        bool shouldVerifyDeal
     ) external;
 
     // Searches the value of the `cardIndex`-th card in the `gameId`-th game.
-    function search(
-        uint256 cardIndex,
-        uint256 gameId
-    ) external view returns (uint256);
+    function search(uint256 cardIndex, uint256 gameId)
+        external
+        view
+        returns (uint256);
+
+    // Verifies proof for the deal for `cardIdx` card from `playerIdx` in `gameId` game.
+    // Returns true for succeed, false for invalid request, and revert for not passing verification.
+    function verifyDeal(
+        uint256 gameId,
+        uint256 playerIdx,
+        uint256 cardIdx
+    ) external view returns (bool);
+
+    // Verifies proof for `gameId` and `playerIdx`.
+    // Returns true for succeed, false for invalid request, and revert for not passing verification.
+    function verifyShuffle(uint256 gameId, uint256 playerIdx)
+        external
+        view
+        returns (bool);
 }

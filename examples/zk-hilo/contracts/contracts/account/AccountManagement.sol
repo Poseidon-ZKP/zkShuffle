@@ -33,11 +33,11 @@ struct Account {
 contract AccountManagement is IAccountManagement, Ownable {
     // Events
     event Settled(
-        address indexed permanentAccount, 
-        uint256 indexed gameId, 
+        address indexed permanentAccount,
+        uint256 indexed gameId,
         uint256 indexed amount,
-        bool isPositive, 
-        bool collectVigor, 
+        bool isPositive,
+        bool collectVigor,
         bool removeDelay
     );
 
@@ -103,19 +103,18 @@ contract AccountManagement is IAccountManagement, Ownable {
     }
 
     // Deposits ERC20 tokens for chips.
-    function deposit(uint256 tokenAmount) external override payable {
+    function deposit(uint256 tokenAmount) external payable override {
         require(tokenAmount > minAmount, "Amount less than minimum amount");
         IERC20(token).transferFrom(msg.sender, address(this), tokenAmount);
         _accounts[msg.sender].chipEquity += tokenAmount * ratio;
     }
 
     // Withdraws chips for ERC20 tokens. Note that `withdraw` takes `chipAmount` but `deposit` takes `tokenAmount`.
-    function withdraw(uint256 chipAmount)
-        external
-        enoughChips(msg.sender, chipAmount)
-    {
+    function withdraw(
+        uint256 chipAmount
+    ) external enoughChips(msg.sender, chipAmount) {
+        _accounts[msg.sender].chipEquity -= chipAmount;
         uint256 tokenAmount = chipAmount / ratio;
-        _accounts[msg.sender].chipEquity -= tokenAmount * ratio;
         IERC20(token).transfer(msg.sender, tokenAmount);
     }
 
@@ -148,10 +147,10 @@ contract AccountManagement is IAccountManagement, Ownable {
     // Otherwise a malicious user could disable ephemeralAccount for all users.
     // This design choice indicates that a user can use previous ephemeral account
     // even if he has authorized a new ephemeral account.
-    function authorize(address permanentAccount, address ephemeralAccount)
-        external
-        onlyRegisteredContracts
-    {
+    function authorize(
+        address permanentAccount,
+        address ephemeralAccount
+    ) external onlyRegisteredContracts {
         if (accountMapping[ephemeralAccount] == permanentAccount) return;
         require(
             accountMapping[ephemeralAccount] == address(0),
@@ -163,11 +162,9 @@ contract AccountManagement is IAccountManagement, Ownable {
 
     // Returns `account` if it has not been registered as an ephemeral account;
     // otherwise returns the corresponding permanent account.
-    function getPermanentAccount(address account)
-        external
-        view
-        returns (address)
-    {
+    function getPermanentAccount(
+        address account
+    ) external view returns (address) {
         if (accountMapping[account] == address(0)) {
             return account;
         } else {
@@ -176,31 +173,23 @@ contract AccountManagement is IAccountManagement, Ownable {
     }
 
     // Checks if `permanentAccount` has authorized `ephemeralAccount`.
-    function hasAuthorized(address permanentAccount, address ephemeralAccount)
-        external
-        view
-        override
-        returns (bool)
-    {
+    function hasAuthorized(
+        address permanentAccount,
+        address ephemeralAccount
+    ) external view override returns (bool) {
         return _accounts[permanentAccount].ephemeralAccount == ephemeralAccount;
     }
 
     // Gets the amount of chip equity.
-    function getChipEquityAmount(address player)
-        external
-        view
-        override
-        returns (uint256)
-    {
+    function getChipEquityAmount(
+        address player
+    ) external view override returns (uint256) {
         return _accounts[player].chipEquity;
     }
 
-    function getChipEquityAmounts(address[] calldata players)
-        external
-        view
-        override
-        returns (uint256[] memory chips)
-    {
+    function getChipEquityAmounts(
+        address[] calldata players
+    ) external view override returns (uint256[] memory chips) {
         chips = new uint256[](players.length);
         for (uint256 i = 0; i < players.length; ++i) {
             chips[i] = _accounts[players[i]].chipEquity;
@@ -208,12 +197,9 @@ contract AccountManagement is IAccountManagement, Ownable {
     }
 
     // Gets the current game id of `player`.
-    function getCurGameId(address player)
-        external
-        view
-        override
-        returns (uint256)
-    {
+    function getCurGameId(
+        address player
+    ) external view override returns (uint256) {
         return _accounts[player].gameId;
     }
 
@@ -223,7 +209,12 @@ contract AccountManagement is IAccountManagement, Ownable {
     }
 
     // Generate a new game id.
-    function generateGameId() external override onlyRegisteredContracts returns (uint256) {
+    function generateGameId()
+        external
+        override
+        onlyRegisteredContracts
+        returns (uint256)
+    {
         largestGameId = largestGameId + 1;
         return largestGameId;
     }
@@ -271,7 +262,7 @@ contract AccountManagement is IAccountManagement, Ownable {
         uint256 amount,
         bool isPositive,
         bool collectVigor,
-        bool removeDelay // TODO: remove delay cannot return chips immediately anymore due to the time gap between fold and challenge.
+        bool removeDelay
     ) external onlyRegisteredContracts {
         require(gameId != 0, "Game has ended");
         require(
@@ -299,7 +290,14 @@ contract AccountManagement is IAccountManagement, Ownable {
             removeWithhold(permanentAccount, index);
         }
         _accounts[permanentAccount].gameId = 0;
-        emit Settled(permanentAccount, gameId, amount, isPositive, collectVigor, removeDelay);
+        emit Settled(
+            permanentAccount,
+            gameId,
+            amount,
+            isPositive,
+            collectVigor,
+            removeDelay
+        );
     }
 
     // Moves all chips from `from` to `to`.

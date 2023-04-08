@@ -49,6 +49,9 @@ struct Board {
     // Bets of each round from all players
     uint256[][] betsEachRound;
     uint256[][] betTypeEachRound;
+    uint256[][] handCards;
+    bool[] playerInPots;
+    uint256 nextPlayer;
     uint256 dealer;
     address winner;
     // Required number of players to play
@@ -57,6 +60,7 @@ struct Board {
     uint256 potSize;
     // Public keys of all players
     uint256[][] pks;
+    string guess;
 }
 
 // Player status in a single board

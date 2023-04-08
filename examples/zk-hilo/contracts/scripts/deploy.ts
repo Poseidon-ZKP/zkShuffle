@@ -5,7 +5,7 @@ import { ethers } from "hardhat";
 const privateKey = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
 const provider = new ethers.providers.JsonRpcProvider("http://localhost:8545");
 const signer = new ethers.Wallet(privateKey, provider);
-
+const specifiedNumPlayer = 2;
 const baseDir = resolve(__dirname, "..");
 // Deploys contract for decrypt verifier
 async function deployDecrypt() {
@@ -28,38 +28,81 @@ async function deployShuffleEncryptV2() {
   ).deploy();
 }
 
-async function deployStateMachine() {
+async function deployShuffle() {
   const shuffle_encrypt_v2_verifier_contract = await deployShuffleEncryptV2();
   const decrypt_verifier_contract = await deployDecrypt();
   return await (await ethers.getContractFactory("Shuffle")).connect(signer).deploy(
     shuffle_encrypt_v2_verifier_contract.address,
-    decrypt_verifier_contract.address
+    decrypt_verifier_contract.address,
+    specifiedNumPlayer
   );
 }
 
-async function deployGameContract() {
+async function deployHiLoToken() {
   return (
-    await (await ethers.getContractFactory("HiLo")).deploy()
+    await (await ethers.getContractFactory("HiLoToken")).deploy(10 ** 8)
   );
 }
+
+async function deployAccountManagement(hiLoToken: any) {
+
+  const ratio = 1;
+  const minAmount = 10;
+  const delay = 0;
+  const vig = 100; // 1%
+
+  return (
+    await (await ethers.getContractFactory("AccountManagement")).deploy(
+      hiLoToken.address,
+      ratio,
+      minAmount,
+      delay,
+      vig
+    )
+  );
+}
+
+async function deployGameEvaluator() {
+  return (
+    await (await ethers.getContractFactory("HiLoEvaluator")).deploy()
+  );
+}
+
+async function deployGameContract(shuffle: any, gameEvaluator: any, accountManagement: any, needPresendGas: boolean) {
+  return (
+    await (await ethers.getContractFactory("HiLo")).deploy(
+      shuffle.address,
+      gameEvaluator.address,
+      accountManagement.address,
+      needPresendGas
+    )
+  );
+}
+
 
 async function main() {
-  const HiLoToken = await ethers.getContractFactory("HiLoToken");
-  const hiLoToken = await HiLoToken.deploy(10 ** 8);
-  await hiLoToken.deployed();
+
+  const hiLoToken = await deployHiLoToken();
   console.log(`HiLoToken deployed to ${hiLoToken.address}`);
 
-  const stateMachine = await deployStateMachine();
-  console.log(`Shuffle deployed to ${stateMachine.address}`);
+  const shuffle = await deployShuffle();
+  console.log(`Shuffle deployed to ${shuffle.address}`);
 
-  const gameContract = await deployGameContract();
+  const accountManagement = await deployAccountManagement(hiLoToken);
+  console.log(`AccountManagement deployed to ${accountManagement.address}`)
+
+  const gameEvaluator = await deployGameEvaluator();
+  console.log(`HiLoEvaluator deployed to ${gameEvaluator.address}`)
+
+  const gameContract = await deployGameContract(shuffle, gameEvaluator, accountManagement, false);
   console.log(`HiLo deployed to ${gameContract.address}`)
-
 
   // write addresses to artifactsDir/broadcast/latest.json
   const latest = {
     HiLoToken: hiLoToken.address,
-    Shuffle: stateMachine.address,
+    Shuffle: shuffle.address,
+    AccountManagement: accountManagement.address,
+    HiLoEvaluator: gameEvaluator.address,
     HiLo: gameContract.address,
   };
   await fs.promises.mkdir(resolve(baseDir, "broadcast"), {
