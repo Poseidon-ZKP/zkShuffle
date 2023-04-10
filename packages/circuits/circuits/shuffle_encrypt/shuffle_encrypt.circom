@@ -4,7 +4,7 @@ include "../common/babyjubjub.circom";
 include "../common/elgamal.circom";
 include "../common/matrix.circom";
 include "../common/permutation.circom";
-include "./shuffle_encrypt_v2_template.circom";
+include "./shuffle_encrypt_template.circom";
 include "../../node_modules/circomlib/circuits/bitify.circom";
 
 template ShuffleEncryptV2(numCards) {

@@ -63,6 +63,7 @@ enum State {
     DealingCard
 }
 
+// Card Information
 struct CardInfo {
     uint256 numCards;
     uint256 selector0;

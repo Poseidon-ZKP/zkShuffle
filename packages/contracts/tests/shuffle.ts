@@ -47,7 +47,7 @@ async function deployDecrypt() {
 // Deploys contract for shuffle encrypt v2.
 async function deployShuffleEncryptV2() {
     const vk = await (await ethers.getContractFactory('ShuffleEncryptV2VerifierKey')).deploy();
-    return await (await ethers.getContractFactory('Shuffle_encrypt_v2Verifier', {
+    return await (await ethers.getContractFactory('Shuffle_encryptVerifier', {
         libraries: {
             ShuffleEncryptV2VerifierKey: vk.address,
         }
@@ -55,12 +55,12 @@ async function deployShuffleEncryptV2() {
 }
 
 async function deployShuffleEncryptV2CARD30() {
-    return await (await ethers.getContractFactory('Shuffle_encrypt_v2Verifier_30card')).deploy();
+    return await (await ethers.getContractFactory('Shuffle_encryptVerifier_30card')).deploy();
 }
 
 // Deploys contract for shuffle state machine.
 async function deployStateMachine(shuffleStateMachineOwner: SignerWithAddress) {
-    const shuffle_encrypt_v2_verifier_contract = await deployShuffleEncryptV2();
+    const shuffle_encrypt_verifier_contract = await deployShuffleEncryptV2();
     const shuffleEncryptV2Verifier30CardContract = await deployShuffleEncryptV2CARD30();
     const decrypt_verifier_contract = await deployDecrypt();
     return await (await ethers.getContractFactory('Shuffle')).connect(shuffleStateMachineOwner).deploy(
@@ -69,7 +69,7 @@ async function deployStateMachine(shuffleStateMachineOwner: SignerWithAddress) {
                 numCards : 52,
                 selector0 : 4503599627370495,
                 selector1 : 3075935501959818,
-                encryptVerifier  : shuffle_encrypt_v2_verifier_contract.address,
+                encryptVerifier  : shuffle_encrypt_verifier_contract.address,
             },
             {
                 numCards : 30,
