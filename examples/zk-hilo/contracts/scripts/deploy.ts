@@ -48,37 +48,11 @@ async function deployGameToken() {
   );
 }
 
-async function deployAccountManagement(hiLoToken: any) {
 
-  const ratio = 1;
-  const minAmount = 10;
-  const delay = 0;
-  const vig = 100; // 1%
-
-  return (
-    await (await ethers.getContractFactory("AccountManagement")).deploy(
-      hiLoToken.address,
-      ratio,
-      minAmount,
-      delay,
-      vig
-    )
-  );
-}
-
-async function deployGameEvaluator() {
-  return (
-    await (await ethers.getContractFactory("HiLoEvaluator")).deploy()
-  );
-}
-
-async function deployGameContract(shuffle: any, gameEvaluator: any, accountManagement: any, needPresendGas: boolean) {
+async function deployGameContract(shuffle: any) {
   return (
     await (await ethers.getContractFactory("HiLo")).deploy(
       shuffle.address,
-      gameEvaluator.address,
-      accountManagement.address,
-      needPresendGas
     )
   );
 }
@@ -92,21 +66,13 @@ async function main() {
   const shuffle = await deployShuffle();
   console.log(`Shuffle deployed to ${shuffle.address}`);
 
-  const accountManagement = await deployAccountManagement(hiLoToken);
-  console.log(`AccountManagement deployed to ${accountManagement.address}`)
-
-  const gameEvaluator = await deployGameEvaluator();
-  console.log(`HiLoEvaluator deployed to ${gameEvaluator.address}`)
-
-  const gameContract = await deployGameContract(shuffle, gameEvaluator, accountManagement, false);
+  const gameContract = await deployGameContract(shuffle);
   console.log(`HiLo deployed to ${gameContract.address}`)
 
   // write addresses to artifactsDir/broadcast/latest.json
   const latest = {
     HiLoToken: hiLoToken.address,
     Shuffle: shuffle.address,
-    AccountManagement: accountManagement.address,
-    HiLoEvaluator: gameEvaluator.address,
     HiLo: gameContract.address,
   };
   await fs.promises.mkdir(resolve(baseDir, "broadcast"), {

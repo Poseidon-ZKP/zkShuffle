@@ -2,12 +2,8 @@
 pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-contract GameToken is ERC20 {
-    constructor(
-        string memory name,
-        string memory symbol,
-        uint256 initialSupply
-    ) ERC20(name, symbol) {
+contract HiLoToken is ERC20 {
+    constructor(uint256 initialSupply) ERC20("ZKHiLo Token", "ZKT") {
         _mint(msg.sender, initialSupply);
     }
 
