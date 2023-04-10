@@ -25,8 +25,6 @@ template ShuffleEncryptV2(numCards) {
     signal input s_v[2];                // selector of y-coordinates
     signal input A[numCards*numCards];  // Permutation matrix
     signal input R[numCards];           // numCards scalars as randomness
-    signal input realNumCards;
-    signal input reorder[numCards];
 
     signal output dummy_output; // Circom requires at least 1 output signal.
     dummy_output <== pk[0] * pk[1];
@@ -54,11 +52,6 @@ template ShuffleEncryptV2(numCards) {
     for (var i = 0; i<numCards; i++) {
         shuffle_encrypt.R[i] <== R[i];
     }
-
-    shuffle_encrypt.realNumCards <== realNumCards;
-    for (var i = 0; i<numCards; i++) {
-        shuffle_encrypt.reorder[i] <== reorder[i];
-    }
 }
 
-component main {public [pk, UX0, UX1, VX0, VX1, s_u, s_v, realNumCards]}  = ShuffleEncryptV2(52);
+component main {public [pk, UX0, UX1, VX0, VX1, s_u, s_v]}  = ShuffleEncryptV2(52);

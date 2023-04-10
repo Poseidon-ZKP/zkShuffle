@@ -22,8 +22,6 @@ template ShuffleEncryptV2Template(base, numCards, numBits) {
     signal input s_v[2];                // selector of y-coordinates
     signal input A[numCards*numCards];  // Permutation matrix
     signal input R[numCards];           // numCards scalars as randomness
-    signal input realNumCards;
-    signal input reorder[numCards];
 
     component n2b_u0 = Num2Bits(numCards);
     component n2b_u1 = Num2Bits(numCards);
@@ -82,34 +80,14 @@ template ShuffleEncryptV2Template(base, numCards, numBits) {
     for (var i = 0; i < numCards; i++) {
         shuffleEncryptV1.X[3*numCards + i] <== decompress[numCards+i].y;
     }
-    // reorder shuffleEncryptV1.Y[i]
-    // reorder target realNumCards from all the cards, to head realNumCards, any security loss?
-    var head = 0;
-    var tail = realNumCards;
-    for (var col = 0; col < numCards; col++) {
-        for (var row = 0; row < numCards; row++) {
-            if (A[row * numCards + col] == 1) {
-                if (row < 30) {
-                    reorder[head] === row;
-                    head++;
-                } else {
-                    reorder[tail] === row;
-                    tail++;
-                }
-                // break;
-            }
-        }
-    }
-
-    for (var i = 0; i < realNumCards; i++) {
-        shuffleEncryptV1.Y[reorder[i]] === VX0[i];
+    for (var i = 0; i < numCards; i++) {
+        shuffleEncryptV1.Y[i] === VX0[i];
     }
     for (var i = 0; i < numCards; i++) {
         shuffleEncryptV1.Y[numCards + i] === decompress[2*numCards + i].y;
     }
-    // reorder shuffleEncryptV1.Y[2*numCards + i]
     for (var i = 0; i < numCards; i++) {
-        shuffleEncryptV1.Y[2*numCards + reorder[i]] === VX1[i];
+        shuffleEncryptV1.Y[2*numCards + i] === VX1[i];
     }
     for (var i = 0; i < numCards; i++) {
         shuffleEncryptV1.Y[3*numCards + i] === decompress[3*numCards + i].y;
