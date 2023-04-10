@@ -15,6 +15,7 @@ contract Shuffle is IShuffle, Ownable {
     address gameContract;
 
     // The mapping of game id => Number of players
+    // Note: game id = 0 is reserved
     mapping(uint256 => uint256) public numPlayers;
 
     // The mapping of game id => deck
