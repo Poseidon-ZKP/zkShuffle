@@ -1,4 +1,4 @@
-import { assert } from 'chai';
+import { assert, expect } from 'chai';
 import { readFileSync } from 'fs';
 import { ethers } from 'hardhat';
 import { resolve } from 'path';
@@ -84,7 +84,7 @@ async function deployStateMachine(shuffleStateMachineOwner: SignerWithAddress) {
 
 describe('Shuffle test', function () {
     const NumCard2Deal = 5;
-    const numPlayers = 1;
+    const numPlayers = 2;
     beforeEach(async () => {
         await Promise.all(['wasm/decrypt.wasm', 'zkey/decrypt.zkey', 'wasm/shuffle_encrypt_v2.wasm.52', 'zkey/shuffle_encrypt_v2.zkey.52', 'wasm/shuffle_encrypt_v2.wasm.30', 'zkey/shuffle_encrypt_v2.zkey.30'].map(
             async (e) => {
@@ -188,6 +188,7 @@ describe('Shuffle test', function () {
                     if (j === numPlayers - 1) {
                         const cardIdx = searchDeck(initialDeck, card[0], Number(numCards));
                         console.log('cardIdx: ', cardIdx);
+                        expect(cardIdx).greaterThanOrEqual(0)
                     }
                 }
             }
