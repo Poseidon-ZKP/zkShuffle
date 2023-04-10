@@ -12,7 +12,7 @@ contract Shuffle is IShuffle, Ownable {
 
     uint256 public constant override INVALID_CARD_INDEX = 999999;
 
-    mapping(uint256 => IShuffleEncryptVerifier) public shuffleEncryptVerifier;
+    mapping(uint256 => IShuffleEncryptVerifier) public shuffleEncryptVerifiers;
     IDecryptVerifier public decryptVerifier;
     address gameContract;
 
@@ -58,7 +58,7 @@ contract Shuffle is IShuffle, Ownable {
     //constructor(uint256 numCards, address shuffleEncryptContract_, address decryptContract_) {
     constructor(CardInfo[] memory cardInfo, address decryptVerifier_) {
         for (uint256 i = 0; i < cardInfo.length; i++) {
-            shuffleEncryptVerifier[cardInfo[i].numCards] = IShuffleEncryptVerifier(cardInfo[i].encryptVerifier);
+            shuffleEncryptVerifiers[cardInfo[i].numCards] = IShuffleEncryptVerifier(cardInfo[i].encryptVerifier);
             selector0[cardInfo[i].numCards] = cardInfo[i].selector0;
             selector1[cardInfo[i].numCards] = cardInfo[i].selector1;
         }
@@ -289,7 +289,7 @@ contract Shuffle is IShuffle, Ownable {
                 playerInfos[gameId].playerAddr[playerIndexes[gameId]],
             "Not your turn yet"
         );
-        shuffleEncryptVerifier[numCards[gameId]].verifyProof(
+        shuffleEncryptVerifiers[numCards[gameId]].verifyProof(
             [proof[0], proof[1]],
             [[proof[2], proof[3]], [proof[4], proof[5]]],
             [proof[6], proof[7]],
