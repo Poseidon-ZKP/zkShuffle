@@ -6,7 +6,6 @@ export type BabyJub = any;
 export type EC = any;
 export type Deck = any;
 
-
 /// Throws an error if `condition` is not true.
 export function assert(condition: boolean, message: string) {
     if (!condition) {
@@ -338,7 +337,7 @@ export function prepareDecryptData(
 export function prepareShuffleDeck(
     babyjub: BabyJub,
     deck: Deck,
-    numCards: number,
+    numCards: umber,
 ): { X0: bigint[], X1: bigint[], Selector: bigint[], Delta: bigint[][] } {
     let deckX0: bigint[] = [];
     let deckX1: bigint[] = [];

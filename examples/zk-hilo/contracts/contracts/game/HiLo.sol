@@ -56,7 +56,7 @@ contract HiLo is Ownable {
 
     constructor(address shuffle_) {
         require(shuffle_ != address(0), "empty address");
-        shuffle = IShuffle(shuffle_);
+        shuffleStateMachine = IShuffle(shuffle_);
         largestGameId = 0;
     }
 
@@ -66,6 +66,7 @@ contract HiLo is Ownable {
             msg.sender == games[gameId].playerAddress[games[gameId].playerIdx],
             "Not your turn"
         );
+        _;
     }
 
     // Creates a game.
@@ -73,8 +74,8 @@ contract HiLo is Ownable {
         uint256 gameId = ++largestGameId;
         games[gameId].stage = GameStage.Register;
         games[gameId].playerAddress[0] = msg.sender;
-        shuffle.setGameSettings(2, gameId);
-        shuffle.register(msg.sender, pk, gameId);
+        shuffleStateMachine.setGameSettings(2, gameId);
+        shuffleStateMachine.register(msg.sender, pk, gameId);
         return gameId;
     }
 
@@ -87,7 +88,7 @@ contract HiLo is Ownable {
         games[gameId].playerAddress[1] = msg.sender;
         games[gameId].stage = GameStage.Shuffle;
         games[gameId].playerIdx = 0;
-        shuffle.register(msg.sender, pk, gameId);
+        shuffleStateMachine.register(msg.sender, pk, gameId);
     }
 
     // Shuffles the deck.
@@ -103,7 +104,7 @@ contract HiLo is Ownable {
             games[gameId].stage == GameStage.Shuffle,
             "Not in shuffle stage"
         );
-        shuffle.shuffle(
+        shuffleStateMachine.shuffle(
             msg.sender,
             proof,
             nonce,
@@ -112,7 +113,7 @@ contract HiLo is Ownable {
             selector,
             gameId
         );
-        nextPlayer();
+        nextPlayer(gameId);
     }
 
     // Deals a hand card.
@@ -127,7 +128,7 @@ contract HiLo is Ownable {
             "Not in deal hand card stage"
         );
         uint256 playerIdx = games[gameId].playerIdx;
-        shuffle.deal(
+        shuffleStateMachine.deal(
             msg.sender,
             playerIdx == 0 ? 1 : 0,
             playerIdx,
@@ -136,14 +137,14 @@ contract HiLo is Ownable {
             initDelta,
             gameId
         );
-        nextPlayer();
+        nextPlayer(gameId);
     }
 
     // Guesses a high or low value.
     function guess(Guess selection, uint256 gameId) external checkTurn(gameId) {
         require(games[gameId].stage == GameStage.Guess, "Not in guess stage");
         games[gameId].guess[games[gameId].playerIdx] = selection;
-        nextPlayer();
+        nextPlayer(gameId);
     }
 
     // Shows hand card values.
@@ -157,16 +158,16 @@ contract HiLo is Ownable {
             "Not in show hand stage"
         );
         uint256 playerIdx = games[gameId].playerIdx;
-        shuffle.deal(
+        shuffleStateMachine.deal(
             msg.sender,
             playerIdx == 0 ? 0 : 1,
             playerIdx,
             proof,
             decryptedCard,
-            [0, 0], // No need for initDelta since this card has been dealt before
+            [uint256(0), uint256(0)], // No need for initDelta since this card has been dealt before
             gameId
         );
-        nextPlayer();
+        nextPlayer(gameId);
         if (games[gameId].stage == GameStage.Ended) {
             evaluate(gameId);
         }
@@ -176,20 +177,33 @@ contract HiLo is Ownable {
     function evaluate(uint256 gameId) internal {
         uint256[2] memory cardValues;
         for (uint8 i = 0; i < 2; i++) {
-            cardValues[i] = shuffle.search(i, gameId);
+            cardValues[i] = shuffleStateMachine.search(i, gameId);
             require(
-                cardValues[i] != shuffle.INVALID_CARD_INDEX(),
+                cardValues[i] != shuffleStateMachine.INVALID_CARD_INDEX(),
                 "Invalid card value"
             );
         }
+        Guess guess1;
+        Guess guess2;
+        if (cardValues[0] < cardValues[1]) {
+            guess1 = Guess.Low;
+        } else {
+            guess1 = Guess.High;
+        }
+        if (cardValues[1] < cardValues[0]) {
+            guess2 = Guess.Low;
+        } else {
+            guess2 = Guess.High;
+        }
+
         games[gameId].guessCorrect = [
-            Guess(cardValues[0] < cardValues[1]) == games[gameId].guess[0],
-            Guess(cardValues[1] < cardValues[0]) == games[gameId].guess[1]
+            guess1 == games[gameId].guess[0],
+            guess2 == games[gameId].guess[1]
         ];
     }
 
     // Moves to the next player and updates stage if all players have taken actions.
-    function nextPlayer() internal {
+    function nextPlayer(uint256 gameId) internal {
         games[gameId].playerIdx += 1;
         if (games[gameId].playerIdx == 2) {
             games[gameId].playerIdx = 0;
