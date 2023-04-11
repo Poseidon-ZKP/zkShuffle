@@ -53,12 +53,12 @@ contract Shuffle is IShuffle, Ownable {
         _;
     }
 
-    //constructor(uint256 numCards, address shuffleEncryptContract_, address decryptContract_) {
     constructor(CardInfo[] memory cardInfo, address decryptVerifier_) {
         for (uint256 i = 0; i < cardInfo.length; i++) {
             shuffleEncryptVerifiers[cardInfo[i].numCards] = IShuffleEncryptVerifier(cardInfo[i].encryptVerifier);
         }
         decryptVerifier = IDecryptVerifier(decryptVerifier_);
+        initDeck(0);
     }
 
     // Sets game settings.
