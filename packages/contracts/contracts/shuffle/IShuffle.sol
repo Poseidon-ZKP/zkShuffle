@@ -54,6 +54,8 @@ struct PlayerInfo {
     uint256[] playerPk;
     // An aggregated public key for all players
     uint256[2] aggregatedPk;
+    // Nonce
+    uint256 nonce;
 }
 
 // State of the game
@@ -66,8 +68,6 @@ enum State {
 // Card Information
 struct CardInfo {
     uint256 numCards;
-    uint256 selector0;
-    uint256 selector1;
     address encryptVerifier;
 }
 
