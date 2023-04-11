@@ -28,6 +28,7 @@
     "@morgan-stanley/ts-mocking-bird": "^0.7.0",
     "@openzeppelin/contracts": "^4.8.2",
     "@openzeppelin/test-helpers": "^0.5.16",
+    "@semaphore-protocol/proof": "^3.6.0-beta.3",
     "circomlibjs": "^0.1.7",
     "ffjavascript": "^0.2.57"
   },

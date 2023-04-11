@@ -3,6 +3,7 @@ pragma solidity >=0.8.4;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./IShuffle.sol";
+import "hardhat/console.sol";
 
 contract Shuffle is IShuffle, Ownable {
     using Pairing for *;

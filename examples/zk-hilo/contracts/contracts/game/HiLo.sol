@@ -4,6 +4,7 @@ pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "../shuffle/IShuffle.sol";
+import "hardhat/console.sol";
 
 // Game stage
 enum GameStage {
@@ -53,6 +54,9 @@ contract HiLo is Ownable {
 
     // Mapping from id to game
     mapping(uint256 => Game) public games;
+    // Events
+    event GameCreated(uint256 gameId, GameStage stage, address playerAddress);
+    event GameJoined(uint256 gameId, GameStage stage, address playerAddress);
 
     constructor(address shuffle_) {
         require(shuffle_ != address(0), "empty address");
@@ -74,8 +78,15 @@ contract HiLo is Ownable {
         uint256 gameId = ++largestGameId;
         games[gameId].stage = GameStage.Register;
         games[gameId].playerAddress[0] = msg.sender;
+        console.log("pk : ", pk[0]);
+        // console.log("stage ", games[gameId].stage);
         shuffleStateMachine.setGameSettings(2, gameId);
         shuffleStateMachine.register(msg.sender, pk, gameId);
+        emit GameCreated(
+            gameId,
+            games[gameId].stage,
+            games[gameId].playerAddress[0]
+        );
         return gameId;
     }
 
@@ -89,6 +100,11 @@ contract HiLo is Ownable {
         games[gameId].stage = GameStage.Shuffle;
         games[gameId].playerIdx = 0;
         shuffleStateMachine.register(msg.sender, pk, gameId);
+        emit GameJoined(
+            gameId,
+            games[gameId].stage,
+            games[gameId].playerAddress[1]
+        );
     }
 
     // Shuffles the deck.
