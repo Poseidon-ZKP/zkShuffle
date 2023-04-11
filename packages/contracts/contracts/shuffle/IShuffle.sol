@@ -110,7 +110,6 @@ interface IShuffle {
     function shuffle(
         address permanentAccount,
         uint256[8] memory proof,
-        uint256 nonce,
         uint256[] memory shuffledX0,
         uint256[] memory shuffledX1,
         uint256[2] memory selector,

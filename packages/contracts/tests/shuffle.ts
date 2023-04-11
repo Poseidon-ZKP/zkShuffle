@@ -2,6 +2,7 @@ import { assert, expect } from 'chai';
 import { ethers } from 'hardhat';
 import { resolve } from 'path';
 import { convertPk, initDeck, keyGen, keyAggregate, sampleFieldElements, samplePermutation, searchDeck, compressDeck, recoverDeck, string2Bigint, prepareDecryptData } from '@poseidon-zkp/poseidon-zk-proof/src/shuffle/utilities';
+import { shuffle, deal } from '@poseidon-zkp/poseidon-zk-proof/src/shuffle/proof'
 import { DecryptVerifier } from 'types/@poseidon-zkp/poseidon-zk-circuits/contracts/decrypt_verifier.sol';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 const buildBabyjub = require('circomlibjs').buildBabyjub;

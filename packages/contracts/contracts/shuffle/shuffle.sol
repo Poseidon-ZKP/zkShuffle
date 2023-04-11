@@ -188,6 +188,12 @@ contract Shuffle is IShuffle, Ownable {
                     playerInfos[gameId].playerPk[2 * i + 1]
                 );
             }
+
+            playerInfos[gameId].nonce = mulmod(
+                playerInfos[gameId].aggregatedPk[0],
+                playerInfos[gameId].aggregatedPk[1],
+                CurveBabyJubJub.Q
+            );
             initDeck(gameId);
         }
     }
@@ -233,7 +239,6 @@ contract Shuffle is IShuffle, Ownable {
 
     // Prepares public signal array for verifying card shuffling.
     function prepareShuffleData(
-        uint256 nonce,
         uint256[] memory shuffledX0,
         uint256[] memory shuffledX1,
         uint256[2] memory selector,
@@ -242,7 +247,7 @@ contract Shuffle is IShuffle, Ownable {
         require(shuffledX0.length == numCards[gameId], "invalid X0 len");
         require(shuffledX1.length == numCards[gameId], "invalid X1 len");
         uint256[] memory input = new uint256[](7 + numCards[gameId] * 4);
-        input[0] = nonce;
+        input[0] = playerInfos[gameId].nonce;
         input[1] = playerInfos[gameId].aggregatedPk[0];
         input[2] = playerInfos[gameId].aggregatedPk[1];
         for (uint256 i = 0; i < numCards[gameId]; i++) {
@@ -277,7 +282,6 @@ contract Shuffle is IShuffle, Ownable {
     function shuffle(
         address permanentAccount,
         uint256[8] memory proof,
-        uint256 nonce,
         uint256[] memory shuffledX0,
         uint256[] memory shuffledX1,
         uint256[2] memory selector,
@@ -293,7 +297,7 @@ contract Shuffle is IShuffle, Ownable {
             [proof[0], proof[1]],
             [[proof[2], proof[3]], [proof[4], proof[5]]],
             [proof[6], proof[7]],
-            prepareShuffleData(nonce, shuffledX0, shuffledX1, selector, gameId)
+            prepareShuffleData(shuffledX0, shuffledX1, selector, gameId)
         );
         updateDeck(shuffledX0, shuffledX1, selector, gameId);
         playerIndexes[gameId] += 1;
