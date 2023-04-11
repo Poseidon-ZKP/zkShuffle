@@ -1,9 +1,8 @@
-import { assert, expect } from 'chai';
+import { expect } from 'chai';
 import { ethers } from 'hardhat';
 import { resolve } from 'path';
-import { convertPk, initDeck, keyGen, keyAggregate, sampleFieldElements, samplePermutation, searchDeck, compressDeck, recoverDeck, string2Bigint, prepareDecryptData } from '@poseidon-zkp/poseidon-zk-proof/src/shuffle/utilities';
+import { convertPk, initDeck, keyGen, sampleFieldElements, samplePermutation, searchDeck} from '@poseidon-zkp/poseidon-zk-proof/src/shuffle/utilities';
 import { shuffle, deal } from '@poseidon-zkp/poseidon-zk-proof/src/shuffle/proof'
-import { DecryptVerifier } from 'types/@poseidon-zkp/poseidon-zk-circuits/contracts/decrypt_verifier.sol';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 const buildBabyjub = require('circomlibjs').buildBabyjub;
 
@@ -37,7 +36,7 @@ const resourceBasePath = P0X_DIR;
 
 // Depploys contract for decryption.
 async function deployDecrypt() {
-    return <DecryptVerifier>await (await ethers.getContractFactory('DecryptVerifier')).deploy();
+    return await (await ethers.getContractFactory('DecryptVerifier')).deploy();
 }
 
 // Deploys contract for shuffle encrypt.
