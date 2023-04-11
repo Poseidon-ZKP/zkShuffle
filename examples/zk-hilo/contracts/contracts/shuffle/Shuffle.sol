@@ -249,7 +249,7 @@ contract Shuffle is IShuffle, Ownable {
         address permanentAccount,
         uint256[2] memory pk,
         uint256 gameId
-    ) external onlyGameContract override {
+    ) external override onlyGameContract {
         require(states[gameId] == State.Registration, "Not in register phase");
         require(CurveBabyJubJub.isOnCurve(pk[0], pk[1]), "Invalid public key");
         playerInfos[gameId].playerAddr.push(permanentAccount);
@@ -287,7 +287,9 @@ contract Shuffle is IShuffle, Ownable {
     }
 
     // Queries deck.
-    function queryDeck(uint256 gameId) external view override returns (Deck memory) {
+    function queryDeck(
+        uint256 gameId
+    ) external view override returns (Deck memory) {
         require(states[gameId] != State.Registration, "deck is not ready");
         return decks[gameId];
     }
@@ -296,7 +298,13 @@ contract Shuffle is IShuffle, Ownable {
     function queryCardFromDeck(
         uint256 index,
         uint256 gameId
-    ) external view inDealingPhase(gameId) override returns (uint256[4] memory card) {
+    )
+        external
+        view
+        override
+        inDealingPhase(gameId)
+        returns (uint256[4] memory card)
+    {
         card[0] = decks[gameId].X0[index];
         card[1] = decks[gameId].X1[index];
         card[2] = decks[gameId].Selector[0];
@@ -307,7 +315,13 @@ contract Shuffle is IShuffle, Ownable {
     function queryCardInDeal(
         uint256 index,
         uint256 gameId
-    ) external view inDealingPhase(gameId) override returns (uint256[4] memory card) {
+    )
+        external
+        view
+        override
+        inDealingPhase(gameId)
+        returns (uint256[4] memory card)
+    {
         card[0] = cardDeals[gameId].cards[index].X0;
         card[1] = cardDeals[gameId].cards[index].Y0;
         card[2] = cardDeals[gameId].cards[index].X1;

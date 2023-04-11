@@ -97,6 +97,7 @@ export async function shuffle(
         preprocessedDeck.Delta[0], preprocessedDeck.Delta[1],
         preprocessedDeck.Selector,
     );
+    console.log("shuffleEncryptV2WasmFile`", shuffleEncryptV2WasmFile)
     let shuffleEncryptV2Output = await generateShuffleEncryptV2Proof(
         aggregatedPk, A, R,
         preprocessedDeck.X0, preprocessedDeck.X1,
