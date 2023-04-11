@@ -1,15 +1,10 @@
 import { assert, expect } from 'chai';
-import { readFileSync } from 'fs';
 import { ethers } from 'hardhat';
 import { resolve } from 'path';
-import { generateDecryptProof, generateShuffleEncryptProof, generateShuffleEncryptV2Proof, packToSolidityProof, SolidityProof, FullProof, shuffle, deal } from '@poseidon-zkp/poseidon-zk-proof/src/shuffle/proof';
 import { convertPk, initDeck, keyGen, keyAggregate, sampleFieldElements, samplePermutation, searchDeck, compressDeck, recoverDeck, string2Bigint, prepareDecryptData } from '@poseidon-zkp/poseidon-zk-proof/src/shuffle/utilities';
-import { shuffleEncryptPlaintext, shuffleEncryptV2Plaintext } from '@poseidon-zkp/poseidon-zk-proof/src/shuffle/plaintext';
 import { DecryptVerifier } from 'types/@poseidon-zkp/poseidon-zk-circuits/contracts/decrypt_verifier.sol';
-import { BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 const buildBabyjub = require('circomlibjs').buildBabyjub;
-const snarkjs = require('snarkjs');
 
 const fs = require('fs');
 const https = require('https')
@@ -44,24 +39,24 @@ async function deployDecrypt() {
     return <DecryptVerifier>await (await ethers.getContractFactory('DecryptVerifier')).deploy();
 }
 
-// Deploys contract for shuffle encrypt v2.
-async function deployShuffleEncryptV2() {
-    const vk = await (await ethers.getContractFactory('ShuffleEncryptV2VerifierKey')).deploy();
+// Deploys contract for shuffle encrypt.
+async function deployShuffleEncrypt() {
+    const vk = await (await ethers.getContractFactory('ShuffleEncryptVerifierKey')).deploy();
     return await (await ethers.getContractFactory('Shuffle_encryptVerifier', {
         libraries: {
-            ShuffleEncryptV2VerifierKey: vk.address,
+            ShuffleEncryptVerifierKey: vk.address,
         }
     })).deploy();
 }
 
-async function deployShuffleEncryptV2CARD30() {
+async function deployShuffleEncryptCARD30() {
     return await (await ethers.getContractFactory('Shuffle_encryptVerifier_30card')).deploy();
 }
 
 // Deploys contract for shuffle state machine.
 async function deployStateMachine(shuffleStateMachineOwner: SignerWithAddress) {
-    const shuffle_encrypt_verifier_contract = await deployShuffleEncryptV2();
-    const shuffleEncryptV2Verifier30CardContract = await deployShuffleEncryptV2CARD30();
+    const shuffle_encrypt_verifier_contract = await deployShuffleEncrypt();
+    const shuffleEncryptVerifier30CardContract = await deployShuffleEncryptCARD30();
     const decrypt_verifier_contract = await deployDecrypt();
     return await (await ethers.getContractFactory('Shuffle')).connect(shuffleStateMachineOwner).deploy(
         [
@@ -75,7 +70,7 @@ async function deployStateMachine(shuffleStateMachineOwner: SignerWithAddress) {
                 numCards : 30,
                 selector0 : 1073741823,
                 selector1 : 733360171,
-                encryptVerifier  : shuffleEncryptV2Verifier30CardContract.address,
+                encryptVerifier  : shuffleEncryptVerifier30CardContract.address,
             }
         ],
         decrypt_verifier_contract.address
@@ -86,7 +81,7 @@ describe('Shuffle test', function () {
     const NumCard2Deal = 5;
     const numPlayers = 2;
     beforeEach(async () => {
-        await Promise.all(['wasm/decrypt.wasm', 'zkey/decrypt.zkey', 'wasm/shuffle_encrypt_v2.wasm.52', 'zkey/shuffle_encrypt_v2.zkey.52', 'wasm/shuffle_encrypt_v2.wasm.30', 'zkey/shuffle_encrypt_v2.zkey.30'].map(
+        await Promise.all(['wasm/decrypt.wasm', 'zkey/decrypt.zkey', 'wasm/shuffle_encrypt.wasm.52', 'zkey/shuffle_encrypt.zkey.52', 'wasm/shuffle_encrypt.wasm.30', 'zkey/shuffle_encrypt.zkey.30'].map(
             async (e) => {
                 await dnld_aws(e)
             }
@@ -134,8 +129,8 @@ describe('Shuffle test', function () {
         for (const numCards of SHUFFLE_NUM_CARDS) {
             console.log("shuffle ", numCards, " cards!")
             stateMachineContract.connect(gameContract).setGameSettings(numPlayers, gameId);
-            const shuffleEncryptV2WasmFile = resolve(resourceBasePath, './wasm/shuffle_encrypt_v2.wasm.' + numCards);
-            const shuffleEncryptV2ZkeyFile = resolve(resourceBasePath, './zkey/shuffle_encrypt_v2.zkey.' + numCards);
+            const shuffleEncryptWasmFile = resolve(resourceBasePath, './wasm/shuffle_encrypt.wasm.' + numCards);
+            const shuffleEncryptZkeyFile = resolve(resourceBasePath, './zkey/shuffle_encrypt.zkey.' + numCards);
 
             // Registers three players
             for (let i = 0; i < numPlayers; i++) {
@@ -156,7 +151,7 @@ describe('Shuffle test', function () {
             for (let i = 0; i < numPlayers; i++) {
                 let A = samplePermutation(Number(numCards));
                 let R = sampleFieldElements(babyjub, numBits, BigInt(numCards));
-                await shuffle(babyjub, A, R, aggregatePk, Number(numCards), gameId, playerAddrs[i], gameContract, stateMachineContract, shuffleEncryptV2WasmFile, shuffleEncryptV2ZkeyFile);
+                await shuffle(babyjub, A, R, aggregatePk, Number(numCards), gameId, playerAddrs[i], gameContract, stateMachineContract, shuffleEncryptWasmFile, shuffleEncryptZkeyFile);
                 console.log('Player' + String(i) + ' shuffled the card!');
             }
 
