@@ -7,7 +7,7 @@ interface IShuffleEncryptVerifier {
         uint256[2] memory a,
         uint256[2][2] memory b,
         uint256[2] memory c,
-        uint256[215] memory input
+        uint256[] memory input
     ) external view;
 }
 
@@ -22,10 +22,10 @@ interface IDecryptVerifier {
 
 // Deck of cards
 struct Deck {
-    // x0 of 52 cards
-    uint256[52] X0;
-    // x1 of 52 cards
-    uint256[52] X1;
+    // x0 of cards
+    uint256[] X0;
+    // x1 of cards
+    uint256[] X1;
     // 2 selectors for recovering y coordinates
     uint256[2] Selector;
 }
@@ -40,10 +40,10 @@ struct Card {
 
 // Cards in dealing
 struct CardDeal {
-    Card[52] cards;
+    mapping(uint256 => Card) cards;
     // Record which player has decrypted individual cards
     // Warning: Support at most 256 players
-    uint256[52] record;
+    mapping(uint256 => uint256) record;
 }
 
 // Player information
@@ -54,6 +54,8 @@ struct PlayerInfo {
     uint256[] playerPk;
     // An aggregated public key for all players
     uint256[2] aggregatedPk;
+    // Nonce
+    uint256 nonce;
 }
 
 // State of the game
@@ -63,12 +65,18 @@ enum State {
     DealingCard
 }
 
+// Card Information
+struct CardInfo {
+    uint256 numCards;
+    address encryptVerifier;
+}
+
 interface IShuffle {
     // A constant indicating the card is not found in the deck
     function INVALID_CARD_INDEX() external view returns (uint256);
 
     // Set the game settings of the game of `gameId`
-    function setGameSettings(uint256 numPlayers_, uint256 gameId) external;
+    function setGameSettings(uint256 numPlayers_, uint256 numCards_, uint256 gameId) external;
 
     // Registers a player with the `permanentAccount`, public key `pk`, and `gameId`.
     function register(
@@ -101,9 +109,8 @@ interface IShuffle {
     function shuffle(
         address permanentAccount,
         uint256[8] memory proof,
-        uint256 nonce,
-        uint256[52] memory shuffledX0,
-        uint256[52] memory shuffledX1,
+        uint256[] memory shuffledX0,
+        uint256[] memory shuffledX1,
         uint256[2] memory selector,
         uint256 gameId
     ) external;

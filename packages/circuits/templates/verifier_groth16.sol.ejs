@@ -183,7 +183,7 @@ contract Verifier {
     uint[2] memory a,
     uint[2][2] memory b,
     uint[2] memory c,
-    uint[<%=IC.length-1%>] memory input
+    uint[] memory input
   ) public view {
     // If the values are not in the correct range, the Pairing contract will revert.
     Proof memory proof;

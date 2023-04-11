@@ -1,12 +1,8 @@
 import { build_circuit, calculate_checksum, parse_checksum } from "./utils";
 
 const circuit_list = [
-    ["circuits/decrypt", "decrypt"],
-    ["circuits/example", "example"],
-    ["circuits/group", "group"],
     ["circuits/shuffle_encrypt", "shuffle_encrypt"],
-    ["circuits/shuffle_encrypt_v2", "shuffle_encrypt_v2"],
-    ["circuits/signal", "signal"],
+    ["circuits/decrypt", "decrypt"],
 ];
 
 async function main() {
