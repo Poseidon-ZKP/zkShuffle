@@ -64,9 +64,11 @@ contract Shuffle is IShuffle, Ownable {
     // Sets game settings.
     function setGameSettings(
         uint256 numPlayers_,
+        uint256 numCards_,
         uint256 gameId
     ) external override onlyGameContract {
         numPlayers[gameId] = numPlayers_;
+        numCards[gameId] = numCards_;
         playerIndexes[gameId] = 0;
         states[gameId] = State.Registration;
     }
@@ -154,17 +156,10 @@ contract Shuffle is IShuffle, Ownable {
     function register(
         address permanentAccount,
         uint256[2] memory pk,
-        uint256 gameId,
-        uint256 numCards_
+        uint256 gameId
     ) external onlyGameContract override {
         require(states[gameId] == State.Registration, "Not in register phase");
         require(CurveBabyJubJub.isOnCurve(pk[0], pk[1]), "Invalid public key");
-        require(numCards_ <= MAX_NUM_CARD, "Exceed maxium numCards");
-        if (playerIndexes[gameId] == 0) {
-            numCards[gameId] = numCards_;
-        } else {
-            require(numCards[gameId] == numCards_, "Invalid numCards");
-        }
         playerInfos[gameId].playerAddr.push(permanentAccount);
         playerInfos[gameId].playerPk.push(pk[0]);
         playerInfos[gameId].playerPk.push(pk[1]);

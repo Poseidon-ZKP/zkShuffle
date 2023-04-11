@@ -150,7 +150,7 @@ library Shuffle_encryptPairing {
     }
 }
 
-library ShuffleEncryptV2VerifierKey {
+library ShuffleEncryptVerifierKey {
     using Shuffle_encryptPairing for *;
 
     function vkeyPart2()
@@ -743,7 +743,7 @@ library ShuffleEncryptV2VerifierKey {
 
 contract Shuffle_encryptVerifier {
     using Shuffle_encryptPairing for *;
-    using ShuffleEncryptV2VerifierKey for *;
+    using ShuffleEncryptVerifierKey for *;
 
     struct VerifyingKey {
         Shuffle_encryptPairing.G1Point alfa1;
@@ -1302,7 +1302,7 @@ contract Shuffle_encryptVerifier {
         );
 
         Shuffle_encryptPairing.G1Point[116]
-            memory IC = ShuffleEncryptV2VerifierKey.vkeyPart2();
+            memory IC = ShuffleEncryptVerifierKey.vkeyPart2();
         for (uint256 i = 0; i < 116; i++) {
             vk.IC[i] = IC[i];
         }

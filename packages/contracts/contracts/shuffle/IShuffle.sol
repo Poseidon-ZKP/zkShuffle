@@ -76,14 +76,13 @@ interface IShuffle {
     function INVALID_CARD_INDEX() external view returns (uint256);
 
     // Set the game settings of the game of `gameId`
-    function setGameSettings(uint256 numPlayers_, uint256 gameId) external;
+    function setGameSettings(uint256 numPlayers_, uint256 numCards_, uint256 gameId) external;
 
     // Registers a player with the `permanentAccount`, public key `pk`, and `gameId`.
     function register(
         address permanentAccount,
         uint256[2] memory pk,
-        uint256 gameId,
-        uint256 numCards
+        uint256 gameId
     ) external;
 
     // Returns the aggregated public key for all players.

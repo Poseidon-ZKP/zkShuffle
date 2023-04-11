@@ -63,14 +63,10 @@ async function deployStateMachine(shuffleStateMachineOwner: SignerWithAddress) {
         [
             {
                 numCards : 52,
-                selector0 : 4503599627370495,
-                selector1 : 3075935501959818,
                 encryptVerifier  : shuffle_encrypt_verifier_contract.address,
             },
             {
                 numCards : 30,
-                selector0 : 1073741823,
-                selector1 : 733360171,
                 encryptVerifier  : shuffleEncryptVerifier30CardContract.address,
             }
         ],
@@ -129,7 +125,7 @@ describe('Shuffle test', function () {
         const SHUFFLE_NUM_CARDS = [52, 30]
         for (const numCards of SHUFFLE_NUM_CARDS) {
             console.log("shuffle ", numCards, " cards!")
-            stateMachineContract.connect(gameContract).setGameSettings(numPlayers, gameId);
+            stateMachineContract.connect(gameContract).setGameSettings(numPlayers, numCards, gameId);
             const shuffleEncryptWasmFile = resolve(resourceBasePath, './wasm/shuffle_encrypt.wasm.' + numCards);
             const shuffleEncryptZkeyFile = resolve(resourceBasePath, './zkey/shuffle_encrypt.zkey.' + numCards);
 
@@ -138,8 +134,7 @@ describe('Shuffle test', function () {
                 await stateMachineContract.connect(gameContract).register(
                     playerAddrs[i],
                     [pkArray[i][0], pkArray[i][1]],
-                    gameId,
-                    numCards
+                    gameId
                 );
             }
 
