@@ -34,6 +34,7 @@
     "compile": "hardhat compile --verbose",
     "lint:sol": "solhint --config ./.solhint.json  \"contracts/**/*.sol\"",
     "test": "hardhat test",
+    "publish": "npm publish --access=public",
     "deploy": "hardhat deploy",
     "contract-size": "hardhat size-contracts",
     "doc": "hardhat docgen"

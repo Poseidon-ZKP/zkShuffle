@@ -29,6 +29,7 @@
   "scripts": {
     "compile": "yarn ts-node utils/build_circuits.ts",
     "prepublish": "yarn compile",
+    "publish": "npm publish --access=public",
     "test": "hardhat test",
     "checksum": "yarn ts-node utils/generate_checksum.ts",
     "upload": "echo 'todo'"
