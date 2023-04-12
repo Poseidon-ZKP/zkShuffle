@@ -13,7 +13,7 @@ dotenvConfig({ path: resolve(__dirname, "./.env") });
 const config: HardhatUserConfig = {
   solidity: {
     compilers: [{
-      version: '0.8.4' // semaphore is using 0.8.4
+      version: '0.8.4'
     }],
   },
   typechain: {

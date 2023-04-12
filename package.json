@@ -28,7 +28,6 @@
     "@types/mocha": "^10.0.0",
     "@types/node": "^18.11.9",
     "chai": "^4.3.7",
-    "dotenv": "^16.0.3",
     "ethereum-waffle": "^3.4.4",
     "ts-node": "^10.9.1",
     "typechain": "^8.1.1",

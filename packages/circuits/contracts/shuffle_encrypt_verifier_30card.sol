@@ -813,7 +813,7 @@ contract Shuffle_encryptVerifier_30card {
     
   }
 
-  /// @dev Verifies a Semaphore proof. Reverts with InvalidProof if the proof is invalid.
+  /// @dev Verifies a proof. Reverts with InvalidProof if the proof is invalid.
   function verifyProof(
     uint[2] memory a,
     uint[2][2] memory b,
