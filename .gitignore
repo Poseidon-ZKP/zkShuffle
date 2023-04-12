@@ -15,8 +15,6 @@ third-party
 circuit_js
 contracts/dummy/*verifier.sol
 circuits/build
-circuits/semaphore_constraints.json
-circuits/semaphore_js/
 test/java
 generate_witness.js
 witness_calculator.js
