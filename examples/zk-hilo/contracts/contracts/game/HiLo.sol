@@ -57,6 +57,7 @@ contract HiLo is Ownable {
     // Events
     event GameCreated(uint256 gameId, GameStage stage, address playerAddress);
     event GameJoined(uint256 gameId, GameStage stage, address playerAddress);
+    event DealHandCard(uint256 gameId, GameStage stage);
 
     constructor(address shuffle_) {
         require(shuffle_ != address(0), "empty address");
@@ -154,6 +155,7 @@ contract HiLo is Ownable {
             gameId
         );
         nextPlayer(gameId);
+        emit DealHandCard(gameId, games[gameId].stage);
     }
 
     // Guesses a high or low value.

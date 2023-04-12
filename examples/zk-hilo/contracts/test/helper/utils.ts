@@ -1,5 +1,5 @@
 import { Proof, packToSolidityProof, SolidityProof } from "@semaphore-protocol/proof";
-import { BabyJub, Deck, ecX2Delta, prepareDecryptData, prepareShuffleDeck } from './utilities';
+import { BabyJub, Deck, decompressDeck, ecX2Delta, prepareDecryptData, prepareShuffleDeck } from './utilities';
 import { shuffleEncryptV2Plaintext } from './plaintext';
 const snarkjs = require('snarkjs');
 
@@ -71,6 +71,121 @@ export async function generateShuffleEncryptV2Proof(
             VX0: VX0, VX1: VX1, VDelta0: VDelta0, VDelta1: VDelta1,
             s_u: s_u, s_v: s_v,
         },
+        wasmFile,
+        zkeyFile,
+    );
+}
+
+// Queries an encrypted card from contract, deals card & generates ZK proof,
+// and updates the card on contract.
+export async function deal(
+    babyjub: BabyJub,
+    numCards: number,
+    gameId: number,
+    cardIdx: number,
+    sk: bigint,
+    pk: bigint[],
+    stateMachineContract: Contract,
+    decryptWasmFile: string,
+    decryptZkeyFile: string,
+    isFirstDecryption: boolean,
+): Promise<DecryptProofResult> {
+    if (isFirstDecryption) {
+        const { solidityProof, decryptProof, initDelta } = await dealCompressedCard(
+            babyjub,
+            numCards,
+            gameId,
+            cardIdx,
+            sk,
+            pk,
+            stateMachineContract,
+            decryptWasmFile,
+            decryptZkeyFile,
+        );
+        const publicSignals: bigint[] = [];
+        return { publicSignals, solidityProof, decryptProof, initDelta };
+    } else {
+        const { publicSignals, solidityProof, decryptProof, initDelta } = await dealUncompressedCard(
+            gameId,
+            cardIdx,
+            sk,
+            pk,
+            stateMachineContract,
+            decryptWasmFile,
+            decryptZkeyFile,
+        );
+        return { publicSignals, solidityProof, decryptProof, initDelta };
+    }
+}
+// Queries compressed card from contract, generate zkp, and verify on contract.
+export async function dealCompressedCard(
+    babyjub: BabyJub,
+    numCards: number,
+    gameId: number,
+    cardIdx: number,
+    sk: bigint,
+    pk: bigint[],
+    stateMachineContract: Contract,
+    decryptWasmFile: string,
+    decryptZkeyFile: string,
+) {
+    let card = await stateMachineContract.queryCardFromDeck(cardIdx, gameId);
+    let Y = prepareDecryptData(
+        babyjub,
+        card[0],
+        card[1],
+        card[2],
+        card[3],
+        Number(numCards),
+        cardIdx,
+    );
+    let decryptProof = await generateDecryptProof(Y, sk, pk, decryptWasmFile, decryptZkeyFile);
+    let solidityProof: SolidityProof = packToSolidityProof(decryptProof.proof)
+    let initDelta = [ecX2Delta(babyjub, Y[0]), ecX2Delta(babyjub, Y[2])]
+    return { decryptProof, solidityProof, initDelta };
+}
+interface DecryptProofResult {
+    publicSignals: bigint[];
+    solidityProof: SolidityProof;
+    decryptProof: FullProof;
+    initDelta: bigint[];
+}
+
+// Queries uncompressed card from contract, generate zkp, and verify on contract.
+export async function dealUncompressedCard(
+    gameId: number,
+    cardIdx: number,
+    sk: bigint,
+    pk: bigint[],
+    stateMachineContract: Contract,
+    decryptWasmFile: string,
+    decryptZkeyFile: string,
+): Promise<DecryptProofResult> {
+    let card = await stateMachineContract.queryCardInDeal(cardIdx, gameId);
+    let decryptProof = await generateDecryptProof(
+        [card[0].toBigInt(), card[1].toBigInt(), card[2].toBigInt(), card[3].toBigInt()],
+        sk, pk,
+        decryptWasmFile, decryptZkeyFile);
+    let solidityProof: SolidityProof = packToSolidityProof(decryptProof.proof)
+    let initDelta = [BigInt(0), BigInt(0)]
+    console.log("decryptProof.publicSignals", decryptProof.publicSignals)
+
+    // publicSignals contain 8 values.
+    // 1~2 is the card value, 3~6 is the Y, 7～8 is the personal public key.
+    const publicSignals = [BigInt(decryptProof.publicSignals[0]), BigInt(decryptProof.publicSignals[1])]
+    return { publicSignals, solidityProof, decryptProof, initDelta };
+}
+
+// Generates proof for decryption circuit.
+export async function generateDecryptProof(
+    Y: bigint[],
+    skP: bigint,
+    pkP: bigint[],
+    wasmFile: string,
+    zkeyFile: string,
+): Promise<FullProof> {
+    return <FullProof>await snarkjs.groth16.fullProve(
+        { Y: Y, skP: skP, pkP: pkP },
         wasmFile,
         zkeyFile,
     );

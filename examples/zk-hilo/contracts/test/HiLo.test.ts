@@ -1,23 +1,21 @@
 import { ethers } from "hardhat";
 import { expect } from "chai";
 import { keyGen, convertPk, sampleFieldElements, samplePermutation } from "./helper/utilities";
-import { shuffle as shuffleDeck } from "./helper/utils";
+import { shuffle as shuffleDeck, deal as dealCard } from "./helper/utils";
 import { BigNumber } from 'ethers';
 const fs = require('fs');
 import { resolve } from 'path';
-import { exit } from "process";
 const https = require('https')
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { BabyJub, Deck, ecX2Delta, prepareDecryptData, prepareShuffleDeck } from './helper/utilities';
-import { shuffleEncryptV2Plaintext } from './helper/plaintext';
-const snarkjs = require('snarkjs');
-import { Proof, packToSolidityProof, SolidityProof } from "@semaphore-protocol/proof";
-
 const buildBabyjub = require('circomlibjs').buildBabyjub;
 const HOME_DIR = require('os').homedir();
 const P0X_DIR = resolve(HOME_DIR, "./.poseidon-zkp")
 const resourceBasePath = P0X_DIR;
-const P0X_AWS_URL = "https://p0x-labs.s3.amazonaws.com/refactor/"
+const P0X_AWS_URL = "https://p0x-labs.s3.amazonaws.com/refactor/";
+enum Guess {
+  High,
+  Low
+}
 async function dnld_aws(file_name: string) {
   fs.mkdir(P0X_DIR, () => { })
   fs.mkdir(resolve(P0X_DIR, './wasm'), () => { })
@@ -37,40 +35,8 @@ async function dnld_aws(file_name: string) {
     }
   });
 }
-export declare type FullProof = {
-  proof: Proof;
-  publicSignals: string[];
-};
 
-// Generates proof for shuffle encrypt v2 circuit.
-export async function generateShuffleEncryptV2Proof(
-  pk: bigint[],
-  A: bigint[],
-  R: bigint[],
-  UX0: bigint[],
-  UX1: bigint[],
-  UDelta0: bigint[],
-  UDelta1: bigint[],
-  s_u: bigint[],
-  VX0: bigint[],
-  VX1: bigint[],
-  VDelta0: bigint[],
-  VDelta1: bigint[],
-  s_v: bigint[],
-  wasmFile: string,
-  zkeyFile: string,
-): Promise<FullProof> {
-  return <FullProof>await snarkjs.groth16.fullProve(
-    {
-      pk: pk, A: A, R: R,
-      UX0: UX0, UX1: UX1, UDelta0: UDelta0, UDelta1: UDelta1,
-      VX0: VX0, VX1: VX1, VDelta0: VDelta0, VDelta1: VDelta1,
-      s_u: s_u, s_v: s_v,
-    },
-    wasmFile,
-    zkeyFile,
-  );
-}
+
 // Depploys contract for decryption.
 async function deployDecrypt() {
   return await (await ethers.getContractFactory('DecryptVerifier')).deploy();
@@ -133,6 +99,8 @@ describe("HiLo", () => {
       skArray.push(keys[i].sk);
     }
     pkArray = convertPk(babyjub, pkArray);
+    console.log("pkArray", pkArray);
+    console.log("skArray", skArray);
 
   });
 
@@ -193,7 +161,7 @@ describe("HiLo", () => {
       let R = sampleFieldElements(babyjub, numBits, BigInt(numCards));
       const { solidityProof: proof1, shuffleEncryptV2Output: output1 } = await shuffleDeck(babyjub, A, R, aggregatedPk, Number(numCards), gameId, shuffle, shuffleEncryptV2WasmFile, shuffleEncryptV2ZkeyFile);
       await user1.shuffle(proof1, output1.publicSignals[0], output1.publicSignals.slice(107, 159), output1.publicSignals.slice(159, 211), [output1.publicSignals[213], output1.publicSignals[214]], gameId, { gasLimit: 10000000 });
-      const { solidityProof:proof2, shuffleEncryptV2Output:output2} = await shuffleDeck(babyjub, A, R, aggregatedPk, Number(numCards), gameId, shuffle, shuffleEncryptV2WasmFile, shuffleEncryptV2ZkeyFile);
+      const { solidityProof: proof2, shuffleEncryptV2Output: output2 } = await shuffleDeck(babyjub, A, R, aggregatedPk, Number(numCards), gameId, shuffle, shuffleEncryptV2WasmFile, shuffleEncryptV2ZkeyFile);
       await user2.shuffle(proof2, output2.publicSignals[0], output2.publicSignals.slice(107, 159), output2.publicSignals.slice(159, 211), [output2.publicSignals[213], output2.publicSignals[214]], gameId, { gasLimit: 10000000 });
 
     });
@@ -201,10 +169,162 @@ describe("HiLo", () => {
 
   describe("dealHands()", function () {
     it("deals user a handcard", async function () {
+      const shuffleEncryptV2WasmFile = resolve(resourceBasePath, './wasm/shuffle_encrypt_v2.wasm');
+      const shuffleEncryptV2ZkeyFile = resolve(resourceBasePath, './zkey/shuffle_encrypt_v2.zkey');
+      const decryptWasmFile = resolve(resourceBasePath, './wasm/decrypt.wasm');
+      const decryptZkeyFile = resolve(resourceBasePath, './zkey/decrypt.zkey');
+      await shuffle.setGameContract(hiLo.address)
+      const user1 = hiLo.connect(accounts[1]);
+      const user2 = hiLo.connect(accounts[2]);
+
+      const createGameTx = await user1.createGame([pkArray[0][0], pkArray[0][1]]);
+      const createGameEvent = await createGameTx.wait().then((receipt) => {
+        return receipt.events[0].args;
+      });
       const gameId = 1;
+      await user2.joinGame(gameId, [pkArray[1][0], pkArray[1][1]]);
+      const key = await shuffle.queryAggregatedPk(gameId);
+      const aggregatedPk = [key[0].toBigInt(), key[1].toBigInt()];
+      let A = samplePermutation(Number(numCards));
+      let R = sampleFieldElements(babyjub, numBits, BigInt(numCards));
+      const { solidityProof: proof1, shuffleEncryptV2Output: output1 } = await shuffleDeck(babyjub, A, R, aggregatedPk, Number(numCards), gameId, shuffle, shuffleEncryptV2WasmFile, shuffleEncryptV2ZkeyFile);
+      await user1.shuffle(proof1, output1.publicSignals[0], output1.publicSignals.slice(107, 159), output1.publicSignals.slice(159, 211), [output1.publicSignals[213], output1.publicSignals[214]], gameId, { gasLimit: 10000000 });
+      const { solidityProof: proof2, shuffleEncryptV2Output: output2 } = await shuffleDeck(babyjub, A, R, aggregatedPk, Number(numCards), gameId, shuffle, shuffleEncryptV2WasmFile, shuffleEncryptV2ZkeyFile);
+      await user2.shuffle(proof2, output2.publicSignals[0], output2.publicSignals.slice(107, 159), output2.publicSignals.slice(159, 211), [output2.publicSignals[213], output2.publicSignals[214]], gameId, { gasLimit: 10000000 });
+
+      const { publicSignals: pS1, solidityProof: solidityProof1, decryptProof: decryptProof1, initDelta: initDelta1 } = await dealCard(babyjub, Number(numCards), gameId, 1, skArray[0], pkArray[0], shuffle, decryptWasmFile, decryptZkeyFile, true);
+      await user1.dealHandCard(
+        gameId,
+        solidityProof1,
+        [decryptProof1.publicSignals[0], decryptProof1.publicSignals[1]],
+        initDelta1
+      )
+      const { publicSignals: pS2, solidityProof: solidityProof2, decryptProof: decryptProof2, initDelta: initDelta2 } = await dealCard(babyjub, Number(numCards), gameId, 0, skArray[1], pkArray[1], shuffle, decryptWasmFile, decryptZkeyFile, true);
+      await user2.dealHandCard(
+        gameId,
+        solidityProof2,
+        [decryptProof2.publicSignals[0], decryptProof2.publicSignals[1]],
+        initDelta2
+      )
+    });
+  });
+
+  describe("guess()", function () {
+    it("should allow users to guess", async function () {
+      const shuffleEncryptV2WasmFile = resolve(resourceBasePath, './wasm/shuffle_encrypt_v2.wasm');
+      const shuffleEncryptV2ZkeyFile = resolve(resourceBasePath, './zkey/shuffle_encrypt_v2.zkey');
+      const decryptWasmFile = resolve(resourceBasePath, './wasm/decrypt.wasm');
+      const decryptZkeyFile = resolve(resourceBasePath, './zkey/decrypt.zkey');
+      await shuffle.setGameContract(hiLo.address)
+      const user1 = hiLo.connect(accounts[1]);
+      const user2 = hiLo.connect(accounts[2]);
+
+      const createGameTx = await user1.createGame([pkArray[0][0], pkArray[0][1]]);
+      const createGameEvent = await createGameTx.wait().then((receipt) => {
+        return receipt.events[0].args;
+      });
+      const gameId = 1;
+      await user2.joinGame(gameId, [pkArray[1][0], pkArray[1][1]]);
+      const key = await shuffle.queryAggregatedPk(gameId);
+      const aggregatedPk = [key[0].toBigInt(), key[1].toBigInt()];
+      let A = samplePermutation(Number(numCards));
+      let R = sampleFieldElements(babyjub, numBits, BigInt(numCards));
+      const { solidityProof: proof1, shuffleEncryptV2Output: output1 } = await shuffleDeck(babyjub, A, R, aggregatedPk, Number(numCards), gameId, shuffle, shuffleEncryptV2WasmFile, shuffleEncryptV2ZkeyFile);
+      await user1.shuffle(proof1, output1.publicSignals[0], output1.publicSignals.slice(107, 159), output1.publicSignals.slice(159, 211), [output1.publicSignals[213], output1.publicSignals[214]], gameId, { gasLimit: 10000000 });
+      const { solidityProof: proof2, shuffleEncryptV2Output: output2 } = await shuffleDeck(babyjub, A, R, aggregatedPk, Number(numCards), gameId, shuffle, shuffleEncryptV2WasmFile, shuffleEncryptV2ZkeyFile);
+      await user2.shuffle(proof2, output2.publicSignals[0], output2.publicSignals.slice(107, 159), output2.publicSignals.slice(159, 211), [output2.publicSignals[213], output2.publicSignals[214]], gameId, { gasLimit: 10000000 });
+
+      const { publicSignals: pS1, solidityProof: solidityProof1, decryptProof: decryptProof1, initDelta: initDelta1 } = await dealCard(babyjub, Number(numCards), gameId, 1, skArray[0], pkArray[0], shuffle, decryptWasmFile, decryptZkeyFile, true);
+      await user1.dealHandCard(
+        gameId,
+        solidityProof1,
+        [decryptProof1.publicSignals[0], decryptProof1.publicSignals[1]],
+        initDelta1
+      )
+      const { publicSignals: pS2, solidityProof: solidityProof2, decryptProof: decryptProof2, initDelta: initDelta2 } = await dealCard(babyjub, Number(numCards), gameId, 0, skArray[1], pkArray[1], shuffle, decryptWasmFile, decryptZkeyFile, true);
+      await user2.dealHandCard(
+        gameId,
+        solidityProof2,
+        [decryptProof2.publicSignals[0], decryptProof2.publicSignals[1]],
+        initDelta2
+      )
+
+      console.log("start guess");
+      const guess1 = Guess.High;
+      const guess2 = Guess.Low;
+
+      console.log("1", guess1, Guess[guess1])
+      console.log("2", guess2, Guess[guess2])
+
+      await user1.guess(guess1, BigInt(gameId));
+      await user2.guess(guess2, BigInt(gameId));
+    });
+
+  });
+
+  describe("showHand()", function () {
+    it.only("should allow users to show their hand", async function () {
+      const shuffleEncryptV2WasmFile = resolve(resourceBasePath, './wasm/shuffle_encrypt_v2.wasm');
+      const shuffleEncryptV2ZkeyFile = resolve(resourceBasePath, './zkey/shuffle_encrypt_v2.zkey');
+      const decryptWasmFile = resolve(resourceBasePath, './wasm/decrypt.wasm');
+      const decryptZkeyFile = resolve(resourceBasePath, './zkey/decrypt.zkey');
+      await shuffle.setGameContract(hiLo.address)
+      const user1 = hiLo.connect(accounts[1]);
+      const user2 = hiLo.connect(accounts[2]);
+
+      const createGameTx = await user1.createGame([pkArray[0][0], pkArray[0][1]]);
+      const createGameEvent = await createGameTx.wait().then((receipt) => {
+        return receipt.events[0].args;
+      });
+      const gameId = 1;
+      await user2.joinGame(gameId, [pkArray[1][0], pkArray[1][1]]);
+      const key = await shuffle.queryAggregatedPk(gameId);
+      const aggregatedPk = [key[0].toBigInt(), key[1].toBigInt()];
+      let A = samplePermutation(Number(numCards));
+      let R = sampleFieldElements(babyjub, numBits, BigInt(numCards));
+      const { solidityProof: proof1, shuffleEncryptV2Output: output1 } = await shuffleDeck(babyjub, A, R, aggregatedPk, Number(numCards), gameId, shuffle, shuffleEncryptV2WasmFile, shuffleEncryptV2ZkeyFile);
+      await user1.shuffle(proof1, output1.publicSignals[0], output1.publicSignals.slice(107, 159), output1.publicSignals.slice(159, 211), [output1.publicSignals[213], output1.publicSignals[214]], gameId, { gasLimit: 10000000 });
+      const { solidityProof: proof2, shuffleEncryptV2Output: output2 } = await shuffleDeck(babyjub, A, R, aggregatedPk, Number(numCards), gameId, shuffle, shuffleEncryptV2WasmFile, shuffleEncryptV2ZkeyFile);
+      await user2.shuffle(proof2, output2.publicSignals[0], output2.publicSignals.slice(107, 159), output2.publicSignals.slice(159, 211), [output2.publicSignals[213], output2.publicSignals[214]], gameId, { gasLimit: 10000000 });
+
+      const { publicSignals: pS1, solidityProof: solidityProof1, decryptProof: decryptProof1, initDelta: initDelta1 } = await dealCard(babyjub, Number(numCards), gameId, 1, skArray[0], pkArray[0], shuffle, decryptWasmFile, decryptZkeyFile, true);
+      await user1.dealHandCard(
+        gameId,
+        solidityProof1,
+        [decryptProof1.publicSignals[0], decryptProof1.publicSignals[1]],
+        initDelta1
+      )
+      const { publicSignals: pS2, solidityProof: solidityProof2, decryptProof: decryptProof2, initDelta: initDelta2 } = await dealCard(babyjub, Number(numCards), gameId, 0, skArray[1], pkArray[1], shuffle, decryptWasmFile, decryptZkeyFile, true);
+      await user2.dealHandCard(
+        gameId,
+        solidityProof2,
+        [decryptProof2.publicSignals[0], decryptProof2.publicSignals[1]],
+        initDelta2
+      )
+
+      console.log("start guess");
+      const guess1 = Guess.High;
+      const guess2 = Guess.Low;
+
+      console.log("1", guess1, Guess[guess1])
+      console.log("2", guess2, Guess[guess2])
+
+      await user1.guess(guess1, BigInt(gameId));
+      await user2.guess(guess2, BigInt(gameId));
+
+      console.log("start showHand")
+      const { publicSignals: pS3, solidityProof: solidityProof3, decryptProof: decryptProof3, initDelta: initDelta3 } = await dealCard(babyjub, Number(numCards), gameId, 0, skArray[0], pkArray[0], shuffle, decryptWasmFile, decryptZkeyFile, false);
+      console.log("decryptProof3", [BigInt(decryptProof3.publicSignals[0]), BigInt(decryptProof3.publicSignals[1])])
+      await user1.showHand(gameId, solidityProof3, [BigInt(decryptProof3.publicSignals[0]), BigInt(decryptProof3.publicSignals[1])]);
+      const { publicSignals: pS4, solidityProof: solidityProof4, decryptProof: decryptProof4, initDelta: initDelta4 } = await dealCard(babyjub, Number(numCards), gameId, 1, skArray[1], pkArray[1], shuffle, decryptWasmFile, decryptZkeyFile, false);
+      console.log("showHand 2")
+      console.log("decryptProof4", [BigInt(decryptProof4.publicSignals[0]), BigInt(decryptProof4.publicSignals[1])])
+
+      await user2.showHand(gameId, solidityProof4, [BigInt(decryptProof4.publicSignals[0]), BigInt(decryptProof4.publicSignals[1])]);
 
     });
   });
+
 
 
 });
