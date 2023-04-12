@@ -31,6 +31,7 @@
     "@semaphore-protocol/proof": "^2.6.1",
     "@types/debug": "^4.1.7",
     "ethers": "^5.7.2",
+    "dotenv": "^16.0.3",
     "snarkjs": "^0.5.0"
   },
   "files": [
