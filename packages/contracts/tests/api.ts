@@ -1,7 +1,7 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethers } from "hardhat";
 import { resolve } from 'path';
-import { DecryptVerifier__factory, Shuffle, ShuffleEncryptVerifierKey, ShuffleEncryptVerifierKey__factory, Shuffle_encryptVerifier__factory, Shuffle__factory} from "types";
+import { DecryptVerifier__factory, Shuffle, ShuffleEncryptVerifierKey, ShuffleEncryptVerifierKey__factory, Shuffle_encryptVerifier__factory, Shuffle__factory} from "../types";
 const buildBabyjub = require('circomlibjs').buildBabyjub;
 const Scalar = require("ffjavascript").Scalar;
 const fs = require('fs');
@@ -99,6 +99,7 @@ export class ShuffleCtx {
 }
 
 async function fullporcess() {
+    console.log("fullporcess start...")
     // leave contract to user
     const signers = await ethers.getSigners()
     const owner = signers[0];
