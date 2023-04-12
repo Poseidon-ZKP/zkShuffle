@@ -99,8 +99,6 @@ describe("HiLo", () => {
       skArray.push(keys[i].sk);
     }
     pkArray = convertPk(babyjub, pkArray);
-    console.log("pkArray", pkArray);
-    console.log("skArray", skArray);
 
   });
 
@@ -224,7 +222,10 @@ describe("HiLo", () => {
         return receipt.events[0].args;
       });
       const gameId = 1;
-      await user2.joinGame(gameId, [pkArray[1][0], pkArray[1][1]]);
+      const JoinGameTx = await user2.joinGame(gameId, [pkArray[1][0], pkArray[1][1]]);
+      const JoinGameEvent = await JoinGameTx.wait().then((receipt) => {
+        return receipt.events[0].args;
+      });
       const key = await shuffle.queryAggregatedPk(gameId);
       const aggregatedPk = [key[0].toBigInt(), key[1].toBigInt()];
       let A = samplePermutation(Number(numCards));
@@ -249,12 +250,8 @@ describe("HiLo", () => {
         initDelta2
       )
 
-      console.log("start guess");
       const guess1 = Guess.High;
       const guess2 = Guess.Low;
-
-      console.log("1", guess1, Guess[guess1])
-      console.log("2", guess2, Guess[guess2])
 
       await user1.guess(guess1, BigInt(gameId));
       await user2.guess(guess2, BigInt(gameId));
@@ -302,29 +299,25 @@ describe("HiLo", () => {
         initDelta2
       )
 
-      console.log("start guess");
       const guess1 = Guess.High;
       const guess2 = Guess.Low;
-
-      console.log("1", guess1, Guess[guess1])
-      console.log("2", guess2, Guess[guess2])
 
       await user1.guess(guess1, BigInt(gameId));
       await user2.guess(guess2, BigInt(gameId));
 
       console.log("start showHand")
-      const { publicSignals: pS3, solidityProof: solidityProof3, decryptProof: decryptProof3, initDelta: initDelta3 } = await dealCard(babyjub, Number(numCards), gameId, 0, skArray[0], pkArray[0], shuffle, decryptWasmFile, decryptZkeyFile, false);
+      const { publicSignals: pS3, solidityProof: solidityProof3, decryptProof: decryptProof3 } = await dealCard(babyjub, Number(numCards), gameId, 0, skArray[0], pkArray[0], shuffle, decryptWasmFile, decryptZkeyFile, false);
       console.log("decryptProof3", [BigInt(decryptProof3.publicSignals[0]), BigInt(decryptProof3.publicSignals[1])])
-      await user1.showHand(gameId, solidityProof3, [BigInt(decryptProof3.publicSignals[0]), BigInt(decryptProof3.publicSignals[1])]);
-      const { publicSignals: pS4, solidityProof: solidityProof4, decryptProof: decryptProof4, initDelta: initDelta4 } = await dealCard(babyjub, Number(numCards), gameId, 1, skArray[1], pkArray[1], shuffle, decryptWasmFile, decryptZkeyFile, false);
-      console.log("showHand 2")
+      await user1.showHand(gameId, solidityProof3, [decryptProof3.publicSignals[0], decryptProof3.publicSignals[1]]);
+      const { solidityProof: solidityProof4, decryptProof: decryptProof4 } = await dealCard(babyjub, Number(numCards), gameId, 1, skArray[1], pkArray[1], shuffle, decryptWasmFile, decryptZkeyFile, false);
       console.log("decryptProof4", [BigInt(decryptProof4.publicSignals[0]), BigInt(decryptProof4.publicSignals[1])])
+      const EvaluateEvent = await user2.showHand(gameId, solidityProof4, [decryptProof4.publicSignals[0], decryptProof4.publicSignals[1]]);
 
-      await user2.showHand(gameId, solidityProof4, [BigInt(decryptProof4.publicSignals[0]), BigInt(decryptProof4.publicSignals[1])]);
-
+      const evaluateEvent = await EvaluateEvent.wait().then((receipt) => {
+        return receipt.events[0].args;
+      }
+      );
+      console.log("evaluateEvent", evaluateEvent)
     });
   });
-
-
-
 });

@@ -58,7 +58,7 @@ contract HiLo is Ownable {
     event GameCreated(uint256 gameId, GameStage stage, address playerAddress);
     event GameJoined(uint256 gameId, GameStage stage, address playerAddress);
     event DealHandCard(uint256 gameId, GameStage stage);
-
+    event GameEnded(uint256 gameId, uint256 cardValue1, uint256 cardValue2, Guess guess1, Guess guess2, bool[2] guessCorrect);
     constructor(address shuffle_) {
         require(shuffle_ != address(0), "empty address");
         shuffleStateMachine = IShuffle(shuffle_);
@@ -79,8 +79,6 @@ contract HiLo is Ownable {
         uint256 gameId = ++largestGameId;
         games[gameId].stage = GameStage.Register;
         games[gameId].playerAddress[0] = msg.sender;
-        console.log("pk : ", pk[0]);
-        // console.log("stage ", games[gameId].stage);
         shuffleStateMachine.setGameSettings(2, gameId);
         shuffleStateMachine.register(msg.sender, pk, gameId);
         emit GameCreated(
@@ -154,6 +152,7 @@ contract HiLo is Ownable {
             initDelta,
             gameId
         );
+
         nextPlayer(gameId);
         emit DealHandCard(gameId, games[gameId].stage);
     }
@@ -196,6 +195,7 @@ contract HiLo is Ownable {
         uint256[2] memory cardValues;
         for (uint8 i = 0; i < 2; i++) {
             cardValues[i] = shuffleStateMachine.search(i, gameId);
+            console.log("cardValues: ", i, cardValues[i]);
             require(
                 cardValues[i] != shuffleStateMachine.INVALID_CARD_INDEX(),
                 "Invalid card value"
@@ -218,6 +218,14 @@ contract HiLo is Ownable {
             guess1 == games[gameId].guess[0],
             guess2 == games[gameId].guess[1]
         ];
+        emit GameEnded(
+            gameId,
+            cardValues[0],
+            cardValues[1],
+            guess1,
+            guess2,
+            games[gameId].guessCorrect
+        );
     }
 
     // Moves to the next player and updates stage if all players have taken actions.

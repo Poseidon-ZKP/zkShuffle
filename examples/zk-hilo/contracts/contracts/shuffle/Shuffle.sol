@@ -240,6 +240,7 @@ contract Shuffle is IShuffle, Ownable {
         if (gameId == 0) {
             initialDeck = deck;
         } else {
+            initialDeck = deck;
             decks[gameId] = deck;
         }
     }
