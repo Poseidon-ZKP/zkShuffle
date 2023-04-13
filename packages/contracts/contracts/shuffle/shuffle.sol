@@ -40,6 +40,12 @@ contract Shuffle is IShuffle, Ownable {
     // The mapping of game id => current state of the card game
     mapping(uint256 => State) public states;
 
+    event Register(
+        uint256 indexed gameId,
+        uint256 playerId,
+        address playerAddr
+    );
+
     modifier inDealingPhase(uint256 gameId) {
         require(
             states[gameId] == State.DealingCard,
@@ -163,6 +169,7 @@ contract Shuffle is IShuffle, Ownable {
         playerInfos[gameId].playerAddr.push(permanentAccount);
         playerInfos[gameId].playerPk.push(pk[0]);
         playerInfos[gameId].playerPk.push(pk[1]);
+        emit Register(gameId, playerIndexes[gameId], permanentAccount);
         playerIndexes[gameId] += 1;
         if (playerIndexes[gameId] == numPlayers[gameId]) {
             states[gameId] = State.ShufflingDeck;
