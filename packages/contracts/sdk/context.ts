@@ -61,7 +61,7 @@ export class ShuffleContext {
     ) {
         this.gc = gameContract
         this.owner = owner
-        this.smc = stateMachineContract.connect(gameContract)
+        this.smc = stateMachineContract.connect(owner)
     }
 
 	async init(
@@ -94,13 +94,15 @@ export class ShuffleContext {
 
     // Queries the current deck from contract, shuffles & generates ZK proof locally, and updates the deck on contract.
     async shuffle(
-        aggrPK: bigint[],
         gameId: number
     ) {
         const numBits = BigInt(251);
         const numCards = (await this.smc.numCards(gameId)).toNumber()
+        const key = await this.smc.queryAggregatedPk(gameId);
+        const aggrPK = [key[0].toBigInt(), key[1].toBigInt()];
+        const aggrPKEC = [this.babyjub.F.e(aggrPK[0]), this.babyjub.F.e(aggrPK[1])];
+
         let deck: Deck = await this.smc.queryDeck(gameId);
-        let aggrPKEC = [this.babyjub.F.e(aggrPK[0]), this.babyjub.F.e(aggrPK[1])];
         let preprocessedDeck = prepareShuffleDeck(this.babyjub, deck, numCards);
         let A = samplePermutation(Number(numCards));
         let R = sampleFieldElements(this.babyjub, numBits, BigInt(numCards));
@@ -134,10 +136,13 @@ export class ShuffleContext {
     async deal(
         gameId: number,
         cardIdx: number,
-        isFirstDecryption: boolean,
+        //isFirstDecryption: boolean,     // TODO
     ): Promise<bigint[]> {
+        // gameContract.getCurPlayer()
+
         const numCards = (await this.smc.numCards(gameId)).toNumber()
-        let curPlayerIdx = (await this.smc.connect(this.gc).playerIndexes(gameId)).toNumber()
+        let curPlayerIdx = (await this.smc.playerIndexes(gameId)).toNumber()
+        //const isFirstDecryption = await this.smc.cardDeals[gameId].record[cardIdx]
         if (isFirstDecryption) {
             await dealCompressedCard(
                 this.babyjub,
