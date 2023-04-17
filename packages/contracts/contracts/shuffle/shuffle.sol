@@ -13,9 +13,13 @@ contract Shuffle is IShuffle, Ownable {
 
     uint256 public constant override INVALID_CARD_INDEX = 999999;
 
+    // TODO: a) Limit supported #cards to be 30 and 52 as enum; 
+    // b) function to add shuffleVerification contract for additional #cards
     mapping(uint256 => IShuffleEncryptVerifier) public shuffleEncryptVerifiers;
     IDecryptVerifier public decryptVerifier;
     address gameContract;
+
+    uint256 public largestGameId;
 
     // The mapping of game id => Number of players
     mapping(uint256 => uint256) public numPlayers;
@@ -68,16 +72,17 @@ contract Shuffle is IShuffle, Ownable {
         initDeck(0);
     }
 
-    // Sets game settings.
-    function setGameSettings(
+    // Creates a game.
+    function createGame(
         uint256 numPlayers_,
-        uint256 numCards_,
-        uint256 gameId
-    ) external override onlyGameContract {
+        uint256 numCards_
+    ) external onlyGameContract returns (uint256) {
+        uint256 gameId = largestGameId++;
         numPlayers[gameId] = numPlayers_;
         numCards[gameId] = numCards_;
         playerIndexes[gameId] = 0;
         states[gameId] = State.Registration;
+        return gameId;
     }
 
     // Sets game contract.
@@ -238,13 +243,11 @@ contract Shuffle is IShuffle, Ownable {
 
     // Prepares public signal array for verifying card shuffling.
     function prepareShuffleData(
-        uint256[] memory shuffledX0,
-        uint256[] memory shuffledX1,
-        uint256[2] memory selector,
+        Deck memory deck,
         uint256 gameId
     ) internal view returns (uint256[] memory) {
-        require(shuffledX0.length == numCards[gameId], "invalid X0 len");
-        require(shuffledX1.length == numCards[gameId], "invalid X1 len");
+        require(deck.X0.length == numCards[gameId], "invalid X0 len");
+        require(deck.X1.length == numCards[gameId], "invalid X1 len");
         uint256[] memory input = new uint256[](7 + numCards[gameId] * 4);
         input[0] = playerInfos[gameId].nonce;
         input[1] = playerInfos[gameId].aggregatedPk[0];
@@ -252,38 +255,34 @@ contract Shuffle is IShuffle, Ownable {
         for (uint256 i = 0; i < numCards[gameId]; i++) {
             input[i + 3] = decks[gameId].X0[i];
             input[i + 3 + numCards[gameId]] = decks[gameId].X1[i];
-            input[i + 3 + numCards[gameId] * 2] = shuffledX0[i];
-            input[i + 3 + numCards[gameId] * 3] = shuffledX1[i];
+            input[i + 3 + numCards[gameId] * 2] = deck.X0[i];
+            input[i + 3 + numCards[gameId] * 3] = deck.X1[i];
         }
         input[3 + 4 * numCards[gameId]] = decks[gameId].Selector[0];
         input[4 + 4 * numCards[gameId]] = decks[gameId].Selector[1];
-        input[5 + 4 * numCards[gameId]] = selector[0];
-        input[6 + 4 * numCards[gameId]] = selector[1];
+        input[5 + 4 * numCards[gameId]] = deck.Selector[0];
+        input[6 + 4 * numCards[gameId]] = deck.Selector[1];
         return input;
     }
 
     // Updates deck with the shuffled deck.
     function updateDeck(
-        uint256[] memory shuffledX0,
-        uint256[] memory shuffledX1,
-        uint256[2] memory selector,
+        Deck memory deck,
         uint256 gameId
     ) internal {
         for (uint256 i = 0; i < numCards[gameId]; i++) {
-            decks[gameId].X0[i] = shuffledX0[i];
-            decks[gameId].X1[i] = shuffledX1[i];
+            decks[gameId].X0[i] = deck.X0[i];
+            decks[gameId].X1[i] = deck.X1[i];
         }
-        decks[gameId].Selector[0] = selector[0];
-        decks[gameId].Selector[1] = selector[1];
+        decks[gameId].Selector[0] = deck.Selector[0];
+        decks[gameId].Selector[1] = deck.Selector[1];
     }
 
     // Shuffles the deck for `permanentAccount`.
     function shuffle(
         address permanentAccount,
         uint256[8] memory proof,
-        uint256[] memory shuffledX0,
-        uint256[] memory shuffledX1,
-        uint256[2] memory selector,
+        Deck memory deck,
         uint256 gameId
     ) external override onlyGameContract {
         require(states[gameId] == State.ShufflingDeck, "Not in shuffle phase");
@@ -296,9 +295,9 @@ contract Shuffle is IShuffle, Ownable {
             [proof[0], proof[1]],
             [[proof[2], proof[3]], [proof[4], proof[5]]],
             [proof[6], proof[7]],
-            prepareShuffleData(shuffledX0, shuffledX1, selector, gameId)
+            prepareShuffleData(deck, gameId)
         );
-        updateDeck(shuffledX0, shuffledX1, selector, gameId);
+        updateDeck(deck, gameId);
         playerIndexes[gameId] += 1;
         if (playerIndexes[gameId] == numPlayers[gameId]) {
             states[gameId] = State.DealingCard;

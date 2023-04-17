@@ -21,6 +21,15 @@ interface IDecryptVerifier {
 }
 
 // Deck of cards
+//
+// Suppose that we have n cards in the deck, for each card,
+// we have two points on BabyJubJub (x_{i,0}, y_{i,0}), 
+// (x_{i,1}, y_{i,1}). We use a compressed representation of these points 
+// (x_{i,0}, c_{i, 0}), (x_{i,1}, c_{i, 1}), where c_{i, j} is a 
+// boolean flag to represent the sign instead of a y coordinate.
+// 
+// We compress the selector to a bitmap and packed the bitmap into two uint256, 
+// which means the deck can at most support 253 cards.
 struct Deck {
     // x0 of cards
     uint256[] X0;
@@ -75,8 +84,11 @@ interface IShuffle {
     // A constant indicating the card is not found in the deck
     function INVALID_CARD_INDEX() external view returns (uint256);
 
-    // Set the game settings of the game of `gameId`
-    function setGameSettings(uint256 numPlayers_, uint256 numCards_, uint256 gameId) external;
+    // Creates a game.
+    function createGame(
+        uint256 numPlayers_,
+        uint256 numCards_
+    ) external returns (uint256);
 
     // Registers a player with the `permanentAccount`, public key `pk`, and `gameId`.
     function register(
@@ -109,24 +121,43 @@ interface IShuffle {
     function shuffle(
         address permanentAccount,
         uint256[8] memory proof,
-        uint256[] memory shuffledX0,
-        uint256[] memory shuffledX1,
-        uint256[2] memory selector,
+        Deck memory deck,
         uint256 gameId
     ) external;
 
-    // Deals the `cardIdx`-th card given the zk `proof` of validity and `out` for decrypted card from `curPlayerIdx`.
-    //  `initDelta` is used when `curPlayerIdx` is the first one to decrypt `cardIdx`-th card due to the compressed
-    //  representation of elliptic curve points.
-    function deal(
-        address permanentAccount,
-        uint256 cardIdx,
-        uint256 curPlayerIdx,
-        uint256[8] memory proof,
-        uint256[2] memory decryptedCard,
-        uint256[2] memory initDelta,
-        uint256 gameId
+    // // Deals the `cardIdx`-th card given the zk `proof` of validity and `out` for decrypted card from `curPlayerIdx`.
+    // //  `initDelta` is used when `curPlayerIdx` is the first one to decrypt `cardIdx`-th card due to the compressed
+    // //  representation of elliptic curve points.
+    // function deal(
+    //     address permanentAccount,
+    //     uint256 cardIdx,
+    //     uint256 curPlayerIdx,
+    //     uint256[8] memory proof,
+    //     uint256[2] memory decryptedCard,
+    //     uint256[2] memory initDelta,
+    //     uint256 gameId
+    // ) external;
+
+    function dealToPlayer(
+        uint256 gameId,
+        uint256 playerIndex,
+        uint256[] memory cardIndex,
+        uint256[8][] memory proof,
+        uint256[2][] memory decryptedCard,
+        uint256[2][] memory initDelta
     ) external;
+    //  { 
+    //    if(msg.sender == playerIndex) {return;}
+    //    shuffle.deal(..)
+    // }
+    
+    function openCard(
+        uint256 gameId, 
+        uint256[] memory cardIndex,
+        uint256[8][] memory proof,
+        uint256[2][] memory decryptedCard
+    ) external;
+    // {}
 
     // Searches the value of the `cardIndex`-th card in the `gameId`-th game.
     function search(
