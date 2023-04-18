@@ -51,6 +51,12 @@ contract Shuffle is IShuffle, Ownable {
         address playerAddr
     );
 
+    event Deal(
+        uint indexed gameId,
+        uint[] cardId,
+        uint playerId
+    );
+
     modifier inDealingPhase(uint256 gameId) {
         require(
             states[gameId] == State.DealingCard,
@@ -385,6 +391,14 @@ contract Shuffle is IShuffle, Ownable {
         cardDeals[gameId].cards[cardIdx].X1 = decryptedCard[0];
         cardDeals[gameId].cards[cardIdx].Y1 = decryptedCard[1];
         cardDeals[gameId].record[cardIdx] |= (1 << curPlayerIdx);
+    }
+
+    function realDeal(
+        uint gameId,
+        uint[] memory cardIdx,
+        uint playerIdx  // MAX_PLAYER means deal to all player
+    ) external override onlyGameContract {
+        emit Deal(gameId, cardId, playerId);
     }
 
     // Searches the value of the `cardIndex`-th card in the `gameId`-th game.
