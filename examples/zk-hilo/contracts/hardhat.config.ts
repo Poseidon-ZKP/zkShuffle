@@ -10,13 +10,15 @@ dotenvConfig({ path: resolve(__dirname, "./.env") });
 
 const config: HardhatUserConfig = {
   solidity: {
-    compilers: [{
-      version: '0.8.16'
-    }],
+    compilers: [
+      {
+        version: "0.8.16",
+      },
+    ],
   },
   paths: {
     sources: "./contracts",
-    tests: "./tests",
+    tests: "./test",
     cache: "./artifacts/cache",
   },
   mocha: {
