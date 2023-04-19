@@ -29,10 +29,6 @@ const P0X_DIR = resolve(HOME_DIR, "./.poseidon-zkp");
 const resourceBasePath = P0X_DIR;
 const P0X_AWS_URL = "https://p0x-labs.s3.amazonaws.com/refactor/";
 
-enum Guess {
-  High,
-  Low,
-}
 async function dnld_aws(file_name: string) {
   fs.mkdir(P0X_DIR, () => {});
   fs.mkdir(resolve(P0X_DIR, "./wasm"), () => {});
