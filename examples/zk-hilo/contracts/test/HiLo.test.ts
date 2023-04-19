@@ -278,6 +278,7 @@ describe("HiLo", () => {
       return receipt.events[0].args;
     });
     const gameId = Number(createGameEvent.gameId);
+
     await Bob.joinGame(gameId, [pkArray[1][0], pkArray[1][1]]);
     console.log(`Alice created game ${gameId}, and Bob joined the game`);
 
@@ -313,7 +314,7 @@ describe("HiLo", () => {
     console.log("Bob shuffled the deck");
 
     // Alice deal second card to Bob
-    let cardIdx = 1;
+    let cardIdx = 1; // 0-51
     let card = await hiLo.queryCardFromDeck(gameId, cardIdx);
     let [dealProof, decryptedData, initDelta] = await generateDealData(
       babyjub,
@@ -356,6 +357,7 @@ describe("HiLo", () => {
     );
     console.log("Bob deal first card to Alice");
 
+    // Alice show her card
     cardIdx = 0;
     card = await hiLo.queryCardInDeal(gameId, cardIdx);
     let [showProof, showData] = await generateShowHandData(
@@ -369,7 +371,7 @@ describe("HiLo", () => {
       showData[0],
       showData[1],
     ]);
-    let cardValue = await Alice.getCardValue(gameId, cardIdx);
+    let cardValue = await Alice.getCardValue(gameId, cardIdx); // 0-51
     console.log(`Alice shows her card, and the card is ${cardValue}`);
 
     cardIdx = 1;

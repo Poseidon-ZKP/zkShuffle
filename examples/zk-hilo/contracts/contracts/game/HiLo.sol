@@ -32,18 +32,18 @@ contract HiLo is Ownable {
     constructor(address shuffle_) {
         require(shuffle_ != address(0), "empty address");
         shuffleStateMachine = IShuffle(shuffle_);
-        largestGameId = 1;
+        largestGameId = 0;
     }
 
     // Creates a game.
     function createGame(uint256[2] memory pk) external {
+        ++largestGameId;
+
         uint256 gameId = largestGameId;
         games[gameId].players[0] = msg.sender;
 
         shuffleStateMachine.setGameSettings(2, gameId);
         shuffleStateMachine.register(msg.sender, pk, gameId);
-
-        ++largestGameId;
 
         emit GameCreated(gameId, msg.sender);
     }
