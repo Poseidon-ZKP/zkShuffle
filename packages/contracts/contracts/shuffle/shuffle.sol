@@ -51,12 +51,6 @@ contract Shuffle is IShuffle, Ownable {
         address playerAddr
     );
 
-    event Deal(
-        uint indexed gameId,
-        uint[] cardId,
-        uint playerId
-    );
-
     modifier inDealingPhase(uint256 gameId) {
         require(
             states[gameId] == State.DealingCard,
@@ -82,7 +76,7 @@ contract Shuffle is IShuffle, Ownable {
     function createGame(
         uint256 numPlayers_,
         uint256 numCards_
-    ) external onlyGameContract returns (uint256) {
+    ) external override onlyGameContract returns (uint256) {
         uint256 gameId = largestGameId++;
         numPlayers[gameId] = numPlayers_;
         numCards[gameId] = numCards_;
@@ -349,7 +343,7 @@ contract Shuffle is IShuffle, Ownable {
     // Deals the `cardIdx`-th card given the zk `proof` of validity and `out` for decrypted card from `curPlayerIdx`.
     //  `initDelta` is used when `curPlayerIdx` is the first one to decrypt `cardIdx`-th card due to the compressed
     //  representation of elliptic curve points.
-    function deal(
+    function decrypt(
         address permanentAccount,
         uint256 cardIdx,
         uint256 curPlayerIdx,
@@ -357,7 +351,7 @@ contract Shuffle is IShuffle, Ownable {
         uint256[2] memory decryptedCard,
         uint256[2] memory initDelta,
         uint256 gameId
-    ) external override inDealingPhase(gameId) onlyGameContract {
+    ) internal {
         require(
             playerInfos[gameId].playerAddr[curPlayerIdx] == permanentAccount,
             "not recognized player"
@@ -393,12 +387,48 @@ contract Shuffle is IShuffle, Ownable {
         cardDeals[gameId].record[cardIdx] |= (1 << curPlayerIdx);
     }
 
-    function realDeal(
+    function draw(
+        uint gameId,
+        address account,
+        uint playerIndex,
+        uint[] memory cardIndex,
+        uint[8][] memory proof,
+        uint[2][] memory decryptedCard,
+        uint[2][] memory initDelta
+    ) external override inDealingPhase(gameId) onlyGameContract {
+        for (uint cid = 0; cid < cardIndex.length; cid++) {
+            decrypt(account, cardIndex[cid], playerIndex, proof[cid], decryptedCard[cid], initDelta[cid], gameId);
+        }
+    }
+
+    function deal(
         uint gameId,
         uint[] memory cardIdx,
         uint playerIdx  // MAX_PLAYER means deal to all player
     ) external override onlyGameContract {
-        emit Deal(gameId, cardId, playerId);
+        emit Deal(gameId, cardIdx, playerIdx);
+    }
+
+    function open(
+        uint gameId,
+        uint[] memory cardIdx,
+        uint playerIdx  // MAX_PLAYER means deal to all player
+    ) external override onlyGameContract {
+        emit Open(gameId, cardIdx, playerIdx);
+    }
+
+    function openCard(
+        uint256 gameId, 
+        address account,
+        uint playerIndex,
+        uint256[] memory cardIndex,
+        uint256[8][] memory proof,
+        uint256[2][] memory decryptedCard
+    ) external override onlyGameContract {
+        uint[2] memory dummy = [uint(0), uint(0)];
+        for (uint cid = 0; cid < cardIndex.length; cid++) {
+            decrypt(account, cardIndex[cid], playerIndex, proof[cid], decryptedCard[cid], dummy, gameId);
+        }
     }
 
     // Searches the value of the `cardIndex`-th card in the `gameId`-th game.

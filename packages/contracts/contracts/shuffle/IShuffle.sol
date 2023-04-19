@@ -80,15 +80,62 @@ struct CardInfo {
     address encryptVerifier;
 }
 
-interface IShuffle {
-    // A constant indicating the card is not found in the deck
-    function INVALID_CARD_INDEX() external view returns (uint256);
-
+// for SDK(player)
+interface ICommon {
     // Creates a game.
     function createGame(
         uint256 numPlayers_,
         uint256 numCards_
     ) external returns (uint256);
+
+    // Returns the aggregated public key for all players.
+    function queryAggregatedPk(
+        uint256 gameId
+    ) external view returns (uint256[2] memory);
+
+    // Shuffles the deck for `permanentAccount`.
+    function shuffle(
+        address account,
+        uint256[8] memory proof,
+        Deck memory deck,
+        uint256 gameId
+    ) external;
+
+    function draw(
+        uint gameId,
+        address account,
+        uint playerIndex,
+        uint[] memory cardIndex,
+        uint[8][] memory proof,
+        uint[2][] memory decryptedCard,
+        uint[2][] memory initDelta
+    ) external;
+
+    function openCard(
+        uint256 gameId, 
+        address account,
+        uint playerIndex,
+        uint256[] memory cardIndex,
+        uint256[8][] memory proof,
+        uint256[2][] memory decryptedCard
+    ) external;
+
+    event Deal(
+        uint indexed gameId,
+        uint[] cardId,
+        uint playerId
+    );
+
+    event Open(
+        uint indexed gameId,
+        uint[] cardId,
+        uint playerId
+    );
+}
+
+interface IShuffle is ICommon {
+    // A constant indicating the card is not found in the deck
+    function INVALID_CARD_INDEX() external view returns (uint256);
 
     // Registers a player with the `permanentAccount`, public key `pk`, and `gameId`.
     function register(
@@ -96,11 +143,6 @@ interface IShuffle {
         uint256[2] memory pk,
         uint256 gameId
     ) external;
-
-    // Returns the aggregated public key for all players.
-    function queryAggregatedPk(
-        uint256 gameId
-    ) external view returns (uint256[2] memory);
 
     // Queries deck.
     function queryDeck(uint256 gameId) external view returns (Deck memory);
@@ -117,51 +159,22 @@ interface IShuffle {
         uint256 gameId
     ) external view returns (uint256[4] memory card);
 
-    // Shuffles the deck for `permanentAccount`.
-    function shuffle(
-        address permanentAccount,
-        uint256[8] memory proof,
-        Deck memory deck,
-        uint256 gameId
+    function deal(
+        uint gameId,
+        uint[] memory cardIdx,
+        uint playerIdx
     ) external;
-
-    // // Deals the `cardIdx`-th card given the zk `proof` of validity and `out` for decrypted card from `curPlayerIdx`.
-    // //  `initDelta` is used when `curPlayerIdx` is the first one to decrypt `cardIdx`-th card due to the compressed
-    // //  representation of elliptic curve points.
-    // function deal(
-    //     address permanentAccount,
-    //     uint256 cardIdx,
-    //     uint256 curPlayerIdx,
-    //     uint256[8] memory proof,
-    //     uint256[2] memory decryptedCard,
-    //     uint256[2] memory initDelta,
-    //     uint256 gameId
-    // ) external;
-
-    function dealToPlayer(
-        uint256 gameId,
-        uint256 playerIndex,
-        uint256[] memory cardIndex,
-        uint256[8][] memory proof,
-        uint256[2][] memory decryptedCard,
-        uint256[2][] memory initDelta
-    ) external;
-    //  { 
-    //    if(msg.sender == playerIndex) {return;}
-    //    shuffle.deal(..)
-    // }
     
-    function openCard(
-        uint256 gameId, 
-        uint256[] memory cardIndex,
-        uint256[8][] memory proof,
-        uint256[2][] memory decryptedCard
+    function open(
+        uint gameId,
+        uint[] memory cardIdx,
+        uint playerIdx
     ) external;
-    // {}
 
     // Searches the value of the `cardIndex`-th card in the `gameId`-th game.
     function search(
         uint256 cardIndex,
         uint256 gameId
     ) external view returns (uint256);
+
 }
