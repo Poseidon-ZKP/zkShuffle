@@ -2,7 +2,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { shuffleEncryptV2Plaintext } from "@poseidon-zkp/poseidon-zk-proof/src/shuffle/plaintext";
 import { dealCompressedCard, dealUncompressedCard, generateShuffleEncryptV2Proof, packToSolidityProof, SolidityProof } from "@poseidon-zkp/poseidon-zk-proof/src/shuffle/proof";
 import { prepareShuffleDeck, sampleFieldElements, samplePermutation} from "@poseidon-zkp/poseidon-zk-proof/src/shuffle/utilities";
-import { IGame, IShuffle, Shuffle} from "../types";
+import { Game__factory, IGame, IShuffle, Shuffle, Shuffle__factory} from "../types";
 import { resolve } from 'path';
 
 const buildBabyjub = require('circomlibjs').buildBabyjub;
@@ -47,7 +47,8 @@ export type Deck = any;
 export class ShuffleContext {
 
     babyjub : any
-    smc : IShuffle
+    //smc : IShuffle
+    smc : Shuffle
     game : IGame
     owner : SignerWithAddress
     pk : EC
@@ -65,7 +66,8 @@ export class ShuffleContext {
     ) {
         this.game = gameContract.connect(owner)
         this.owner = owner
-        this.smc = stateMachineContract.connect(owner)
+        this.smc = Shuffle__factory.connect(stateMachineContract.address, owner)
+        //this.smc = stateMachineContract.connect(owner)
     }
 
 	async init(

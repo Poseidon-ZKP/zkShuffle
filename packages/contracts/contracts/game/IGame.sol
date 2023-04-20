@@ -21,7 +21,13 @@ struct Action {
     uint playerIdx;
 }
 
+// 1. Game Contract Need Implement IGame
+//    (1) shuffle : card state
+//    (2) game : logic
+// 2. SDK only operate with IGame
+// 3. IGame should be Sematic Complete
 interface IGame {
+    // v1 
     function shuffleContract() external view returns (address);
 
     function newGame(
@@ -29,6 +35,12 @@ interface IGame {
         uint numPlayers,
         Action[] calldata actions
     ) external returns (uint gid);
+
+    // v2
+    // function newGame(
+    //     uint numCards,
+    //     uint numPlayers
+    // ) external returns (uint gid);
 
     function joinGame(
         address account,
@@ -62,7 +74,29 @@ interface IGame {
         uint256[2][] memory decryptedCard
     ) external;
 
+    event GameStart(
+        uint256 indexed gameId
+    );
+
+    event JoinGame(
+        uint256 indexed gameId,
+        uint256 playerId,
+        address playerAddr
+    );
+
     event GameEnd(
         uint indexed gameId
+    );
+
+    event Deal(
+        uint indexed gameId,
+        uint[] cardId,
+        uint playerId
+    );
+
+    event Open(
+        uint indexed gameId,
+        uint[] cardId,
+        uint playerId
     );
 }

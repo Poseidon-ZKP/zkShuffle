@@ -50,6 +50,7 @@ async function player_run(
             nextBlock = e.blockNumber - 1;
             if (e.event == "Deal" && e.args.playerId != playerId) {
                 console.log("e : ", e)
+                player.d
                 // if e == deal && !equal playerIdx
                 //      game.draw()
             } else if (e.event == "Open" && e.args.playerId == playerId) {
