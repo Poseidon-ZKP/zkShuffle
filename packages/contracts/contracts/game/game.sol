@@ -3,6 +3,7 @@ pragma solidity >=0.8.4;
 
 import "../shuffle/IShuffle.sol";
 import "./IGame.sol";
+import "hardhat/console.sol";
 
 // 1. Cards : num
 // 2. action(deal/open) workflow
@@ -72,27 +73,79 @@ contract Game is IGame{
         }
     }
 
+    function draw(
+        uint gameId,
+        address account,
+        uint playerIndex,
+        uint[] memory cardIndex,
+        uint[8][] memory proof,
+        uint[2][] memory decryptedCard,
+        uint[2][] memory initDelta
+    ) public override {
+        checkDealAction(gameId, playerIndex, cardIndex[0]);
+        iShuffle.draw(gameId, account, playerIndex, cardIndex, proof, decryptedCard, initDelta);
+        runNextAction(gameId);
+    }
+
+    function open(
+        uint256 gameId, 
+        address account,
+        uint playerIndex,
+        uint256[] memory cardIndex,
+        uint256[8][] memory proof,
+        uint256[2][] memory decryptedCard
+    ) public override {
+        checkOpenAction(gameId, playerIndex, cardIndex[0]);
+        iShuffle.openCard(gameId, account, playerIndex, cardIndex, proof, decryptedCard);
+        runNextAction(gameId);
+    }
+
+    function checkDealAction(
+        uint gameId,
+        uint playerIdx,
+        uint cardIdx
+    ) internal {
+        require(games[gameId].actions[games[gameId].curAction].t == Type.DEAL, "invalid action");
+        require(games[gameId].actions[games[gameId].curAction].state == ActionState.ONGOING, "invalid action state!");
+        require(games[gameId].actions[games[gameId].curAction].playerIdx == playerIdx, "invalid player");
+        require(games[gameId].actions[games[gameId].curAction].cardIdx == cardIdx, "invalid card");
+    }
+
+    function checkOpenAction(
+        uint gameId,
+        uint playerIdx,
+        uint cardIdx
+    ) internal {
+        require(games[gameId].actions[games[gameId].curAction].t == Type.OPEN, "invalid action");
+        require(games[gameId].actions[games[gameId].curAction].state == ActionState.ONGOING, "invalid action state!");
+        require(games[gameId].actions[games[gameId].curAction].playerIdx == playerIdx, "invalid player");
+        require(games[gameId].actions[games[gameId].curAction].cardIdx == cardIdx, "invalid card");
+    }
+
     // Game Logic State Machine
     function runNextAction(uint gid) internal {
-        if (games[gid].curAction <= games[gid].lastAction &&
-            games[gid].actions[games[gid].curAction].state == ActionState.DONE) {
+        console.log("runNextAction ", gid);
+        games[gid].actions[games[gid].curAction].state = ActionState.DONE;
+        if (games[gid].curAction == games[gid].lastAction) {
+            emit GameEnd(gid);
+            return;
+        }
 
-            games[gid].curAction++;
-            games[gid].actions[games[gid].curAction].state = ActionState.ONGOING;
+        games[gid].curAction++;
+        games[gid].actions[games[gid].curAction].state = ActionState.ONGOING;
 
-            // trigger event, ask for player activity
-            Action memory a = games[gid].actions[games[gid].curAction];
-            uint[] memory cids = new uint[](1);
-            cids[0] = a.cardIdx;
-            uint[] memory pids = new uint[](1);
-            pids[0] = a.playerIdx;
-            if (a.t == Type.DEAL) {
-                iShuffle.deal(shuffleGameId[gid], cids, pids[0]);
-            } else if (a.t == Type.OPEN) {
-                iShuffle.open(shuffleGameId[gid], cids, pids[0]);
-            } else {
-                assert(false);
-            }
+        // trigger event, ask for player activity
+        Action memory a = games[gid].actions[games[gid].curAction];
+        uint[] memory cids = new uint[](1);
+        cids[0] = a.cardIdx;
+        uint[] memory pids = new uint[](1);
+        pids[0] = a.playerIdx;
+        if (a.t == Type.DEAL) {
+            iShuffle.deal(shuffleGameId[gid], cids, pids[0]);
+        } else if (a.t == Type.OPEN) {
+            iShuffle.open(shuffleGameId[gid], cids, pids[0]);
+        } else {
+            assert(false);
         }
     }
 

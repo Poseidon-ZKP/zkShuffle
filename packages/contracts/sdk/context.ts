@@ -177,22 +177,19 @@ export class ShuffleContext {
             // wait for my turn
             await sleep(10000)
         }
-        console.log("Player ", playerIdx, " 's Shuffle trun!")
+        console.log("Player ", playerIdx, " 's Shuffle turn!")
 
         const start = Date.now()
         await this._shuffle(gameId)
         console.log("Player ", playerIdx, " Shuffled in ", Date.now() - start, "s")
     }
 
-    async deal(
+    async draw(
         gameId: number,
-        cardIdx: number,
-        //isFirstDecryption: boolean,     // TODO
+        cardIdx: number
     ): Promise<bigint[]> {
-        // gameContract.getCurPlayer()
-
-        const numCards = (await this.smc.numCards(gameId)).toNumber()
-        let curPlayerIdx = (await this.smc.playerIndexes(gameId)).toNumber()
+        const numCards = (await this.smc.gameCardNum(gameId)).toNumber()
+        let curPlayerIdx = (await this.smc.gamePlayerIdx(gameId)).toNumber()
         //const isFirstDecryption = await this.smc.cardDeals[gameId].record[cardIdx]
         if (isFirstDecryption) {
             await dealCompressedCard(

@@ -30,7 +30,6 @@ interface IGame {
         Action[] calldata actions
     ) external returns (uint gid);
 
-
     function joinGame(
         address account,
         uint[2] memory pk,
@@ -44,4 +43,26 @@ interface IGame {
         uint256 gameId
     ) external;
 
+    function draw(
+        uint gameId,
+        address account,
+        uint playerIndex,
+        uint[] memory cardIndex,
+        uint[8][] memory proof,
+        uint[2][] memory decryptedCard,
+        uint[2][] memory initDelta
+    ) external;
+
+    function open(
+        uint256 gameId, 
+        address account,
+        uint playerIndex,
+        uint256[] memory cardIndex,
+        uint256[8][] memory proof,
+        uint256[2][] memory decryptedCard
+    ) external;
+
+    event GameEnd(
+        uint indexed gameId
+    );
 }

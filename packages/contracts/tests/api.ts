@@ -48,14 +48,16 @@ async function player_run(
         for (let i = 0; i < events.length; i++) {
             const e = events[i];
             nextBlock = e.blockNumber - 1;
-            if (e.event == "Deal") {
+            if (e.event == "Deal" && e.args.playerId != playerId) {
                 console.log("e : ", e)
                 // if e == deal && !equal playerIdx
                 //      game.draw()
-            } else if (e.event == "Open") {
+            } else if (e.event == "Open" && e.args.playerId == playerId) {
                 console.log("e : ", e)
                 // if e == open && equal playerIdx
                 //      game.open()
+            } else if (e.event == "GameEnd") {
+                // game end
             }
         }
         await sleep(10000)
