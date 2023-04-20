@@ -1,5 +1,23 @@
-import { convertPk, keyGen } from './utils';
+import {
+  generateDecryptProof,
+  generateShuffleEncryptV2Proof,
+  packToSolidityProof,
+  SolidityProof,
+} from '@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/proof';
+import snarkjs from 'snarkjs';
+import {
+  convertPk,
+  keyGen,
+  sampleFieldElements,
+  samplePermutation,
+  string2Bigint,
+  prepareDecryptData,
+  ecX2Delta,
+  prepareShuffleDeck,
+} from '@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/utilities';
+import { shuffleEncryptV2Plaintext } from '@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/plaintext';
 import { buildBabyjub } from 'circomlibjs';
+
 import { getContract, getProvider } from '@wagmi/core';
 import { contracts } from '../const/contracts';
 import { Contract, ethers } from 'ethers';
@@ -27,11 +45,20 @@ export interface PlayerInfos {
   };
 }
 
-export const playerAddresses = [
-  '0xFb1F17a3b7d41C8C544bf3f9A6F96266aFfa07e3',
-  '0x389F62E4d0AbfA2D23a55cE4dfE9FcAB9277D0ee',
-];
-export const numPlayers = playerAddresses.length;
+export type RESOURCE_TYPE = 'shuffle_encrypt_v2' | 'decrypt';
+export type FILE_TYPE = 'wasm' | 'zkey';
+
+const P0X_AWS_URL = 'https://p0x-labs.s3.amazonaws.com/refactor/';
+
+export function getResourcePath(resType: RESOURCE_TYPE, fileType: FILE_TYPE) {
+  return `https://p0x-labs.s3.amazonaws.com/${fileType}/${resType}.${fileType}`;
+}
+
+const shuffleEncryptZkeyFile = getResourcePath('shuffle_encrypt_v2', 'zkey');
+const shuffleEncryptWasmFile = getResourcePath('shuffle_encrypt_v2', 'wasm');
+const decryptZkeyFile = getResourcePath('decrypt', 'zkey');
+const decryptWasmFile = getResourcePath('decrypt', 'wasm');
+
 export const getPlayerPksAndSks = (
   pksAndSks: BabyjubsResult,
   playerAddresses: string[]
@@ -76,3 +103,75 @@ export const getContracts = (addresses: string[]) => {
   });
   return newInfo;
 };
+
+async function generateShuffleData(
+  babyjub: any,
+  aggregatedPk: any,
+  numBits: bigint,
+  numCards: bigint,
+  deck: any,
+  shuffleEncryptV2WasmFile: string,
+  shuffleEncryptV2ZkeyFile: string
+): Promise<[SolidityProof, bigint[], string[]]> {
+  let A = samplePermutation(Number(numCards));
+  let R = sampleFieldElements(babyjub, numBits, numCards);
+
+  let aggregatedPkEC = [
+    babyjub.F.e(aggregatedPk[0]),
+    babyjub.F.e(aggregatedPk[1]),
+  ];
+  let preprocessedDeck = prepareShuffleDeck(babyjub, deck, Number(numCards));
+  let plaintext_output = shuffleEncryptV2Plaintext(
+    babyjub,
+    Number(numCards),
+    A,
+    R,
+    aggregatedPkEC,
+    preprocessedDeck.X0,
+    preprocessedDeck.X1,
+    preprocessedDeck.Delta[0],
+    preprocessedDeck.Delta[1],
+    preprocessedDeck.Selector
+  );
+  // let shuffleEncryptV2Output = await generateShuffleEncryptV2Proof(
+  //   aggregatedPk,
+  //   A,
+  //   R,
+  //   preprocessedDeck.X0,
+  //   preprocessedDeck.X1,
+  //   preprocessedDeck.Delta[0],
+  //   preprocessedDeck.Delta[1],
+  //   preprocessedDeck.Selector,
+  //   plaintext_output.X0,
+  //   plaintext_output.X1,
+  //   plaintext_output.delta0,
+  //   plaintext_output.delta1,
+  //   plaintext_output.selector,
+  //   shuffleEncryptV2WasmFile,
+  //   shuffleEncryptV2ZkeyFile
+  // );
+  // let solidityProof: SolidityProof = packToSolidityProof(
+  //   shuffleEncryptV2Output.proof
+  // );
+
+  // return [
+  //   solidityProof,
+  //   combineShuffleData(shuffleEncryptV2Output.publicSignals, Number(numCards)),
+  //   shuffleEncryptV2Output.publicSignals,
+  // ];
+}
+
+function combineShuffleData(signals: string[], numCards: number): bigint[] {
+  const nonce = [BigInt(signals[0])];
+  const shuffledX0 = string2Bigint(
+    signals.slice(2 * numCards + 3, 3 * numCards + 3)
+  );
+  const shuffledX1 = string2Bigint(
+    signals.slice(3 * numCards + 3, 4 * numCards + 3)
+  );
+  const selector = string2Bigint(
+    signals.slice(4 * numCards + 5, 4 * numCards + 7)
+  );
+
+  return nonce.concat(shuffledX0).concat(shuffledX1).concat(selector);
+}

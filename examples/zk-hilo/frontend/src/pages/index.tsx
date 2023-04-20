@@ -18,6 +18,9 @@ import {
 import { useRouter } from 'next/router';
 import { useGame } from '../hooks/useGame';
 import { useOwnerGame } from '../hooks/useOwnerGame';
+import { useJoinerGame } from '../hooks/userJoinerGame';
+
+import { useZKContext } from '../hooks/useZKContext';
 
 const CARD_VALUES: Record<string, number> = {
   A: 1,
@@ -39,28 +42,44 @@ export default function Home() {
   const { connect } = useConnect({
     connector: new InjectedConnector(),
   });
-  const { address } = useAccount();
-  const router = useRouter();
-  const { contracts, playerPksAndSks } = useGame();
-  const { gameId, startGame } = useOwnerGame({
-    ownerContract: contracts?.[address as string],
-    ownerPksAndSks: playerPksAndSks?.[address as string],
+
+  const {
+    contract,
+    playerPksAndSks,
+    owner,
+    joiner,
+    address,
+    isJoined,
+    gameId,
+  } = useGame();
+
+  const { startGame } = useOwnerGame({
+    ownerAddress: owner as string,
+    ownerContract: contract,
+    ownerPksAndSks: playerPksAndSks?.[owner as string],
   });
 
-  // const userPksAndSks = playerInfos?.[address as string];
-  const userContract = contracts?.[address as string];
+  // const { isJoined } = useJoinerGame({
+  //   userAddress: address,
+  //   ownerAddress: owner as string,
+  //   joinerAddress: joiner as string,
+  //   joinerContract: contract,
+  //   joinerPksAndSks: playerPksAndSks?.[joiner as string],
+  // });
 
-  const getGameInfos = async () => {
-    const games = await userContract?.['games'](7);
-    console.log('games', games);
-  };
+  const isOwner = address === owner;
 
-  useEffect(() => {
-    if (!userContract) return;
-    getGameInfos();
+  // const getGameInfos = async () => {
+  //   const games = await userContract?.['games'](7);
+  //   console.log('games', games);
+  // };
 
-    return () => {};
-  }, [userContract]);
+  // useEffect(() => {
+  //   if (!userContract) return;
+  //   getGameInfos();
+
+  //   return () => {};
+  // }, [userContract]);
 
   return (
     <>
@@ -90,17 +109,29 @@ export default function Home() {
 
         <div className="flex flex-col items-center justify-center h-screen text-white ">
           <img className="mb-10" src="/logo.png" />
-          <>
-            <button
-              onClick={() => {
-                console.log('31141');
-                startGame();
-              }}
-              className="bg-black border-[#4B87C8] border border-2 text-[#DABEF1] py-2 px-4 rounded-lg"
-            >
-              Start Game
-            </button>
-          </>
+          <ul className="bg-black mb-10 border-[#4B87C8] border border-2 text-[#DABEF1] py-2 px-4 rounded-lg">
+            <li>
+              creator:{owner} - {gameId ? 'Created' : 'not Created'}
+            </li>
+            <li>
+              Joiner:{joiner} - {isJoined ? 'hasJoined' : 'not Joined yet'}
+            </li>
+          </ul>
+
+          {isOwner && !gameId && (
+            <>
+              <button
+                onClick={() => {
+                  console.log('31141');
+                  startGame();
+                }}
+                className="bg-black border-[#4B87C8] border border-2 text-[#DABEF1] py-2 px-4 rounded-lg"
+              >
+                Start Game
+              </button>
+            </>
+          )}
+          {gameId && <div>game is going</div>}
         </div>
       </div>
     </>
