@@ -37,5 +37,11 @@ interface IGame {
         uint gameId
     ) external;
 
+    function shuffle(
+        address account,
+        uint256[8] memory proof,
+        Deck memory deck,
+        uint256 gameId
+    ) external;
 
 }

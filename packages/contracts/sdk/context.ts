@@ -32,6 +32,10 @@ export async function dnld_aws(file_name : string) {
     });
 }
 
+export async function sleep(ms : number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 // todo
 export type BabyJub = any;
 export type EC = any;
@@ -86,6 +90,27 @@ export class ShuffleContext {
         this.sk = keys.sk
 	}
 
+    // pull player's Id for gameId
+    async getPlayerId(gameId : number) {
+        let nextBlock = 0
+        while (1) {
+            let filter = this.smc.filters.Register(null, null, null)
+            let events = await this.smc.queryFilter(filter, nextBlock)
+            for (let i = 0; i < events.length; i++) {
+                const e = events[i];
+                nextBlock = e.blockNumber - 1;
+                if (e.event == 'Register' &&
+                    e.args.gameId.toNumber() == gameId &&
+                    e.args.playerAddr == this.owner.address)
+                {
+                    return e.args.playerId.toNumber()
+                }
+            }
+            await sleep(5000)
+        }
+
+    }
+
     // Generates a secret key between 0 ~ min(2**numBits-1, Fr size).
     keyGen(numBits: bigint): { g: EC, sk: bigint, pk: EC } {
         const sk = sampleFieldElements(this.babyjub, numBits, 1n)[0];
@@ -93,11 +118,11 @@ export class ShuffleContext {
     }
 
     // Queries the current deck from contract, shuffles & generates ZK proof locally, and updates the deck on contract.
-    async shuffle(
+    async _shuffle(
         gameId: number
     ) {
         const numBits = BigInt(251);
-        const numCards = (await this.smc.numCards(gameId)).toNumber()
+        const numCards = (await this.smc.gameCardNum(gameId)).toNumber()
         const key = await this.smc.queryAggregatedPk(gameId);
         const aggrPK = [key[0].toBigInt(), key[1].toBigInt()];
         const aggrPKEC = [this.babyjub.F.e(aggrPK[0]), this.babyjub.F.e(aggrPK[1])];
@@ -123,14 +148,29 @@ export class ShuffleContext {
             this.encrypt_wasm, this.encrypt_zkey,
         );
         let solidityProof: SolidityProof = packToSolidityProof(shuffleEncryptV2Output.proof);
-        await this.smc.connect(this.gc).shuffle(
+        await this.game.shuffle(
             this.owner.address,
             solidityProof,
-            shuffleEncryptV2Output.publicSignals.slice(3 + numCards * 2, 3 + numCards * 3),
-            shuffleEncryptV2Output.publicSignals.slice(3 + numCards * 3, 3 + numCards * 4),
-            [shuffleEncryptV2Output.publicSignals[5 + numCards * 4], shuffleEncryptV2Output.publicSignals[6 + numCards * 4]],
-            gameId,
+            {
+                X0 : shuffleEncryptV2Output.publicSignals.slice(3 + numCards * 2, 3 + numCards * 3),
+                X1 : shuffleEncryptV2Output.publicSignals.slice(3 + numCards * 3, 3 + numCards * 4),
+                Selector : [shuffleEncryptV2Output.publicSignals[5 + numCards * 4], shuffleEncryptV2Output.publicSignals[6 + numCards * 4]],
+            },
+            gameId
         );
+    }
+
+    async shuffle(
+        gameId: number,
+        playerIdx : any
+    ) {
+        while ((await this.smc.gamePlayerIdx(gameId)).toNumber() != playerIdx) {
+            // wait for my turn
+            await sleep(10000)
+        }
+        console.log("Player ", playerIdx, " 's Shuffle trun!")
+        await this._shuffle(gameId)
+        console.log("Player ", playerIdx, " Shuffled!")
     }
 
     async deal(

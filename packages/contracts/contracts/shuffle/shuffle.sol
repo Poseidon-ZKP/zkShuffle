@@ -45,12 +45,6 @@ contract Shuffle is IShuffle, Ownable {
     // The mapping of game id => current state of the card game
     mapping(uint256 => State) public states;
 
-    event Register(
-        uint256 indexed gameId,
-        uint256 playerId,
-        address playerAddr
-    );
-
     modifier inDealingPhase(uint256 gameId) {
         require(
             states[gameId] == State.DealingCard,
@@ -72,12 +66,24 @@ contract Shuffle is IShuffle, Ownable {
         initDeck(0);
     }
 
+    function gameCardNum(uint gameId) public view override returns(uint) {
+        return numCards[gameId];
+    }
+
+    function gamePlayerIdx(uint gameId) public view override returns(uint) {
+        return playerIndexes[gameId];
+    }
+
+    function gameStatus(uint gameId) public view override returns(uint) {
+        return uint(states[gameId]);
+    }
+
     // Creates a game.
     function createGame(
         uint256 numPlayers_,
         uint256 numCards_
     ) external override onlyGameContract returns (uint256) {
-        uint256 gameId = largestGameId++;
+        uint256 gameId = ++largestGameId;
         numPlayers[gameId] = numPlayers_;
         numCards[gameId] = numCards_;
         playerIndexes[gameId] = 0;

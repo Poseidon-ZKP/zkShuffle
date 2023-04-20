@@ -93,6 +93,10 @@ interface ICommon {
         uint256 gameId
     ) external view returns (uint256[2] memory);
 
+    function gameCardNum(uint gameId) external view returns(uint);
+    function gamePlayerIdx(uint gameId) external view returns(uint);
+    function gameStatus(uint gameId) external view returns(uint);
+
     // Shuffles the deck for `permanentAccount`.
     function shuffle(
         address account,
@@ -130,6 +134,12 @@ interface ICommon {
         uint indexed gameId,
         uint[] cardId,
         uint playerId
+    );
+
+    event Register(
+        uint256 indexed gameId,
+        uint256 playerId,
+        address playerAddr
     );
 }
 

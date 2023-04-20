@@ -1,7 +1,8 @@
 import { ethers } from "hardhat";
 import { DecryptVerifier__factory, Game, Game__factory, IGame, IShuffle__factory, Shuffle, ShuffleEncryptVerifierKey, ShuffleEncryptVerifierKey__factory, Shuffle__factory} from "../types";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { ShuffleContext } from "../sdk/context";
+import { ShuffleContext, sleep } from "../sdk/context";
+import { exit } from "process";
 
 enum Type {
     DEAL,
@@ -19,29 +20,45 @@ async function player_run(
     owner : SignerWithAddress,
     gameId : number
 ) {
-    console.log("Player ", owner.address, " init shuffle context!")
+    console.log("Player ", owner.address.slice(0, 6).concat("..."), "init shuffle context!")
     const shuffle = IShuffle__factory.connect(await game.shuffleContract(), owner)
 
     const player = new ShuffleContext(shuffle, game, owner)
     await player.init()
 
-    const reciept : any = await (await game.connect(owner).joinGame(
+    await (await game.connect(owner).joinGame(
         player.owner.address, player.pk, gameId, {gasLimit : 10000000})).wait()
-    const playerId = reciept.events[0].args.playerId.toNumber()
-    console.log("Player ", playerId, " Join Game")
 
-    // pull on-chain status, whether should current player decrypt cards, in the deal/open trun
-    let block = 0
+    let playerId = await player.getPlayerId(gameId)
+    console.log("Player ", owner.address.slice(0, 6).concat("...")  ,"Join Game ", gameId, " asigned playerId ", playerId)
+
+    // shuffle card
+    await player.shuffle(gameId, playerId)
+
+    // // play game
+    // while(1) {
+    //     // game finished
+    //     // break
+    // }
+
+    // whether should current player decrypt cards, in the deal/open trun
+    let nextBlock = 0
     while (1) {
 	    //let filter = shuffle.filters.Deal(null, null, null).topics.concat(shuffle.filters.Open(null, null, null).topics)
-	    let events = await shuffle.queryFilter({}, block)
+	    let events = await shuffle.queryFilter({}, nextBlock)
         for (let i = 0; i < events.length; i++) {
             const e = events[i];
-            
+            console.log("e : ", e)
+            // if e == deal && !equal playerIdx
+            //      game.draw()
+
+            // if e == open && equal playerIdx
+            //      game.open()
         }
 	    //let [ethAddr,Key, amount2] = events[0].args
         // block = 
 
+        await sleep(1000)
     }
 }
 
@@ -104,7 +121,7 @@ async function fullporcess() {
     // who create game ? one of the player.
     await (await game.connect(players[0]).newGame(numCards, numPlayers, actions)).wait()
     const gameId = (await game.nextGameId()).sub(1).toNumber()
-    console.log("Player 0 Create Game ", gameId, " : ", numPlayers, " Players, ", numCards, " Cards")
+    console.log("Player ", players[0].address.slice(0, 6).concat("..."),  "Create Game ", gameId, " : ", numPlayers, " Players, ", numCards, " Cards")
 
     await Promise.all(
         [
@@ -114,8 +131,8 @@ async function fullporcess() {
     );
 }
 
-describe('Shuffle test', function () {
-    it('Shuffle Full Process', async () => {
+describe('SDK test', function () {
+    it('SDK Full Process', async () => {
         await fullporcess()
     });
 });

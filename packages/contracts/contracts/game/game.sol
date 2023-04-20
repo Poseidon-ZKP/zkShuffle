@@ -18,7 +18,7 @@ struct GameLogic {
 }
 
 contract Game is IGame{
-    IShuffle shuffle;
+    IShuffle iShuffle;
     mapping(uint => GameLogic) public games;
     mapping(uint => uint) public shuffleGameId;
     uint public nextGameId;
@@ -27,11 +27,11 @@ contract Game is IGame{
         IShuffle _shuffle
     ) {
         nextGameId = 1;
-        shuffle = _shuffle;
+        iShuffle = _shuffle;
     }
 
     function shuffleContract() public override view returns (address) {
-        return address(shuffle);
+        return address(iShuffle);
     }
 
     function newGame(
@@ -48,7 +48,7 @@ contract Game is IGame{
         }
 
         games[gid].numPlayers = numPlayers;
-        shuffleGameId[gid] = shuffle.createGame(numPlayers, numCards);
+        shuffleGameId[gid] = iShuffle.createGame(numPlayers, numCards);
     }
 
     function joinGame(
@@ -56,7 +56,20 @@ contract Game is IGame{
         uint[2] memory pk,
         uint gameId
     ) public override {
-        shuffle.register(account, pk, gameId);
+        iShuffle.register(account, pk, gameId);
+    }
+
+    function shuffle(
+        address account,
+        uint[8] memory proof,
+        Deck memory deck,
+        uint gameId
+    ) external override {
+        iShuffle.shuffle(account, proof, deck, gameId);
+        // if all player shuffle, go to next action
+        if (iShuffle.gameStatus(gameId) == uint(State.DealingCard)) {
+            runNextAction(gameId);
+        }
     }
 
     function runNextAction(uint gid) internal {
@@ -73,12 +86,9 @@ contract Game is IGame{
             uint[] memory pids = new uint[](1);
             pids[0] = a.playerIdx;
             if (a.t == Type.DEAL) {
-                shuffle.deal(shuffleGameId[gid], cids, pids[0]);
-                // emit Deal(cids, pids);
+                iShuffle.deal(shuffleGameId[gid], cids, pids[0]);
             } else if (a.t == Type.OPEN) {
-                // timelock ?
-                shuffle.open(shuffleGameId[gid], cids, pids[0]);
-                // emit Open(cids, pids);
+                iShuffle.open(shuffleGameId[gid], cids, pids[0]);
             } else {
                 assert(false);
             }
