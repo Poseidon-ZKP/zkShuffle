@@ -383,7 +383,7 @@ describe("HiLo", () => {
     cardValue = await Bob.getCardValue(gameId, cardIdx);
     console.log(`Bob shows his card, and the card is ${cardValue}`);
 
-    const winner = await hiLo.getWinner(gameId);
+    const winner = (await hiLo.getGameInfo(gameId)).winner;
     console.log("winner is", winner);
   });
 });
