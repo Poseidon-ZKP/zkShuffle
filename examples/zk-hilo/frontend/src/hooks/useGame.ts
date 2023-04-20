@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { getContract } from '@wagmi/core';
+import { buildBabyjub } from 'circomlibjs';
 import { contracts as contractInfos } from '../const/contracts';
 import {
   PlayerContracts,
@@ -20,7 +21,7 @@ export function useGame() {
   const [playerPksAndSks, setPlayerPksAndSks] = useState<PlayerInfos>();
   const [gameId, setGameId] = useState<number>();
   const [isJoined, setIsJoined] = useState(false);
-
+  const [babyjub, setBabyjub] = useState<any>();
   const zkContext = useZKContext();
   const owner = router?.query?.owner as string;
   const joiner = router?.query?.otherAddress as string;
@@ -28,7 +29,9 @@ export function useGame() {
 
   const handleGetBabyPk = async () => {
     try {
-      const babyJubs = await getBabyjub(playerAddresses.length);
+      const babyjub = await buildBabyjub();
+      console.log('babyjub', babyjub);
+      const babyJubs = getBabyjub(babyjub, playerAddresses.length);
 
       const playerPksAndSks = getPlayerPksAndSks(
         babyJubs,
@@ -36,6 +39,7 @@ export function useGame() {
       );
       console.log('playerPksAndSks', playerPksAndSks);
       setPlayerPksAndSks(playerPksAndSks);
+      setBabyjub(babyjub);
     } catch (error) {}
   };
 
@@ -60,12 +64,15 @@ export function useGame() {
       const keys = await contract?.queryAggregatedPk(gameId);
       const deck = await contract?.queryDeck(gameId);
       const aggregatedPk = [keys[0].toBigInt(), keys[1].toBigInt()];
-      const data = await zkContext?.genShuffleProof(aggregatedPk, deck);
-      console.log('data', data);
-      //   await contract?.shuffle(proof, shuffleData, gameId, {
-      //     gasLimit: 1000000,
-      //   });
-      //   console.log('keys', keys);
+      const [solidityProof, comData] = await zkContext?.genShuffleProof(
+        babyjub,
+        aggregatedPk,
+        deck
+      );
+
+      const shuffle = await contract?.shuffle(solidityProof, comData, gameId, {
+        gasLimit: 1000000,
+      });
     } catch (error) {
       console.log(error);
     }

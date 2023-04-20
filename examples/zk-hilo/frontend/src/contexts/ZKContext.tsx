@@ -37,7 +37,7 @@ const numBits = BigInt(BITS);
 
 export type ZKContextStateType = {
   generatingProof: boolean;
-  genShuffleProof: (aggregatedPk: any, deck: any) => Promise<any>;
+  genShuffleProof: (babyjub: any, aggregatedPk: any, deck: any) => Promise<any>;
   genDecryptProofLocally: (
     isFirstDecrypt: boolean,
     cardIndex: number,
@@ -90,17 +90,7 @@ export const ZKContextProvider = ({ children }: { children: ReactNode }) => {
 
   // this first shuffle is responsible for initin deck
   const genShuffleProof = useCallback(
-    async (aggregatedPk: any, deck: any) => {
-      if (
-        !babyjub ||
-        !aggregatedKey ||
-        !aggregateECKey ||
-        !shuffleEncryptWasmData ||
-        !shuffleEncryptZkeyData
-      ) {
-        console.warn(`genShuffleProof not prepared`);
-        return null;
-      }
+    async (babyjub: any, aggregatedPk: any, deck: any) => {
       setGeneratingProof(true);
       let A = samplePermutation(Number(numCards));
       let R = sampleFieldElements(babyjub, numBits, numCards);
