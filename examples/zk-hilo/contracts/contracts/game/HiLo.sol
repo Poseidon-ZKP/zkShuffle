@@ -53,8 +53,6 @@ contract HiLo is Ownable {
         games[gameId].players[1] = msg.sender;
         shuffleStateMachine.register(msg.sender, pk, gameId);
 
-        //        games[gameId].playerIdx = 0;
-
         emit GameJoined(gameId, msg.sender);
     }
 
@@ -199,7 +197,7 @@ contract HiLo is Ownable {
         return shuffleStateMachine.search(cardIdx, gameId);
     }
 
-    function getWinner(uint256 gameId) public view returns (address) {
-        return games[gameId].winner;
+    function getGameInfo(uint256 gameId) public view returns (Game memory) {
+        return games[gameId];
     }
 }
