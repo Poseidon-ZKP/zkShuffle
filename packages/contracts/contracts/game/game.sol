@@ -72,6 +72,7 @@ contract Game is IGame{
         }
     }
 
+    // Game Logic State Machine
     function runNextAction(uint gid) internal {
         if (games[gid].curAction <= games[gid].lastAction &&
             games[gid].actions[games[gid].curAction].state == ActionState.DONE) {

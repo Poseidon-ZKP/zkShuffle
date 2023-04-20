@@ -70,15 +70,24 @@ export class ShuffleContext {
 
 	async init(
 	) {
-        await Promise.all(['wasm/decrypt.wasm', 'zkey/decrypt.zkey', 'wasm/encrypt.wasm', 'zkey/encrypt.zkey'].map(
-            async (e) => {
+        await Promise.all(
+            [
+                'wasm/decrypt.wasm',
+                'zkey/decrypt.zkey',
+                'wasm/encrypt.wasm.2',
+                'zkey/encrypt.zkey.2',
+                'wasm/encrypt.wasm.5',
+                'zkey/encrypt.zkey.5',
+                'wasm/encrypt.wasm',
+                'zkey/encrypt.zkey'
+            ].map(async (e) => {
                 await dnld_aws(e)
             }
         ));
         this.decrypt_wasm = resolve(P0X_DIR, './wasm/decrypt.wasm');
         this.decrypt_zkey = resolve(P0X_DIR, './zkey/decrypt.zkey');
-        this.encrypt_wasm = resolve(P0X_DIR, './wasm/encrypt.wasm');
-        this.encrypt_zkey = resolve(P0X_DIR, './zkey/encrypt.zkey');
+        this.encrypt_wasm = resolve(P0X_DIR, './wasm/encrypt.wasm.5');
+        this.encrypt_zkey = resolve(P0X_DIR, './zkey/encrypt.zkey.5');
 
         this.babyjub = await buildBabyjub();
         const keys = this.keyGen(BigInt(251))
@@ -169,8 +178,10 @@ export class ShuffleContext {
             await sleep(10000)
         }
         console.log("Player ", playerIdx, " 's Shuffle trun!")
+
+        const start = Date.now()
         await this._shuffle(gameId)
-        console.log("Player ", playerIdx, " Shuffled!")
+        console.log("Player ", playerIdx, " Shuffled in ", Date.now() - start, "s")
     }
 
     async deal(

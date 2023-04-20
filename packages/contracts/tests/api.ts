@@ -1,8 +1,7 @@
 import { ethers } from "hardhat";
-import { DecryptVerifier__factory, Game, Game__factory, IGame, IShuffle__factory, Shuffle, ShuffleEncryptVerifierKey, ShuffleEncryptVerifierKey__factory, Shuffle__factory} from "../types";
+import { DecryptVerifier__factory, Game, Game__factory, IGame, IShuffle__factory, Shuffle, ShuffleEncryptVerifierKey, ShuffleEncryptVerifierKey__factory, Shuffle_encryptPairing5Card__factory, Shuffle_encryptVerifier5Card__factory, Shuffle__factory} from "../types";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ShuffleContext, sleep } from "../sdk/context";
-import { exit } from "process";
 
 enum Type {
     DEAL,
@@ -48,29 +47,26 @@ async function player_run(
 	    let events = await shuffle.queryFilter({}, nextBlock)
         for (let i = 0; i < events.length; i++) {
             const e = events[i];
-            console.log("e : ", e)
-            // if e == deal && !equal playerIdx
-            //      game.draw()
-
-            // if e == open && equal playerIdx
-            //      game.open()
+            nextBlock = e.blockNumber - 1;
+            if (e.event == "Deal") {
+                console.log("e : ", e)
+                // if e == deal && !equal playerIdx
+                //      game.draw()
+            } else if (e.event == "Open") {
+                console.log("e : ", e)
+                // if e == open && equal playerIdx
+                //      game.open()
+            }
         }
-	    //let [ethAddr,Key, amount2] = events[0].args
-        // block = 
-
-        await sleep(1000)
+        await sleep(10000)
     }
 }
 
 async function deploy_shuffle(owner : SignerWithAddress) {
-    // Deploy shuffle/encrypt verifier, shuffle stateMachine, game Contract
-    const vk : ShuffleEncryptVerifierKey = await (new ShuffleEncryptVerifierKey__factory(owner)).deploy()
-    const encrypt = await (await ethers.getContractFactory('Shuffle_encryptVerifier', {
-        libraries: { ShuffleEncryptVerifierKey: vk.address }
-    })).deploy();
+    const encrypt  = await (new Shuffle_encryptVerifier5Card__factory(owner)).deploy()
     const decrypt = await (new DecryptVerifier__factory(owner)).deploy()
     let smc : Shuffle = await (new Shuffle__factory(owner)).deploy(
-        [{ numCards : 52, encryptVerifier : encrypt.address}], decrypt.address
+        [{ numCards : 5, encryptVerifier : encrypt.address}], decrypt.address
     )
 
     console.log("Deploy Contracts : shuffle/encrypt verifier, stateMachine")
@@ -87,7 +83,7 @@ async function fullporcess() {
 
     // init shuffle game
     const numPlayers = 2
-    const numCards = 52
+    const numCards = 5
     const actions = [
         {
             // Deal card 0 to player 0
