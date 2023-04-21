@@ -28,6 +28,7 @@ contract HiLo is Ownable {
     // Events
     event GameCreated(uint256 gameId, address playerAddress);
     event GameJoined(uint256 gameId, address playerAddress);
+    event ShuffleDeck(uint256 gameId, address player);
     event DealCard(uint256 gameId, uint256 cardIdx, address player);
     event ShowCard(
         uint256 gameId,
@@ -40,7 +41,7 @@ contract HiLo is Ownable {
     constructor(address shuffle_) {
         require(shuffle_ != address(0), "empty address");
         shuffleStateMachine = IShuffle(shuffle_);
-        largestGameId = 100;
+        largestGameId = 1000;
     }
 
     // Creates a game.
@@ -95,6 +96,8 @@ contract HiLo is Ownable {
             selector,
             gameId
         );
+
+        emit ShuffleDeck(gameId, msg.sender);
     }
 
     function getPlayerIndex(
