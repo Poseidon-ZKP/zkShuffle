@@ -81,46 +81,16 @@ async function fullporcess() {
     const owner = players[10];
     let smc = await deploy_shuffle(owner)
 
-    const game : Game = await (new Game__factory(owner)).deploy(smc.address)
+    const numCards = 5
+    const game : Game = await (new Game__factory(owner)).deploy(smc.address, numCards)
     await (await smc.setGameContract(game.address)).wait()
 
     // init shuffle game
     const numPlayers = 2
-    const numCards = 5
-    const actions = [
-        {
-            // Deal card 0 to player 0
-            t : Type.DEAL,
-            state : ActionState.NOTSTART,
-            cardIdx : 0,
-            playerIdx : 0
-        },
-        {
-            // Deal card 1 to player 1
-            t : Type.DEAL,
-            state : ActionState.NOTSTART,
-            cardIdx : 1,
-            playerIdx : 1
-        },
-        {
-            // ask player 0 open card 0
-            t : Type.OPEN,
-            state : ActionState.NOTSTART,
-            cardIdx : 0,
-            playerIdx : 0
-        },
-        {
-            // ask player 1 open card 1
-            t : Type.OPEN,
-            state : ActionState.NOTSTART,
-            cardIdx : 1,
-            playerIdx : 1
-        },
-    ]
-    // who create game ? one of the player.
-    await (await game.connect(players[0]).newGame(numCards, numPlayers, actions)).wait()
+    // any player can create game
+    await (await game.connect(players[0]).newGame(numPlayers)).wait()
     const gameId = (await game.nextGameId()).sub(1).toNumber()
-    console.log("Player ", players[0].address.slice(0, 6).concat("..."),  "Create Game ", gameId, " : ", numPlayers, " Players, ", numCards, " Cards")
+    console.log("Player ", players[0].address.slice(0, 6).concat("..."),  "Create Game ", gameId, " : ", numPlayers, " Players, ")
 
     await Promise.all(
         [

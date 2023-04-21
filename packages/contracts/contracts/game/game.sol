@@ -5,15 +5,29 @@ import "../shuffle/IShuffle.sol";
 import "./IGame.sol";
 import "hardhat/console.sol";
 
-// 1. Cards : num
-// 2. action(deal/open) workflow
+enum Type {
+    DEAL,
+    OPEN
+}
+
+enum KernelState {
+    NOTSTART,
+    ONGOING,
+    DONE
+}
+
+struct Kernel {
+    Type t;
+    uint cardIdx;     // Next Version : uint[] for arbitry card/player
+    uint playerIdx;
+}
+
 struct GameLogic {
-    uint numCards;
-    mapping(uint => Action) actions;    // Next Version : Compile DSL workflow to actions(concurency).
-    uint curAction;
-    uint lastAction;
-    // Next Version : uint[] for concurrency action network
-    // uint nextAction;
+    mapping(uint => KernelState) kernelStates;
+    uint curKernel;
+    uint lastKernel;
+    // Next Version : uint[] for concurrency kernel network
+    // uint nextKernel;
 
     uint numPlayers;
 }
@@ -24,11 +38,45 @@ contract Game is IGame{
     mapping(uint => uint) public shuffleGameId;
     uint public nextGameId;
 
+    // kernel shared by all games
+    // Next Version : Compile DSL workflow to kernels(concurency).
+    mapping(uint => Kernel) kernels;
+    uint public kernelSize;
+
+    uint numCards;
+
     constructor(
-        IShuffle _shuffle
+        IShuffle _shuffle,
+        uint _numCards
     ) {
         nextGameId = 1;
         iShuffle = _shuffle;
+        numCards = _numCards;
+        kernels[0] = Kernel({
+            // Deal card 0 to player 0
+            t : Type.DEAL,
+            cardIdx : 0,
+            playerIdx : 0
+        });
+        kernels[1] = Kernel({
+            // Deal card 1 to player 1
+            t : Type.DEAL,
+            cardIdx : 1,
+            playerIdx : 1
+        });
+        kernels[2] = Kernel({
+            // ask player 0 open card 0
+            t : Type.OPEN,
+            cardIdx : 0,
+            playerIdx : 0
+        });
+        kernels[3] = Kernel({
+            // ask player 1 open card 1
+            t : Type.OPEN,
+            cardIdx : 1,
+            playerIdx : 1
+        });
+        kernelSize = 4;
     }
 
     function shuffleContract() public override view returns (address) {
@@ -36,16 +84,13 @@ contract Game is IGame{
     }
 
     function newGame(
-        uint numCards,
-        uint numPlayers,
-        Action[] calldata actions
+        uint numPlayers
     ) public override returns (uint gid) {
         gid = nextGameId++;
-        games[gid].numCards = numCards;
-        games[gid].curAction = 0;
-        games[gid].lastAction = actions.length - 1;
-        for (uint i = 0; i < actions.length; i++) {
-            games[gid].actions[i] = actions[i];
+        games[gid].curKernel = 0;
+        games[gid].lastKernel = kernelSize - 1;
+        for (uint i = 0; i < kernelSize; i++) {
+            games[gid].kernelStates[i] = KernelState.NOTSTART;
         }
 
         games[gid].numPlayers = numPlayers;
@@ -67,9 +112,9 @@ contract Game is IGame{
         uint gameId
     ) external override {
         iShuffle.shuffle(account, proof, deck, gameId);
-        // if all player shuffle, go to next action
+        // if all player shuffle, go to next kernel
         if (iShuffle.gameStatus(gameId) == uint(State.DealingCard)) {
-            runNextAction(gameId);
+            runNextKernel(gameId);
         }
     }
 
@@ -82,9 +127,9 @@ contract Game is IGame{
         uint[2][] memory decryptedCard,
         uint[2][] memory initDelta
     ) public override {
-        checkDealAction(gameId, playerIndex, cardIndex[0]);
+        checkDealKernel(gameId, playerIndex, cardIndex[0]);
         iShuffle.draw(gameId, account, playerIndex, cardIndex, proof, decryptedCard, initDelta);
-        runNextAction(gameId);
+        runNextKernel(gameId);
     }
 
     function open(
@@ -95,54 +140,54 @@ contract Game is IGame{
         uint256[8][] memory proof,
         uint256[2][] memory decryptedCard
     ) public override {
-        checkOpenAction(gameId, playerIndex, cardIndex[0]);
+        checkOpenKernel(gameId, playerIndex, cardIndex[0]);
         iShuffle.openCard(gameId, account, playerIndex, cardIndex, proof, decryptedCard);
-        runNextAction(gameId);
+        runNextKernel(gameId);
     }
 
-    function checkDealAction(
+    function checkDealKernel(
         uint gameId,
         uint playerIdx,
         uint cardIdx
     ) internal {
-        require(games[gameId].actions[games[gameId].curAction].t == Type.DEAL, "invalid action");
-        require(games[gameId].actions[games[gameId].curAction].state == ActionState.ONGOING, "invalid action state!");
-        require(games[gameId].actions[games[gameId].curAction].playerIdx == playerIdx, "invalid player");
-        require(games[gameId].actions[games[gameId].curAction].cardIdx == cardIdx, "invalid card");
+        require(kernels[games[gameId].curKernel].t == Type.DEAL, "invalid kernel");
+        require(kernels[games[gameId].curKernel].playerIdx == playerIdx, "invalid player");
+        require(kernels[games[gameId].curKernel].cardIdx == cardIdx, "invalid card");
+        require(games[gameId].kernelStates[games[gameId].curKernel] == KernelState.ONGOING, "invalid kernel state!");
     }
 
-    function checkOpenAction(
+    function checkOpenKernel(
         uint gameId,
         uint playerIdx,
         uint cardIdx
     ) internal {
-        require(games[gameId].actions[games[gameId].curAction].t == Type.OPEN, "invalid action");
-        require(games[gameId].actions[games[gameId].curAction].state == ActionState.ONGOING, "invalid action state!");
-        require(games[gameId].actions[games[gameId].curAction].playerIdx == playerIdx, "invalid player");
-        require(games[gameId].actions[games[gameId].curAction].cardIdx == cardIdx, "invalid card");
+        require(kernels[games[gameId].curKernel].t == Type.OPEN, "invalid kernel");
+        require(kernels[games[gameId].curKernel].playerIdx == playerIdx, "invalid player");
+        require(kernels[games[gameId].curKernel].cardIdx == cardIdx, "invalid card");
+        require(games[gameId].kernelStates[games[gameId].curKernel] == KernelState.ONGOING, "invalid kernel state!");
     }
 
     // Game Logic State Machine
-    function runNextAction(uint gid) internal {
-        console.log("runNextAction ", gid);
-        games[gid].actions[games[gid].curAction].state = ActionState.DONE;
-        if (games[gid].curAction == games[gid].lastAction) {
+    function runNextKernel(uint gid) internal {
+        console.log("runNextKernel ", gid);
+        games[gid].kernelStates[games[gid].curKernel] = KernelState.DONE;
+        if (games[gid].curKernel == games[gid].lastKernel) {
             emit GameEnd(gid);
             return;
         }
 
-        games[gid].curAction++;
-        games[gid].actions[games[gid].curAction].state = ActionState.ONGOING;
+        games[gid].curKernel++;
+        games[gid].kernelStates[games[gid].curKernel] = KernelState.ONGOING;
 
         // trigger event, ask for player activity
-        Action memory a = games[gid].actions[games[gid].curAction];
+        Kernel memory k = kernels[games[gid].curKernel];
         uint[] memory cids = new uint[](1);
-        cids[0] = a.cardIdx;
+        cids[0] = k.cardIdx;
         uint[] memory pids = new uint[](1);
-        pids[0] = a.playerIdx;
-        if (a.t == Type.DEAL) {
+        pids[0] = k.playerIdx;
+        if (k.t == Type.DEAL) {
             iShuffle.deal(shuffleGameId[gid], cids, pids[0]);
-        } else if (a.t == Type.OPEN) {
+        } else if (k.t == Type.OPEN) {
             iShuffle.open(shuffleGameId[gid], cids, pids[0]);
         } else {
             assert(false);

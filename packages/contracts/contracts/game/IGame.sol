@@ -3,51 +3,27 @@ pragma solidity >=0.8.4;
 
 import "../shuffle/IShuffle.sol";
 
-enum Type {
-    DEAL,
-    OPEN
-}
-
-enum ActionState {
-    NOTSTART,
-    ONGOING,
-    DONE
-}
-
-struct Action {
-    Type t;
-    ActionState state;
-    uint cardIdx;     // Next Version : uint[] for arbitry card/player
-    uint playerIdx;
-}
-
 // 1. Game Contract Need Implement IGame
 //    (1) shuffle : card state
 //    (2) game : logic
 // 2. SDK only operate with IGame
 // 3. IGame should be Sematic Complete
 interface IGame {
-    // v1 
     function shuffleContract() external view returns (address);
 
+    // Create Game : Define Game Logic, Assign Game ID`
     function newGame(
-        uint numCards,
-        uint numPlayers,
-        Action[] calldata actions
+        uint numPlayers
     ) external returns (uint gid);
 
-    // v2
-    // function newGame(
-    //     uint numCards,
-    //     uint numPlayers
-    // ) external returns (uint gid);
-
+    // Player Join Game
     function joinGame(
         address account,
         uint[2] memory pk,
         uint gameId
     ) external;
 
+    // Player Shaffle Cards
     function shuffle(
         address account,
         uint256[8] memory proof,
@@ -55,6 +31,7 @@ interface IGame {
         uint256 gameId
     ) external;
 
+    // Player decrypt Cards in it's deal turn
     function draw(
         uint gameId,
         address account,
@@ -65,6 +42,7 @@ interface IGame {
         uint[2][] memory initDelta
     ) external;
 
+    // Player open Cards in it's open turn
     function open(
         uint256 gameId, 
         address account,
