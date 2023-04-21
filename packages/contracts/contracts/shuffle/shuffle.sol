@@ -179,12 +179,13 @@ contract Shuffle is IShuffle, Ownable {
         address permanentAccount,
         uint256[2] memory pk,
         uint256 gameId
-    ) external onlyGameContract override {
+    ) external onlyGameContract override returns (uint pid) {
         require(states[gameId] == State.Registration, "Not in register phase");
         require(CurveBabyJubJub.isOnCurve(pk[0], pk[1]), "Invalid public key");
         playerInfos[gameId].playerAddr.push(permanentAccount);
         playerInfos[gameId].playerPk.push(pk[0]);
         playerInfos[gameId].playerPk.push(pk[1]);
+        pid = playerIndexes[gameId];
         emit Register(gameId, playerIndexes[gameId], permanentAccount);
         playerIndexes[gameId] += 1;
         if (playerIndexes[gameId] == numPlayers[gameId]) {
@@ -409,22 +410,6 @@ contract Shuffle is IShuffle, Ownable {
         for (uint cid = 0; cid < cardIndex.length; cid++) {
             decrypt(account, cardIndex[cid], playerIndex, proof[cid], decryptedCard[cid], initDelta[cid], gameId);
         }
-    }
-
-    function deal(
-        uint gameId,
-        uint[] memory cardIdx,
-        uint playerIdx  // MAX_PLAYER means deal to all player
-    ) external override onlyGameContract {
-        emit Deal(gameId, cardIdx, playerIdx);
-    }
-
-    function open(
-        uint gameId,
-        uint[] memory cardIdx,
-        uint playerIdx  // MAX_PLAYER means deal to all player
-    ) external override onlyGameContract {
-        emit Open(gameId, cardIdx, playerIdx);
     }
 
     function openCard(

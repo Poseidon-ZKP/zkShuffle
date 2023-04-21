@@ -125,18 +125,6 @@ interface ICommon {
         uint256[2][] memory decryptedCard
     ) external;
 
-    event Deal(
-        uint indexed gameId,
-        uint[] cardId,
-        uint playerId
-    );
-
-    event Open(
-        uint indexed gameId,
-        uint[] cardId,
-        uint playerId
-    );
-
     event Register(
         uint256 indexed gameId,
         uint256 playerId,
@@ -153,7 +141,7 @@ interface IShuffle is ICommon {
         address permanentAccount,
         uint256[2] memory pk,
         uint256 gameId
-    ) external;
+    ) external returns (uint);
 
     // Queries deck.
     function queryDeck(uint256 gameId) external view returns (Deck memory);
@@ -169,18 +157,6 @@ interface IShuffle is ICommon {
         uint256 index,
         uint256 gameId
     ) external view returns (uint256[4] memory card);
-
-    function deal(
-        uint gameId,
-        uint[] memory cardIdx,
-        uint playerIdx
-    ) external;
-    
-    function open(
-        uint gameId,
-        uint[] memory cardIdx,
-        uint playerIdx
-    ) external;
 
     // Searches the value of the `cardIndex`-th card in the `gameId`-th game.
     function search(

@@ -3,17 +3,6 @@ import { DecryptVerifier__factory, Game, Game__factory, IGame, IShuffle__factory
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ShuffleContext, sleep } from "../sdk/context";
 
-enum Type {
-    DEAL,
-    OPEN
-}
-    
-enum ActionState {
-    NOTSTART,
-    ONGOING,
-    DONE
-}
-
 async function player_run(
     game : Game,
     owner : SignerWithAddress,
@@ -37,7 +26,7 @@ async function player_run(
     // play game : whether should current player decrypt cards, in the deal/open trun
     let nextBlock = 0
     while (1) {
-	    let events = await shuffle.queryFilter({}, nextBlock)
+	    let events = await game.queryFilter({}, nextBlock)
         for (let i = 0; i < events.length; i++) {
             const e = events[i];
             nextBlock = e.blockNumber - 1;

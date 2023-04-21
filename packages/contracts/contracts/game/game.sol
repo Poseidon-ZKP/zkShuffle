@@ -95,6 +95,7 @@ contract Game is IGame{
 
         games[gid].numPlayers = numPlayers;
         shuffleGameId[gid] = iShuffle.createGame(numPlayers, numCards);
+        emit GameStart(gid);
     }
 
     function joinGame(
@@ -102,7 +103,8 @@ contract Game is IGame{
         uint[2] memory pk,
         uint gameId
     ) public override {
-        iShuffle.register(account, pk, gameId);
+        uint pid = iShuffle.register(account, pk, gameId);
+        emit JoinGame(gameId, pid, account);
     }
 
     function shuffle(
@@ -167,6 +169,22 @@ contract Game is IGame{
         require(games[gameId].kernelStates[games[gameId].curKernel] == KernelState.ONGOING, "invalid kernel state!");
     }
 
+    function deal(
+        uint gameId,
+        uint[] memory cardIdx,
+        uint playerIdx  // MAX_PLAYER means deal to all player
+    ) internal {
+        emit Deal(gameId, cardIdx, playerIdx);
+    }
+
+    function open(
+        uint gameId,
+        uint[] memory cardIdx,
+        uint playerIdx  // MAX_PLAYER means deal to all player
+    ) internal {
+        emit Open(gameId, cardIdx, playerIdx);
+    }
+
     // Game Logic State Machine
     function runNextKernel(uint gid) internal {
         console.log("runNextKernel ", gid);
@@ -179,9 +197,9 @@ contract Game is IGame{
         uint[] memory pids = new uint[](1);
         pids[0] = k.playerIdx;
         if (k.t == Type.DEAL) {
-            iShuffle.deal(shuffleGameId[gid], cids, pids[0]);
+            deal(shuffleGameId[gid], cids, pids[0]);
         } else if (k.t == Type.OPEN) {
-            iShuffle.open(shuffleGameId[gid], cids, pids[0]);
+            open(shuffleGameId[gid], cids, pids[0]);
         } else {
             assert(false);
         }

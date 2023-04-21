@@ -52,6 +52,7 @@ interface IGame {
         uint256[2][] memory decryptedCard
     ) external;
 
+    // Frontend then can setup Deck UI for the Game
     event GameStart(
         uint256 indexed gameId
     );
