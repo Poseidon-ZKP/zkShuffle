@@ -195,7 +195,7 @@ export async function dealCompressedCard(
     let decryptProof = await generateDecryptProof(Y, sk, pk, decryptWasmFile, decryptZkeyFile);
     let solidityProof: SolidityProof = packToSolidityProof(decryptProof.proof)
     //await stateMachineContract.connect(gameContract).deal(
-    await stateMachineContract.deal(
+    await stateMachineContract.draw(
         playerAddr,
         cardIdx,
         curPlayerIdx,
@@ -226,7 +226,7 @@ export async function dealUncompressedCard(
         decryptWasmFile, decryptZkeyFile);
     let solidityProof: SolidityProof = packToSolidityProof(decryptProof.proof)
     //await stateMachineContract.connect(gameContract).deal(
-    await stateMachineContract.deal(
+    await stateMachineContract.draw(
         playerAddr,
         cardIdx,
         curPlayerIdx,
