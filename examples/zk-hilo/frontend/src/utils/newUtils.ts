@@ -16,7 +16,6 @@ import {
   prepareShuffleDeck,
 } from '@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/utilities';
 import { shuffleEncryptV2Plaintext } from '@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/plaintext';
-import { buildBabyjub } from 'circomlibjs';
 
 import { getContract, getProvider } from '@wagmi/core';
 import { contracts } from '../const/contracts';
@@ -74,8 +73,7 @@ export const getPlayerPksAndSks = (
   return newInfo;
 };
 
-export async function getBabyjub(numbers: number) {
-  const babyjub = await buildBabyjub();
+export function getBabyjub(babyjub: any, numbers: number) {
   let pkArray: any = [];
   let skArray: any = [];
   for (let i = 0; i < numbers; i++) {

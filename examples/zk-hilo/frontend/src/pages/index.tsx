@@ -21,6 +21,7 @@ import { useOwnerGame } from '../hooks/useOwnerGame';
 import { useJoinerGame } from '../hooks/userJoinerGame';
 
 import { useZKContext } from '../hooks/useZKContext';
+import { useResourceContext } from '../hooks/useResourceContext';
 
 const CARD_VALUES: Record<string, number> = {
   A: 1,
@@ -42,6 +43,39 @@ export default function Home() {
   const { connect } = useConnect({
     connector: new InjectedConnector(),
   });
+  const resourceContext = useResourceContext();
+  if (!resourceContext) {
+    throw new Error('resource context is not ready');
+  }
+  const {
+    hasSetup,
+    settingUp,
+    fetchingFailed,
+    aggregatedKey,
+    setupBeforeJoin,
+    saveAggregateKeys,
+  } = resourceContext;
+
+  useEffect(() => {
+    if (hasSetup || settingUp) {
+      return;
+    }
+    console.log('set up before join');
+    setupBeforeJoin();
+  }, [hasSetup, settingUp, setupBeforeJoin]);
+
+  // useEffect(() => {
+  //   if (!aggregatedKey) {
+  //     // recover the pk to correct form
+  //     saveAggregateKeys(
+  //       cachedBoard.pks.map((pk) => pk.map((p) => p.toString()))
+  //     );
+  //   }
+
+  //   return () => {
+  //     second;
+  //   };
+  // }, [third]);
 
   const {
     contract,
