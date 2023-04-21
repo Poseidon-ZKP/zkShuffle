@@ -186,13 +186,15 @@ export class ShuffleContext {
         console.log("Player ", playerIdx, " Shuffled in ", Date.now() - start, "s")
     }
 
-    async draw(
+    async decrypt(
         gameId: number,
         cardIdx: number
     ): Promise<bigint[]> {
         const numCards = (await this.smc.gameCardNum(gameId)).toNumber()
         let curPlayerIdx = (await this.smc.gamePlayerIdx(gameId)).toNumber()
-        //const isFirstDecryption = await this.smc.cardDeals[gameId].record[cardIdx]
+        const isFirstDecryption = await this.smc.gameCardDealRecord(gameId, cardIdx)
+        console.log("decrypting card", cardIdx, " isFirstDecryption ", isFirstDecryption)
+        let res : bigint[] = []
         if (isFirstDecryption) {
             await dealCompressedCard(
                 this.babyjub,
@@ -203,26 +205,42 @@ export class ShuffleContext {
                 this.sk,
                 this.pk,
                 this.owner.address,
-                this.gc,
+                //this.game,
+                this.owner,
                 this.smc,
                 this.decrypt_wasm,
                 this.decrypt_zkey,
             );
-            return [];
         } else {
-            return await dealUncompressedCard(
+            res = await dealUncompressedCard(
                 gameId,
                 cardIdx,
                 curPlayerIdx,
                 this.sk,
                 this.pk,
                 this.owner.address,
-                this.gc,
+                //this.game,
+                this.owner,
                 this.smc,
                 this.decrypt_wasm,
                 this.decrypt_zkey,
             );
         }
+        console.log("decrypting card", cardIdx, " DONE!")
+        return res
     }
 
+    async draw(
+        gameId: number,
+        cardIdx: number
+    ): Promise<bigint[]> {
+        return this.decrypt(gameId, cardIdx)
+    }
+
+    async open(
+        gameId: number,
+        cardIdx: number
+    ): Promise<bigint[]> {
+        return this.decrypt(gameId, cardIdx)
+    }
 }

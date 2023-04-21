@@ -96,6 +96,7 @@ interface ICommon {
     function gameCardNum(uint gameId) external view returns(uint);
     function gamePlayerIdx(uint gameId) external view returns(uint);
     function gameStatus(uint gameId) external view returns(uint);
+    function gameCardDealRecord(uint gameId, uint cardIdx) external view returns(uint);
 
     // Shuffles the deck for `permanentAccount`.
     function shuffle(

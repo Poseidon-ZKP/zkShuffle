@@ -78,6 +78,10 @@ contract Shuffle is IShuffle, Ownable {
         return uint(states[gameId]);
     }
 
+    function gameCardDealRecord(uint gameId, uint cardIdx) public view override returns(uint) {
+        return cardDeals[gameId].record[cardIdx];
+    }
+
     // Creates a game.
     function createGame(
         uint256 numPlayers_,

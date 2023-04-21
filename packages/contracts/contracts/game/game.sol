@@ -170,15 +170,8 @@ contract Game is IGame{
     // Game Logic State Machine
     function runNextKernel(uint gid) internal {
         console.log("runNextKernel ", gid);
-        games[gid].kernelStates[games[gid].curKernel] = KernelState.DONE;
-        if (games[gid].curKernel == games[gid].lastKernel) {
-            emit GameEnd(gid);
-            return;
-        }
-
-        games[gid].curKernel++;
         games[gid].kernelStates[games[gid].curKernel] = KernelState.ONGOING;
-
+    
         // trigger event, ask for player activity
         Kernel memory k = kernels[games[gid].curKernel];
         uint[] memory cids = new uint[](1);
@@ -192,6 +185,14 @@ contract Game is IGame{
         } else {
             assert(false);
         }
+
+        if (games[gid].curKernel == games[gid].lastKernel) {
+            emit GameEnd(gid);
+            return;
+        }
+
+        games[gid].kernelStates[games[gid].curKernel] = KernelState.DONE;
+        games[gid].curKernel++;
     }
 
     fallback() external {

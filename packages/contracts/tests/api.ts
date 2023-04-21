@@ -34,31 +34,23 @@ async function player_run(
     // shuffle card
     await player.shuffle(gameId, playerId)
 
-    // // play game
-    // while(1) {
-    //     // game finished
-    //     // break
-    // }
-
-    // whether should current player decrypt cards, in the deal/open trun
+    // play game : whether should current player decrypt cards, in the deal/open trun
     let nextBlock = 0
     while (1) {
-	    //let filter = shuffle.filters.Deal(null, null, null).topics.concat(shuffle.filters.Open(null, null, null).topics)
 	    let events = await shuffle.queryFilter({}, nextBlock)
         for (let i = 0; i < events.length; i++) {
             const e = events[i];
             nextBlock = e.blockNumber - 1;
             if (e.event == "Deal" && e.args.playerId != playerId) {
                 console.log("e : ", e)
-                player.d
-                // if e == deal && !equal playerIdx
-                //      game.draw()
+                await player.draw(gameId, e.args.cardId[0])
             } else if (e.event == "Open" && e.args.playerId == playerId) {
                 console.log("e : ", e)
-                // if e == open && equal playerIdx
-                //      game.open()
+                await player.open(gameId, e.args.cardId[0])
             } else if (e.event == "GameEnd") {
                 // game end
+                console.log("Game End!!!")
+                break
             }
         }
         await sleep(10000)
