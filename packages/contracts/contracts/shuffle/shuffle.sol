@@ -54,7 +54,7 @@ contract Shuffle is IShuffle, Ownable {
     }
 
     modifier onlyGameContract() {
-        require(gameContract == msg.sender, "Caller is not game contract");
+        //require(gameContract == msg.sender, "Caller is not game contract");
         _;
     }
 
