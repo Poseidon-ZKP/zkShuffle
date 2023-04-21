@@ -95,7 +95,7 @@ contract Game is IGame{
 
         games[gid].numPlayers = numPlayers;
         shuffleGameId[gid] = iShuffle.createGame(numPlayers, numCards);
-        emit GameStart(gid);
+        emit GameStart(gid);    // TODO
     }
 
     function joinGame(
@@ -113,6 +113,7 @@ contract Game is IGame{
         Deck memory deck,
         uint gameId
     ) external override {
+        // TODO : state check(cons. gas)
         iShuffle.shuffle(account, proof, deck, gameId);
         // if all player shuffle, go to next kernel
         if (iShuffle.gameStatus(gameId) == uint(State.DealingCard)) {
@@ -187,7 +188,6 @@ contract Game is IGame{
 
     // Game Logic State Machine
     function runNextKernel(uint gid) internal {
-        console.log("runNextKernel ", gid);
         games[gid].kernelStates[games[gid].curKernel] = KernelState.ONGOING;
     
         // trigger event, ask for player activity

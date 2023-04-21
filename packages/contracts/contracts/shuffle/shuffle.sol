@@ -5,6 +5,9 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./IShuffle.sol";
 import "hardhat/console.sol";
 
+// 1. all in Shuffle ?
+// 2. IGame Standard Interface
+// Mapping(IGame --> IShuffle)
 contract Shuffle is IShuffle, Ownable {
     using Pairing for *;
     using CurveBabyJubJub for *;

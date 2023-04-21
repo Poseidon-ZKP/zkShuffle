@@ -4,7 +4,7 @@ pragma solidity >=0.8.4;
 import "../shuffle/IShuffle.sol";
 
 // 1. Game Contract Need Implement IGame
-//    (1) shuffle : card state
+//    (1) shuffle : card state(partial? No!)
 //    (2) game : logic
 // 2. SDK only operate with IGame
 // 3. IGame should be Sematic Complete
@@ -14,6 +14,7 @@ interface IGame {
     // Create Game : Define Game Logic, Assign Game ID`
     function newGame(
         uint numPlayers
+        // uint[2] memory pk
     ) external returns (uint gid);
 
     // Player Join Game

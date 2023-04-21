@@ -80,8 +80,7 @@ struct CardInfo {
     address encryptVerifier;
 }
 
-// for SDK(player)
-interface ICommon {
+interface IShuffle {
     // Creates a game.
     function createGame(
         uint256 numPlayers_,
@@ -130,9 +129,7 @@ interface ICommon {
         uint256 playerId,
         address playerAddr
     );
-}
 
-interface IShuffle is ICommon {
     // A constant indicating the card is not found in the deck
     function INVALID_CARD_INDEX() external view returns (uint256);
 
