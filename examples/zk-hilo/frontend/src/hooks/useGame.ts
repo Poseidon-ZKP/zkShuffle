@@ -25,6 +25,8 @@ export function useGame() {
   const zkContext = useZKContext();
   const owner = router?.query?.owner as string;
   const joiner = router?.query?.otherAddress as string;
+
+  const isOwner = owner === address;
   const playerAddresses = [owner, joiner];
 
   const handleGetBabyPk = async () => {
@@ -70,12 +72,27 @@ export function useGame() {
         deck
       );
 
-      const shuffle = await contract?.shuffle(solidityProof, comData, gameId, {
-        gasLimit: 1000000,
-      });
+      if (isOwner) {
+        await contract?.shuffle(solidityProof, comData, gameId, {
+          gasLimit: 1000000,
+        });
+      }
     } catch (error) {
       console.log(error);
     }
+  };
+
+  const handleShuffle = async (
+    solidityProof: any,
+    comData: any,
+    gameId: number,
+    { gasLimit = 1000000 }: any
+  ) => {
+    try {
+      await contract?.shuffle(solidityProof, comData, gameId, {
+        gasLimit: gasLimit,
+      });
+    } catch (error) {}
   };
 
   const getGameInfo = async () => {
@@ -84,6 +101,13 @@ export function useGame() {
     } catch (error) {}
 
     // console.log('games', games);
+  };
+
+  const handleJoinGame = async () => {
+    await contract?.['joinGame'](gameId, [
+      playerPksAndSks?.[joiner]?.pk[0],
+      playerPksAndSks?.[joiner]?.pk[1],
+    ]);
   };
 
   useEffect(() => {
@@ -107,19 +131,10 @@ export function useGame() {
       try {
         const gameId = Number(arg1);
         const creator = arg2;
-        console.log('arg1', arg1);
-        console.log('arg2', arg2);
-        console.log('joiner === address', joiner === address, joiner, address);
         setGameId(gameId);
-
-        console.log('playerPksAndSks?.[joiner]', playerPksAndSks?.[joiner]);
         if (creator === owner) {
           if (joiner === address) {
-            console.log('feqfq,feqfqe');
-            await contract?.['joinGame'](gameId, [
-              playerPksAndSks?.[joiner]?.pk[0],
-              playerPksAndSks?.[joiner]?.pk[1],
-            ]);
+            await handleJoinGame();
           }
         }
       } catch (error) {
@@ -131,7 +146,7 @@ export function useGame() {
     return () => {
       contract?.off('GameCreated', GameCreatedListener);
     };
-  }, [address, contract, joiner, owner, playerPksAndSks]);
+  }, [address, contract, handleJoinGame, joiner, owner, playerPksAndSks]);
 
   useEffect(() => {
     if (!contract) return;
