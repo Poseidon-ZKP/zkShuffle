@@ -25,6 +25,7 @@ import {
   SolidityProof,
 } from '@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/proof';
 import {
+  ecX2Delta,
   prepareShuffleDeck,
   string2Bigint,
 } from '@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/utilities';
@@ -32,8 +33,8 @@ import {
 export const CARD_NUMBER = 52;
 export const BITS = 251;
 
-const numCards = BigInt(CARD_NUMBER);
-const numBits = BigInt(BITS);
+export const numCards = BigInt(CARD_NUMBER);
+export const numBits = BigInt(BITS);
 
 export type ZKContextStateType = {
   generatingProof: boolean;
@@ -50,6 +51,13 @@ export type ZKContextStateType = {
     lastDecryptProof: DecryptProofStruct | null,
     shuffledDeck: BigNumber[] | null
   ) => Promise<DecryptProofStruct | null>;
+  generateDealData: (
+    cardIdx: number,
+    sk: string,
+    pk: string[],
+    card: any
+  ) => Promise<any>;
+  generateShowHandData: (sk: string, pk: string[], card: any) => Promise<any>;
 };
 
 function combineShuffleData(signals: string[], numCards: number): bigint[] {
@@ -94,6 +102,7 @@ export const ZKContextProvider = ({ children }: { children: ReactNode }) => {
       setGeneratingProof(true);
       let A = samplePermutation(Number(numCards));
       let R = sampleFieldElements(babyjub, numBits, numCards);
+      debugger;
       let aggregatedPkEC = [
         babyjub.F.e(aggregatedPk[0]),
         babyjub.F.e(aggregatedPk[1]),
@@ -157,6 +166,69 @@ export const ZKContextProvider = ({ children }: { children: ReactNode }) => {
       shuffleEncryptWasmData,
       shuffleEncryptZkeyData,
     ]
+  );
+
+  const generateDealData = useCallback(
+    async (
+      cardIdx: number,
+      sk: bigint,
+      pk: bigint[],
+      card: any
+    ): Promise<[SolidityProof, string[], bigint[]]> => {
+      let Y = prepareDecryptData(
+        babyjub,
+        card[0],
+        card[1],
+        card[2],
+        card[3],
+        Number(numCards),
+        cardIdx
+      );
+
+      let decryptProof = await generateDecryptProof(
+        Y,
+        sk,
+        pk,
+        decryptWasmData,
+        decryptZkeyData
+      );
+
+      let solidityProof: SolidityProof = packToSolidityProof(
+        decryptProof.proof
+      );
+
+      return [
+        solidityProof,
+        decryptProof.publicSignals,
+        [ecX2Delta(babyjub, Y[0]), ecX2Delta(babyjub, Y[2])],
+      ];
+    },
+    [babyjub, decryptWasmData, decryptZkeyData]
+  );
+
+  const generateShowHandData = useCallback(
+    async (sk: bigint, pk: bigint[], card: any) => {
+      try {
+        let decryptProof = await generateDecryptProof(
+          [
+            card[0].toBigInt(),
+            card[1].toBigInt(),
+            card[2].toBigInt(),
+            card[3].toBigInt(),
+          ],
+          sk,
+          pk,
+          decryptWasmData,
+          decryptZkeyData
+        );
+        let solidityProof: SolidityProof = packToSolidityProof(
+          decryptProof.proof
+        );
+
+        return [solidityProof, decryptProof.publicSignals];
+      } catch (error) {}
+    },
+    [decryptWasmData, decryptZkeyData]
   );
 
   // generate non-solidity proof
@@ -261,6 +333,8 @@ export const ZKContextProvider = ({ children }: { children: ReactNode }) => {
     generatingProof,
     genShuffleProof,
     genDecryptProof,
+    generateDealData,
+    generateShowHandData,
     genDecryptProofLocally,
   };
   return <ZKContext.Provider value={state}>{children}</ZKContext.Provider>;
