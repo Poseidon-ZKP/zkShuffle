@@ -10,7 +10,6 @@ struct Game {
     // Player address
     address[2] players;
     uint256[2] cardValues;
-    address winner;
 }
 
 // Game logic for zkHiLo
@@ -24,7 +23,7 @@ contract HiLo is Ownable {
     uint256 public largestGameId;
 
     // Mapping from id to game
-    mapping(uint256 => Game) public games;
+    mapping(uint256 => Game) games;
     // Events
     event GameCreated(uint256 gameId, address playerAddress);
     event GameJoined(uint256 gameId, address playerAddress);
@@ -36,12 +35,11 @@ contract HiLo is Ownable {
         uint256 cardValue,
         address player
     );
-    event GameEnd(uint256 gameId, address winner);
 
     constructor(address shuffle_) {
         require(shuffle_ != address(0), "empty address");
         shuffleStateMachine = IShuffle(shuffle_);
-        largestGameId = 1000;
+        largestGameId = 10000;
     }
 
     // Creates a game.
@@ -145,11 +143,6 @@ contract HiLo is Ownable {
         uint256[8] memory proof,
         uint256[2] memory decryptedCard
     ) external {
-        require(
-            games[gameId].winner == address(0),
-            "this game already has a winner"
-        );
-
         uint256 playerIdx = getPlayerIndex(gameId, msg.sender);
         require(playerIdx != INVALID_CARD_INDEX, "invalid player");
 
@@ -168,17 +161,9 @@ contract HiLo is Ownable {
             cardValue != shuffleStateMachine.INVALID_CARD_INDEX(),
             "Invalid card value"
         );
-        emit ShowCard(gameId, cardIdx, cardValue, msg.sender);
-
         games[gameId].cardValues[playerIdx] = cardValue + 1;
 
-        if (games[gameId].cardValues[1 - playerIdx] != 0) {
-            games[gameId].winner = games[gameId].cardValues[playerIdx] >
-                games[gameId].cardValues[1 - playerIdx]
-                ? games[gameId].players[playerIdx]
-                : games[gameId].players[1 - playerIdx];
-            emit GameEnd(gameId, games[gameId].winner);
-        }
+        emit ShowCard(gameId, cardIdx, cardValue, msg.sender);
     }
 
     function queryAggregatedPk(
@@ -214,5 +199,15 @@ contract HiLo is Ownable {
 
     function getGameInfo(uint256 gameId) public view returns (Game memory) {
         return games[gameId];
+    }
+
+    function getWinner(uint256 gameId) public view returns (address) {
+        require(
+            games[gameId].cardValues[0] != 0 && games[gameId].cardValues[1] != 0
+        );
+        return
+            games[gameId].cardValues[0] > games[gameId].cardValues[1]
+                ? games[gameId].players[0]
+                : games[gameId].players[1];
     }
 }

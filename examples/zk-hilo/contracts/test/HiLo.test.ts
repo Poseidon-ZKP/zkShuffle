@@ -1,12 +1,12 @@
-import { ethers } from 'hardhat';
-import { resolve } from 'path';
+import { ethers } from "hardhat";
+import { resolve } from "path";
 
 import {
   generateDecryptProof,
   generateShuffleEncryptV2Proof,
   packToSolidityProof,
   SolidityProof,
-} from '@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/proof';
+} from "@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/proof";
 import {
   convertPk,
   keyGen,
@@ -16,28 +16,28 @@ import {
   prepareDecryptData,
   ecX2Delta,
   prepareShuffleDeck,
-} from '@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/utilities';
-import { shuffleEncryptV2Plaintext } from '@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/plaintext';
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+} from "@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/utilities";
+import { shuffleEncryptV2Plaintext } from "@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/plaintext";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
-const fs = require('fs');
-const https = require('https');
-const buildBabyjub = require('circomlibjs').buildBabyjub;
-const HOME_DIR = require('os').homedir();
-const P0X_DIR = resolve(HOME_DIR, './.poseidon-zkp');
+const fs = require("fs");
+const https = require("https");
+const buildBabyjub = require("circomlibjs").buildBabyjub;
+const HOME_DIR = require("os").homedir();
+const P0X_DIR = resolve(HOME_DIR, "./.poseidon-zkp");
 
 const resourceBasePath = P0X_DIR;
-const P0X_AWS_URL = 'https://p0x-labs.s3.amazonaws.com/refactor/';
+const P0X_AWS_URL = "https://p0x-labs.s3.amazonaws.com/refactor/";
 
 async function dnld_aws(file_name: string) {
   fs.mkdir(P0X_DIR, () => {});
-  fs.mkdir(resolve(P0X_DIR, './wasm'), () => {});
-  fs.mkdir(resolve(P0X_DIR, './zkey'), () => {});
+  fs.mkdir(resolve(P0X_DIR, "./wasm"), () => {});
+  fs.mkdir(resolve(P0X_DIR, "./zkey"), () => {});
   return new Promise((reslv, reject) => {
     if (!fs.existsSync(resolve(P0X_DIR, file_name))) {
       const file = fs.createWriteStream(resolve(P0X_DIR, file_name));
       https.get(P0X_AWS_URL + file_name, (resp) => {
-        file.on('finish', () => {
+        file.on("finish", () => {
           file.close();
           reslv(0);
         });
@@ -182,16 +182,16 @@ async function generateShowHandData(
 
 // Depploys contract for decryption.
 async function deployDecrypt() {
-  return await (await ethers.getContractFactory('DecryptVerifier')).deploy();
+  return await (await ethers.getContractFactory("DecryptVerifier")).deploy();
 }
 
 // Deploys contract for shuffle encrypt v2.
 async function deployShuffleEncryptV2() {
   const vk = await (
-    await ethers.getContractFactory('ShuffleEncryptV2VerifierKey')
+    await ethers.getContractFactory("ShuffleEncryptV2VerifierKey")
   ).deploy();
   return await (
-    await ethers.getContractFactory('Shuffle_encrypt_v2Verifier', {
+    await ethers.getContractFactory("Shuffle_encrypt_v2Verifier", {
       libraries: {
         ShuffleEncryptV2VerifierKey: vk.address,
       },
@@ -203,7 +203,7 @@ async function deployShuffleEncryptV2() {
 async function deployStateMachine(shuffleStateMachineOwner: SignerWithAddress) {
   const shuffle_encrypt_v2_verifier_contract = await deployShuffleEncryptV2();
   const decrypt_verifier_contract = await deployDecrypt();
-  return await (await ethers.getContractFactory('Shuffle'))
+  return await (await ethers.getContractFactory("Shuffle"))
     .connect(shuffleStateMachineOwner)
     .deploy(
       shuffle_encrypt_v2_verifier_contract.address,
@@ -211,7 +211,7 @@ async function deployStateMachine(shuffleStateMachineOwner: SignerWithAddress) {
     );
 }
 
-describe('HiLo', () => {
+describe("HiLo", () => {
   let hiLo;
   let shuffle;
   let accounts;
@@ -226,14 +226,14 @@ describe('HiLo', () => {
   beforeEach(async () => {
     await Promise.all(
       [
-        'wasm/shuffle_encrypt.wasm',
-        'wasm/decrypt.wasm',
-        'zkey/shuffle_encrypt.zkey',
-        'zkey/decrypt.zkey',
-        'wasm/shuffle_encrypt_v2.wasm',
-        'zkey/shuffle_encrypt_v2.zkey',
+        "wasm/shuffle_encrypt.wasm",
+        "wasm/decrypt.wasm",
+        "zkey/shuffle_encrypt.zkey",
+        "zkey/decrypt.zkey",
+        "wasm/shuffle_encrypt_v2.wasm",
+        "zkey/shuffle_encrypt_v2.zkey",
       ].map(async (e) => {
-        console.log('Downloading');
+        console.log("Downloading");
         await dnld_aws(e);
       })
     );
@@ -247,22 +247,22 @@ describe('HiLo', () => {
 
     accounts = await ethers.getSigners();
     shuffle = await deployStateMachine(accounts[0]);
-    const HiLo = await ethers.getContractFactory('HiLo');
+    const HiLo = await ethers.getContractFactory("HiLo");
     hiLo = await HiLo.deploy(shuffle.address);
     await hiLo.deployed();
   });
 
-  it('Hilo works normally', async () => {
+  it("Hilo works normally", async () => {
     const shuffleEncryptV2WasmFile = resolve(
       resourceBasePath,
-      './wasm/shuffle_encrypt_v2.wasm'
+      "./wasm/shuffle_encrypt_v2.wasm"
     );
     const shuffleEncryptV2ZkeyFile = resolve(
       resourceBasePath,
-      './zkey/shuffle_encrypt_v2.zkey'
+      "./zkey/shuffle_encrypt_v2.zkey"
     );
-    const decryptWasmFile = resolve(resourceBasePath, './wasm/decrypt.wasm');
-    const decryptZkeyFile = resolve(resourceBasePath, './zkey/decrypt.zkey');
+    const decryptWasmFile = resolve(resourceBasePath, "./wasm/decrypt.wasm");
+    const decryptZkeyFile = resolve(resourceBasePath, "./zkey/decrypt.zkey");
     await shuffle.setGameContract(hiLo.address);
     const Alice = hiLo.connect(accounts[1]);
     const Bob = hiLo.connect(accounts[2]);
@@ -293,7 +293,7 @@ describe('HiLo', () => {
       shuffleEncryptV2ZkeyFile
     );
     await Alice.shuffle(proof, shuffleData, gameId, { gasLimit: 10000000 });
-    console.log('Alice shuffled the deck');
+    console.log("Alice shuffled the deck");
 
     // Bob shuffle the deck
     deck = await hiLo.queryDeck(gameId);
@@ -307,7 +307,7 @@ describe('HiLo', () => {
       shuffleEncryptV2ZkeyFile
     );
     await Bob.shuffle(proof, shuffleData, gameId, { gasLimit: 10000000 });
-    console.log('Bob shuffled the deck');
+    console.log("Bob shuffled the deck");
 
     // Alice deal second card to Bob
     let cardIdx = 1; // 0-51
@@ -329,7 +329,7 @@ describe('HiLo', () => {
       [decryptedData[0], decryptedData[1]],
       [initDelta[0], initDelta[1]]
     );
-    console.log('Alice deal second card to Bob');
+    console.log("Alice deal second card to Bob");
 
     // Bob deal first card to Alice
     cardIdx = 0;
@@ -351,12 +351,26 @@ describe('HiLo', () => {
       [decryptedData[0], decryptedData[1]],
       [initDelta[0], initDelta[1]]
     );
-    console.log('Bob deal first card to Alice');
+    console.log("Bob deal first card to Alice");
 
     // Alice show her card
-    cardIdx = 0;
+
+    cardIdx = 1;
     card = await hiLo.queryCardInDeal(gameId, cardIdx);
     let [showProof, showData] = await generateShowHandData(
+      skArray[1],
+      pkArray[1],
+      card,
+      decryptWasmFile,
+      decryptZkeyFile
+    );
+    await Bob.showHand(gameId, cardIdx, showProof, [showData[0], showData[1]]);
+    let cardValue = await Bob.getCardValue(gameId, cardIdx);
+    console.log(`Bob shows his card, and the card is ${cardValue}`);
+
+    cardIdx = 0;
+    card = await hiLo.queryCardInDeal(gameId, cardIdx);
+    [showProof, showData] = await generateShowHandData(
       skArray[0],
       pkArray[0],
       card,
@@ -367,23 +381,10 @@ describe('HiLo', () => {
       showData[0],
       showData[1],
     ]);
-    let cardValue = await Alice.getCardValue(gameId, cardIdx); // 0-51
+    cardValue = await Alice.getCardValue(gameId, cardIdx); // 0-51
     console.log(`Alice shows her card, and the card is ${cardValue}`);
 
-    cardIdx = 1;
-    card = await hiLo.queryCardInDeal(gameId, cardIdx);
-    [showProof, showData] = await generateShowHandData(
-      skArray[1],
-      pkArray[1],
-      card,
-      decryptWasmFile,
-      decryptZkeyFile
-    );
-    await Bob.showHand(gameId, cardIdx, showProof, [showData[0], showData[1]]);
-    cardValue = await Bob.getCardValue(gameId, cardIdx);
-    console.log(`Bob shows his card, and the card is ${cardValue}`);
-
-    const winner = (await hiLo.getGameInfo(gameId)).winner;
-    console.log('winner is', winner);
+    const winner = await hiLo.getWinner(gameId);
+    console.log("winner is", winner);
   });
 });
