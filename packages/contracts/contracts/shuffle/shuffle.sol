@@ -5,6 +5,67 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./IShuffle.sol";
 import "hardhat/console.sol";
 
+
+interface IStateManager {
+    function moveTurnTo(uint256 playerId) external;
+    function transitState(bytes4 newState) external;
+}
+
+library TexasHoldemPoker1 {
+    function fold(IStateManager stateManager /** ... */) external {
+        stateManager.moveTurnTo(7);
+    }
+}
+
+enum TexasStates {
+    Fold,
+    Call,
+    Etc,
+}
+
+interface ISimpleGame {
+    function handleAction(IStateManager stateManager, TexasStates state, bytes calldata input) external;
+}
+
+contract TexasHoldemPoker2 {
+
+    function handleAction(IStateManager stateManager, TexasStates state, bytes calldata input) external {
+        if (state == Fold) {
+            (uint256 amount, uint256 value) = abi.decode(input);
+            stateManager.moveTurnTo(value);
+        }
+        // ...
+    }
+}
+
+// keccak("fold(IStateManager)")[4:]
+
+contract GameManager {
+
+    mapping(uint256 => address) _activeGames;
+
+    // create game
+    // generate card setup
+    // draw game
+
+    function startNewGame(address gameId) {
+    }
+
+    function doAction(uint256 gameId, bytes4 actionId, bytes calldata actionData) external {
+        // verify proof
+        _activeGames[gameId].staticcall(abi.encodePacked(actionId, this, actionData));
+        // emit some events 
+        // and etc
+    }
+
+    function doAction2(uint256 gameId, uint8 actionId, bytes calldata actionData) external {
+        // verify proof
+        _activeGames[gameId].handleACtion();
+        // emit some events
+        // and etc
+    }
+}
+
 // 1. all in Shuffle ?
 // 2. IGame Standard Interface
 // Mapping(IGame --> IShuffle)

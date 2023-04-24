@@ -71,7 +71,9 @@ struct PlayerInfo {
 enum State {
     Registration,
     ShufflingDeck,
-    DealingCard
+    DealingCard,
+    Error,
+    Complete
 }
 
 // Card Information
