@@ -11,7 +11,7 @@ export const contracts = {
     abi: ShuffleContract.abi,
   },
   HiLo: {
-    address: '0xbe648Dcfe0B565cddd424ab59B59065109A11901',
+    address: '0xAB4E623e127AEA40458186f688Ff1574f707B0Fe',
     abi: HiLo.abi,
   },
 };

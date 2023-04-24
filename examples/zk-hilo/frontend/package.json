@@ -12,6 +12,7 @@
     "@naivetester/zkholdem-sdk": "^0.0.1-alpha.10",
     "@poseidon-zkp/poseidon-zk-proof": "^0.0.1",
     "@rainbow-me/rainbowkit": "^0.8.1",
+    "@react-spring/web": "^9.7.2",
     "@semaphore-protocol/contracts": "^2.6.1",
     "@semaphore-protocol/proof": "^2.6.1",
     "@types/node": "18.14.2",

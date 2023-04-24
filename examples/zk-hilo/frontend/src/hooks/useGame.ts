@@ -143,15 +143,9 @@ export function useGame() {
     address as string
   );
 
-  const handleGetWinner = async () => {
-    try {
-      let res = await contract?.getGameInfo(gameId);
-      if (res?.winner === ethers.constants.AddressZero) {
-        res = await handleGetWinner();
-      } else {
-        setWinner(res?.winner);
-      }
-    } catch (error) {}
+  const handleGetWinner = (creatorValue: number, joinerValue: number) => {
+    let winner = creatorValue > joinerValue ? creator : joiner;
+    setWinner(winner);
   };
 
   const handleGetBabyPk = async () => {
@@ -270,7 +264,7 @@ export function useGame() {
 
     if (handValues.creator !== undefined && handValues.joiner !== undefined) {
       setCurrentStatus(CurrentStatusEnum.WAITING_FOR_WINNER);
-      handleGetWinner();
+      handleGetWinner(handValues.creator, handValues.joiner);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [handValues.creator, handValues.joiner]);
