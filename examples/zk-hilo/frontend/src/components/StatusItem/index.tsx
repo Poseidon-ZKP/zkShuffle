@@ -21,12 +21,12 @@ function Index({
 }: StatusItem) {
   return (
     <div className="flex items-center p-4 sm:p-6 lg:p-4 xl:p-6 ">
-      <dt className="w-36 flex-none text-slate-900 font-medium dark:text-slate-300 transition-opacity duration-[1.5s] delay-500 opacity-25">
+      <dt className="w-36 flex-none text-slate-900 font-medium dark:text-slate-300 transition-opacity duration-[1.5s] delay-500 opacity-70">
         {label}
       </dt>
       <dd className="flex items-center gap-10 transition-opacity duration-[1.5s] delay-500 opacity-100">
         {isShowText ? (
-          statusLabel
+          <div className="text-slate-300">{statusLabel}</div>
         ) : uiStatus ? (
           <Button
             isSuccess={buttonStatus.isSuccess}
@@ -37,7 +37,7 @@ function Index({
             {buttonProps?.children}
           </Button>
         ) : (
-          'waiting'
+          <div className="opacity-25">Waiting</div>
         )}
       </dd>
     </div>
