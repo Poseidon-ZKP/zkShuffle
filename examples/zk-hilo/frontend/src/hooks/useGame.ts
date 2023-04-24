@@ -11,6 +11,7 @@ import useDealtListener from './useDealtListener';
 import useShowHandListener from './useShowHandListener';
 import useShuffledListener from './useShuffledListener';
 import useWriteContract from './useWriteContract';
+import { sleep } from '../utils/common';
 
 export enum CurrentStatusEnum {
   WAITING_FOR_START = 'waiting for start',
@@ -184,7 +185,7 @@ export function useGame() {
   const handleShowCard = async () => {
     try {
       showHandStatus.setIsLoading(true);
-
+      await sleep(isCreator ? 1000 : 8000);
       const card = await contract?.queryCardInDeal(gameId, showIdx);
       const [showProof, showData] = await zkContext?.generateShowHandData(
         userPksAndsk?.sk as string,
@@ -200,10 +201,13 @@ export function useGame() {
         showData,
         userPksAndsk
       );
-      await showHandStatus?.run(gameId, showIdx, showProof, [
-        showData[0],
-        showData[1],
-      ]);
+      await showHandStatus?.run(
+        gameId,
+        showIdx,
+        showProof,
+        [showData[0], showData[1]]
+        // { gasLimit: 500000 }
+      );
     } catch (error) {
       showHandStatus.setIsError(true);
       showHandStatus.setIsLoading(false);
@@ -214,6 +218,7 @@ export function useGame() {
   const handleDealHandCard = async () => {
     try {
       dealStatus.setIsLoading(true);
+      await sleep(isCreator ? 1000 : 8000);
       const card = await contract?.queryCardFromDeck(gameId, cardIdx);
       const [dealProof, decryptedData, initDelta] =
         await zkContext?.generateDealData(

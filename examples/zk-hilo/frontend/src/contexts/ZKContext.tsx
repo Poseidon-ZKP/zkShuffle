@@ -209,6 +209,9 @@ export const ZKContextProvider = ({ children }: { children: ReactNode }) => {
   const generateShowHandData = useCallback(
     async (sk: bigint, pk: bigint[], card: any) => {
       try {
+        console.log('generateShowHandData', sk, pk, card);
+        console.log('decryptWasmData', decryptWasmData);
+        console.log('decryptZkeyData', decryptZkeyData);
         let decryptProof = await generateDecryptProof(
           [
             card[0].toBigInt(),

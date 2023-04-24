@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { sleep } from '../utils/common';
 
 function useShuffledListener(
   contract: any,
@@ -19,12 +18,13 @@ function useShuffledListener(
     const GameShuffledListener = async (arg1: string, shuffledAddress: any) => {
       try {
         const gameId = Number(arg1);
+
+        console.log('shuffledAddress', shuffledAddress);
         if (shuffledAddress === creator) {
           setIsCreatorShuffled(true);
         }
 
         if (shuffledAddress === joiner) {
-          await sleep(3000);
           setIsJoinerShuffled(true);
         }
 
