@@ -19,12 +19,12 @@ function useShuffledListener(
     const GameShuffledListener = async (arg1: string, shuffledAddress: any) => {
       try {
         const gameId = Number(arg1);
-        console.log('是这里的问题吗 gameId', gameId);
         if (shuffledAddress === creator) {
           setIsCreatorShuffled(true);
         }
 
         if (shuffledAddress === joiner) {
+          await sleep(3000);
           setIsJoinerShuffled(true);
         }
 

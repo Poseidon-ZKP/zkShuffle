@@ -1,6 +1,6 @@
 import { InjectedConnector } from 'wagmi/connectors/injected';
 
-import { useConnect } from 'wagmi';
+import { useAccount, useConnect, useNetwork, useSwitchNetwork } from 'wagmi';
 
 import React, { useEffect, useMemo } from 'react';
 import { useGame } from '../hooks/useGame';
@@ -10,6 +10,8 @@ import { useResourceContext } from '../hooks/useResourceContext';
 import { formatAddress } from '../utils/common';
 import Button from '../components/Button';
 import StatusItem from '../components/StatusItem';
+import { HarmanyTestnet } from '../config/chains';
+import { useRouter } from 'next/router';
 
 const CARD_VALUES: Record<string, number> = {
   A: 1,
@@ -43,6 +45,13 @@ export default function Home() {
   const { connect } = useConnect({
     connector: new InjectedConnector(),
   });
+  const router = useRouter();
+  const { chain } = useNetwork();
+  const { address } = useAccount();
+  const { error, isLoading, pendingChainId, switchNetwork } = useSwitchNetwork({
+    chainId: HarmanyTestnet.id,
+  });
+
   const resourceContext = useResourceContext();
   if (!resourceContext) {
     throw new Error('resource context is not ready');
@@ -60,7 +69,6 @@ export default function Home() {
   const {
     creator,
     joiner,
-    address,
     gameId,
     isCreator,
     winner,
@@ -120,15 +128,72 @@ export default function Home() {
     joinerStatus.joinerShuffled,
   ]);
 
+  if (!router.isReady) {
+    return (
+      <div className=" flex flex-col gap-10  h-screen items-center justify-center  text-2xl font-medium bg-slate-900 ">
+        <div className="text-2xl font-medium">Loading resource...</div>
+      </div>
+    );
+  }
+
+  if (!creator || !joiner) {
+    return (
+      <div className=" flex flex-col gap-10  h-screen items-center justify-center  text-2xl font-medium bg-slate-900 ">
+        <div className="text-2xl font-medium">Don't find creator or joiner</div>
+        <div className="text-2xl font-medium text-pink-500">
+          Please add them on URL
+        </div>
+      </div>
+    );
+  }
+
+  if (!address) {
+    return (
+      <div className=" flex flex-col gap-10  h-screen items-center justify-center  text-2xl font-medium bg-slate-900 ">
+        <div className="text-2xl font-medium">please connect wallet first</div>
+        <div
+          onClick={() => {
+            connect();
+          }}
+          className="px-6 py-2 hover:opacity-70 text-base font-medium rounded-lg bg-slate-100 text-slate-900  text-center cursor-pointer dark:bg-slate-600 dark:text-slate-400 dark:highlight-white/10"
+        >
+          connect wallet
+        </div>
+      </div>
+    );
+  }
+
+  if (chain?.id !== HarmanyTestnet.id) {
+    return (
+      <div className=" flex flex-col gap-10  h-screen items-center justify-center  text-2xl font-medium bg-slate-900 ">
+        <div className="text-2xl font-medium">
+          Only support Harmany test network now
+        </div>
+        <div
+          onClick={() => {
+            try {
+              switchNetwork?.();
+            } catch (error) {
+              console.log(error);
+            }
+          }}
+          className="px-6 py-2 text-base font-medium rounded-lg bg-slate-100 text-slate-900  text-center cursor-pointer dark:bg-slate-600 dark:text-slate-400 dark:highlight-white/10 hover:opacity-70"
+        >
+          Switch to Harmany test
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
-      <div className="flex flex-col min-h-screen bg-slate-900">
+      <div className="relative flex flex-col h-screen bg-slate-900">
         <nav
-          className="mt-8 ml-10 relative flex items-center justify-between sm:h-10 lg:justify-start"
+          className="absolute right-10 top-10  flex items-center justify-between sm:h-10 lg:justify-start"
           aria-label="Global"
         >
-          <div className="items-center flex justify-end sm:flex md:flex md:flex-1 lg:w-0">
-            <div className="mr-10">
+          <div className="items-center flex justify-end sm:flex md:flex md:flex-1 ">
+            <div>
               {address ? (
                 <p>{address}</p>
               ) : (
@@ -146,70 +211,71 @@ export default function Home() {
           </div>
         </nav>
 
-        <div className="flex mt-32  flex-col items-center justify-center text-white gap-10">
-          {/* Creator */}
-          <div className="flex flex-row gap-20">
-            <div className="relative z-10 bg-white rounded-xl shadow-xl ring-1 ring-slate-900/5 dark:bg-slate-800 dark:highlight-white/10">
-              <article>
-                <h2 className="text-lg font-semibold text-slate-900 pt-4 pb-2 px-4 sm:px-6 lg:px-4 xl:px-6 dark:text-slate-100 transition-opacity duration-[1.5s] delay-500 opacity-25">
-                  Creator Address:{creator ? formatAddress(creator) : '--'}
-                </h2>
-                <dl className="w-96 flex flex-col flex-wrap divide-y divide-slate-200 border-b border-slate-200 text-sm sm:text-base lg:text-sm xl:text-base dark:divide-slate-200/5 dark:border-slate-200/5">
-                  <StatusItem
-                    label={'Create Status:'}
-                    statusLabel={'Created'}
-                    isShowText={creatorStatus.createGame}
-                    uiStatus={creatorUIStatus.showStart}
-                    buttonStatus={createGameStatus}
-                    buttonProps={{
-                      onClick: async () => {
-                        await createGameStatus?.run();
-                      },
-                      children: 'Start game',
-                    }}
-                  />
+        {address && (
+          <div className="h-full flex flex-col items-center justify-center text-white gap-10">
+            {/* Creator */}
+            <div className="flex flex-row gap-20">
+              <div className="relative z-10 bg-white rounded-xl shadow-xl ring-1 ring-slate-900/5 dark:bg-slate-800 dark:highlight-white/10">
+                <article>
+                  <h2 className="text-lg font-semibold text-slate-900 pt-4 pb-2 px-4 sm:px-6 lg:px-4 xl:px-6 dark:text-slate-100 transition-opacity duration-[1.5s] delay-500 opacity-25">
+                    Creator Address:{creator ? formatAddress(creator) : '--'}
+                  </h2>
+                  <dl className="w-96 flex flex-col flex-wrap divide-y divide-slate-200 border-b border-slate-200 text-sm sm:text-base lg:text-sm xl:text-base dark:divide-slate-200/5 dark:border-slate-200/5">
+                    <StatusItem
+                      label={'Create Status:'}
+                      statusLabel={'Created'}
+                      isShowText={creatorStatus.createGame}
+                      uiStatus={creatorUIStatus.showStart}
+                      buttonStatus={createGameStatus}
+                      buttonProps={{
+                        onClick: async () => {
+                          await createGameStatus?.run();
+                        },
+                        children: 'Start game',
+                      }}
+                    />
 
-                  <StatusItem
-                    label={'shuffle status:'}
-                    statusLabel={'has Shuffled'}
-                    isShowText={creatorStatus.creatorShuffled}
-                    uiStatus={creatorUIStatus.showShuffle}
-                    buttonStatus={shuffleStatus}
-                    buttonProps={{
-                      onClick: async () => {
-                        await handleShuffle(gameId as number);
-                      },
-                      children: 'Shuffle',
-                    }}
-                  />
-                  <StatusItem
-                    label={'deal Status:'}
-                    statusLabel={'dealt'}
-                    isShowText={creatorStatus.creatorDealt}
-                    uiStatus={creatorUIStatus.showDeal}
-                    buttonStatus={dealStatus}
-                    buttonProps={{
-                      onClick: async () => {
-                        await handleDealHandCard();
-                      },
-                      children: 'Deal',
-                    }}
-                  />
-                  <StatusItem
-                    label={'show Hand:'}
-                    statusLabel={String(creatorStatus.creatorShowHand)}
-                    isShowText={creatorStatus.creatorShowHand > -1}
-                    uiStatus={creatorUIStatus.showHand}
-                    buttonStatus={showHandStatus}
-                    buttonProps={{
-                      onClick: async () => {
-                        await handleShowCard();
-                      },
-                      children: 'Show Hand',
-                    }}
-                  />
-                </dl>
-                {/* <div className="grid grid-cols-2 gap-x-4 sm:gap-x-6 lg:gap-x-4 xl:gap-x-6 p-4 sm:px-6 sm:py-5 lg:p-4 xl:px-6 xl:py-5">
+                    <StatusItem
+                      label={'Shuffle status:'}
+                      statusLabel={'Shuffled'}
+                      isShowText={creatorStatus.creatorShuffled}
+                      uiStatus={creatorUIStatus.showShuffle}
+                      buttonStatus={shuffleStatus}
+                      buttonProps={{
+                        onClick: async () => {
+                          await handleShuffle(gameId as number);
+                        },
+                        children: 'Shuffle',
+                      }}
+                    />
+                    <StatusItem
+                      label={'Deal Status:'}
+                      statusLabel={'Dealt'}
+                      isShowText={creatorStatus.creatorDealt}
+                      uiStatus={creatorUIStatus.showDeal}
+                      buttonStatus={dealStatus}
+                      buttonProps={{
+                        onClick: async () => {
+                          await handleDealHandCard();
+                        },
+                        children: 'Deal',
+                      }}
+                    />
+                    <StatusItem
+                      label={'Show Hand:'}
+                      statusLabel={String(creatorStatus.creatorShowHand)}
+                      isShowText={creatorStatus.creatorShowHand > -1}
+                      uiStatus={creatorUIStatus.showHand}
+                      buttonStatus={showHandStatus}
+                      buttonProps={{
+                        onClick: async () => {
+                          await handleShowCard();
+                        },
+                        children: 'Show Hand',
+                      }}
+                    />
+                  </dl>
+                  {/* <div className="grid grid-cols-2 gap-x-4 sm:gap-x-6 lg:gap-x-4 xl:gap-x-6 p-4 sm:px-6 sm:py-5 lg:p-4 xl:px-6 xl:py-5">
                   <div className="text-base font-medium rounded-lg bg-slate-100 text-slate-900 py-3 text-center cursor-pointer dark:bg-slate-600 dark:text-slate-400 dark:highlight-white/10">
                     Decline
                   </div>
@@ -217,72 +283,72 @@ export default function Home() {
                     Accept
                   </div>
                 </div> */}
-              </article>
-            </div>
+                </article>
+              </div>
 
-            <div className="relative z-10 bg-white rounded-xl shadow-xl ring-1 ring-slate-900/5 dark:bg-slate-800 dark:highlight-white/10">
-              <article>
-                <h2 className="text-lg font-semibold text-slate-900 pt-4 pb-2 px-4 sm:px-6 lg:px-4 xl:px-6 dark:text-slate-100 transition-opacity duration-[1.5s] delay-500 opacity-25">
-                  Joiner Address: {joiner ? formatAddress(joiner) : '--'}
-                </h2>
-                <dl className="w-96 flex flex-col flex-wrap divide-y divide-slate-200 border-b border-slate-200 text-sm sm:text-base lg:text-sm xl:text-base dark:divide-slate-200/5 dark:border-slate-200/5">
-                  <StatusItem
-                    label={'Join Status:'}
-                    statusLabel={'joined'}
-                    isShowText={joinerStatus.joinGame}
-                    uiStatus={joinerUIStatus.showJoin}
-                    buttonStatus={joinGameStatus}
-                    buttonProps={{
-                      onClick: async () => {
-                        await joinGameStatus?.run(gameId, [
-                          userPksAndsk?.pk[0],
-                          userPksAndsk?.pk[1],
-                        ]);
-                      },
-                      children: 'Join game',
-                    }}
-                  />
-                  <StatusItem
-                    label={'Shuffle status:'}
-                    statusLabel={'Shuffled'}
-                    isShowText={joinerStatus.joinerShuffled}
-                    uiStatus={joinerUIStatus.showShuffle}
-                    buttonStatus={shuffleStatus}
-                    buttonProps={{
-                      onClick: async () => {
-                        await handleShuffle(gameId as number);
-                      },
-                      children: 'Shuffle',
-                    }}
-                  />
-                  <StatusItem
-                    label={'Deal Status:'}
-                    statusLabel={'Dealt'}
-                    isShowText={joinerStatus.joinerDealt}
-                    uiStatus={joinerUIStatus.showDeal}
-                    buttonStatus={dealStatus}
-                    buttonProps={{
-                      onClick: async () => {
-                        await handleDealHandCard();
-                      },
-                      children: 'Deal',
-                    }}
-                  />
-                  <StatusItem
-                    label={'Show Hand:'}
-                    statusLabel={String(joinerStatus.joinerShowHand)}
-                    isShowText={joinerStatus.joinerShowHand > -1}
-                    uiStatus={joinerUIStatus.showHand}
-                    buttonStatus={showHandStatus}
-                    buttonProps={{
-                      onClick: async () => {
-                        await handleShowCard();
-                      },
-                      children: 'Show Hand',
-                    }}
-                  />
-                </dl>
-                {/* <div className="grid grid-cols-2 gap-x-4 sm:gap-x-6 lg:gap-x-4 xl:gap-x-6 p-4 sm:px-6 sm:py-5 lg:p-4 xl:px-6 xl:py-5">
+              <div className="relative z-10 bg-white rounded-xl shadow-xl ring-1 ring-slate-900/5 dark:bg-slate-800 dark:highlight-white/10">
+                <article>
+                  <h2 className="text-lg font-semibold text-slate-900 pt-4 pb-2 px-4 sm:px-6 lg:px-4 xl:px-6 dark:text-slate-100 transition-opacity duration-[1.5s] delay-500 opacity-25">
+                    Joiner Address: {joiner ? formatAddress(joiner) : '--'}
+                  </h2>
+                  <dl className="w-96 flex flex-col flex-wrap divide-y divide-slate-200 border-b border-slate-200 text-sm sm:text-base lg:text-sm xl:text-base dark:divide-slate-200/5 dark:border-slate-200/5">
+                    <StatusItem
+                      label={'Join Status:'}
+                      statusLabel={'Joined'}
+                      isShowText={joinerStatus.joinGame}
+                      uiStatus={joinerUIStatus.showJoin}
+                      buttonStatus={joinGameStatus}
+                      buttonProps={{
+                        onClick: async () => {
+                          await joinGameStatus?.run(gameId, [
+                            userPksAndsk?.pk[0],
+                            userPksAndsk?.pk[1],
+                          ]);
+                        },
+                        children: 'Join game',
+                      }}
+                    />
+                    <StatusItem
+                      label={'Shuffle status:'}
+                      statusLabel={'Shuffled'}
+                      isShowText={joinerStatus.joinerShuffled}
+                      uiStatus={joinerUIStatus.showShuffle}
+                      buttonStatus={shuffleStatus}
+                      buttonProps={{
+                        onClick: async () => {
+                          await handleShuffle(gameId as number);
+                        },
+                        children: 'Shuffle',
+                      }}
+                    />
+                    <StatusItem
+                      label={'Deal Status:'}
+                      statusLabel={'Dealt'}
+                      isShowText={joinerStatus.joinerDealt}
+                      uiStatus={joinerUIStatus.showDeal}
+                      buttonStatus={dealStatus}
+                      buttonProps={{
+                        onClick: async () => {
+                          await handleDealHandCard();
+                        },
+                        children: 'Deal',
+                      }}
+                    />
+                    <StatusItem
+                      label={'Show Hand:'}
+                      statusLabel={String(joinerStatus.joinerShowHand)}
+                      isShowText={joinerStatus.joinerShowHand > -1}
+                      uiStatus={joinerUIStatus.showHand}
+                      buttonStatus={showHandStatus}
+                      buttonProps={{
+                        onClick: async () => {
+                          await handleShowCard();
+                        },
+                        children: 'Show Hand',
+                      }}
+                    />
+                  </dl>
+                  {/* <div className="grid grid-cols-2 gap-x-4 sm:gap-x-6 lg:gap-x-4 xl:gap-x-6 p-4 sm:px-6 sm:py-5 lg:p-4 xl:px-6 xl:py-5">
                   <div className="text-base font-medium rounded-lg bg-slate-100 text-slate-900 py-3 text-center cursor-pointer dark:bg-slate-600 dark:text-slate-400 dark:highlight-white/10">
                     Decline
                   </div>
@@ -290,183 +356,22 @@ export default function Home() {
                     Accept
                   </div>
                 </div> */}
-              </article>
+                </article>
+              </div>
             </div>
+
+            {
+              <div className="text-xl font-mono font-medium text-sky-500">
+                {currentStatus}
+              </div>
+            }
+            {gameId && winner && (
+              <div className="text-3xl font-mono font-medium text-sky-500">
+                winner is {winner}
+              </div>
+            )}
           </div>
-          {/* <div className="flex flex-row gap-4">
-            <ul className="flex flex-col gap-5 items-start">
-              <li className="flex flex-row gap-4 justify-center items-center">
-                creator:{creator ? formatAddress(creator) : '--'} -{' '}
-                {isCreator ? (
-                  <Button
-                    isSuccess={createGameStatus.isSuccess}
-                    isLoading={createGameStatus.isLoading}
-                    isError={createGameStatus.isError}
-                    onClick={async () => {
-                      await createGameStatus?.run();
-                    }}
-                  >
-                    Start game
-                  </Button>
-                ) : creatorStatus.createGame ? (
-                  'created'
-                ) : (
-                  'waiting'
-                )}
-              </li>
-              <li className="flex flex-row gap-4 justify-center items-center">
-                shffle status:
-                {creatorStatus.creatorShuffled ? (
-                  'has Shuffled'
-                ) : creatorUIStatus.showShuffle ? (
-                  <Button
-                    isSuccess={shuffleStatus.isSuccess}
-                    isLoading={shuffleStatus.isLoading}
-                    isError={shuffleStatus.isError}
-                    onClick={async () => {
-                      await handleShuffle(gameId as number);
-                    }}
-                  >
-                    shuffle
-                  </Button>
-                ) : (
-                  'waiting'
-                )}
-              </li>
-              <li>
-                deal:
-                {creatorStatus.creatorDealt ? (
-                  'dealed'
-                ) : creatorUIStatus.showDeal ? (
-                  <Button
-                    isSuccess={dealStatus.isSuccess}
-                    isLoading={dealStatus.isLoading}
-                    isError={dealStatus.isError}
-                    onClick={async () => {
-                      await handleDealHandCard();
-                    }}
-                  >
-                    deal
-                  </Button>
-                ) : (
-                  'waiting'
-                )}
-              </li>
-              <li>
-                show Hand:
-                {creatorStatus.creatorShowHand > -1 ? (
-                  creatorStatus.creatorShowHand
-                ) : creatorUIStatus.showHand ? (
-                  <Button
-                    isSuccess={showHandStatus.isSuccess}
-                    isLoading={showHandStatus.isLoading}
-                    isError={showHandStatus.isError}
-                    onClick={async () => {
-                      await handleShowCard();
-                    }}
-                  >
-                    show Hand
-                  </Button>
-                ) : (
-                  'waiting'
-                )}
-              </li>
-            </ul>
-            <img className="mb-10 w-32" src="/logo.png" />
-            <ul className="flex flex-col gap-5 items-start">
-              <li className="flex flex-row gap-4 justify-center items-center">
-                Joiner : {joiner ? formatAddress(joiner) : '--'} -{' '}
-                {joinerStatus.joinGame ? (
-                  'joined'
-                ) : joinerUIStatus.showJoin ? (
-                  <Button
-                    isSuccess={joinGameStatus.isSuccess}
-                    isLoading={joinGameStatus.isLoading}
-                    isError={joinGameStatus.isError}
-                    onClick={async () => {
-                      await joinGameStatus?.run(gameId, [
-                        userPksAndsk?.pk[0],
-                        userPksAndsk?.pk[1],
-                      ]);
-                    }}
-                  >
-                    Join game
-                  </Button>
-                ) : (
-                  'waiting'
-                )}
-              </li>
-              <li className="flex flex-row gap-4 justify-center items-center">
-                shffle status:
-                {joinerStatus.joinerShuffled ? (
-                  'has Shuffled'
-                ) : joinerUIStatus.showShuffle ? (
-                  <Button
-                    isSuccess={shuffleStatus.isSuccess}
-                    isLoading={shuffleStatus.isLoading}
-                    isError={shuffleStatus.isError}
-                    onClick={async () => {
-                      await handleShuffle(gameId as number);
-                    }}
-                  >
-                    Join game
-                  </Button>
-                ) : (
-                  'waiting'
-                )}
-              </li>
-              <li>
-                deal:
-                {joinerStatus.joinerDealt ? (
-                  'dealed'
-                ) : joinerUIStatus.showDeal ? (
-                  <Button
-                    isSuccess={dealStatus.isSuccess}
-                    isLoading={dealStatus.isLoading}
-                    isError={dealStatus.isError}
-                    onClick={async () => {
-                      await handleDealHandCard();
-                    }}
-                  >
-                    deal
-                  </Button>
-                ) : (
-                  'waiting'
-                )}
-              </li>
-              <li>
-                show Hand:
-                {joinerStatus.joinerShowHand > -1 ? (
-                  joinerStatus.joinerShowHand
-                ) : joinerUIStatus.showHand ? (
-                  <Button
-                    isSuccess={showHandStatus.isSuccess}
-                    isLoading={showHandStatus.isLoading}
-                    isError={showHandStatus.isError}
-                    onClick={async () => {
-                      await handleShowCard();
-                    }}
-                  >
-                    show Hand
-                  </Button>
-                ) : (
-                  'waiting'
-                )}
-              </li>
-            </ul>
-          </div> */}
-
-          {
-            <div className="text-xl font-mono font-medium text-sky-500">
-              {currentStatus}
-            </div>
-          }
-          {gameId && winner && (
-            <div className="text-3xl font-mono font-medium text-sky-500">
-              winner is {winner}
-            </div>
-          )}
-        </div>
+        )}
       </div>
     </>
   );

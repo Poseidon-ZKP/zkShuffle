@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { sleep } from '../utils/common';
 
 function useDealtListener(contract: any, creator: string, joiner: string) {
   const [isCreatorDealt, setIsCreatorDealt] = useState(false);
@@ -16,9 +17,11 @@ function useDealtListener(contract: any, creator: string, joiner: string) {
         console.log('address', address);
 
         if (address === creator) {
+          await sleep(4000);
           setIsCreatorDealt(true);
         }
         if (address === joiner) {
+          await sleep(4000);
           setIsJoinerDealt(true);
         }
       } catch (error) {}

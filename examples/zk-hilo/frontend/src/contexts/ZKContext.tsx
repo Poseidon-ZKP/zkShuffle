@@ -102,7 +102,7 @@ export const ZKContextProvider = ({ children }: { children: ReactNode }) => {
       setGeneratingProof(true);
       let A = samplePermutation(Number(numCards));
       let R = sampleFieldElements(babyjub, numBits, numCards);
-      debugger;
+
       let aggregatedPkEC = [
         babyjub.F.e(aggregatedPk[0]),
         babyjub.F.e(aggregatedPk[1]),

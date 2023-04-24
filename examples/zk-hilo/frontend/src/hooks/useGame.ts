@@ -5,13 +5,12 @@ import { buildBabyjub } from 'circomlibjs';
 import { contracts as contractInfos } from '../const/contracts';
 import { PlayerInfos, getBabyjub, getPlayerPksAndSks } from '../utils/newUtils';
 import { Contract, ethers } from 'ethers';
-import { useAccount, useContractWrite } from 'wagmi';
+import { useAccount } from 'wagmi';
 import { useZKContext } from './useZKContext';
 import useDealtListener from './useDealtListener';
 import useShowHandListener from './useShowHandListener';
 import useShuffledListener from './useShuffledListener';
 import useWriteContract from './useWriteContract';
-import { sleep } from '../utils/common';
 
 export enum CurrentStatusEnum {
   WAITING_FOR_START = 'waiting for start',
@@ -74,8 +73,6 @@ export function useGame() {
   const zkContext = useZKContext();
 
   const handleQueryAggregatedPk = async (gameId: number) => {
-    await sleep(2000);
-
     const keys = await contract?.queryAggregatedPk(gameId);
     const deck = await contract?.queryDeck(gameId);
     const aggregatedPk = [keys[0].toBigInt(), keys[1].toBigInt()];
@@ -118,7 +115,7 @@ export function useGame() {
     try {
       shuffleStatus.setIsLoading(true);
       const [solidityProof, comData] = await handleQueryAggregatedPk(gameId);
-      debugger;
+
       let res = await shuffleStatus.run(solidityProof, comData, gameId);
 
       return res;
@@ -147,8 +144,12 @@ export function useGame() {
 
   const handleGetWinner = async () => {
     try {
-      const res = await contract?.getGameInfo(gameId);
-      setWinner(res?.winner);
+      let res = await contract?.getGameInfo(gameId);
+      if (res?.winner === ethers.constants.AddressZero) {
+        res = await handleGetWinner();
+      } else {
+        setWinner(res?.winner);
+      }
     } catch (error) {}
   };
 
@@ -183,7 +184,7 @@ export function useGame() {
   const handleShowCard = async () => {
     try {
       showHandStatus.setIsLoading(true);
-      await sleep(3000);
+
       const card = await contract?.queryCardInDeal(gameId, showIdx);
       const [showProof, showData] = await zkContext?.generateShowHandData(
         userPksAndsk?.sk as string,
@@ -191,7 +192,14 @@ export function useGame() {
         card
       );
 
-      console.log('showHandParams', gameId, showIdx, showProof, showData);
+      console.log(
+        'showHandParams',
+        gameId,
+        showIdx,
+        showProof,
+        showData,
+        userPksAndsk
+      );
       await showHandStatus?.run(gameId, showIdx, showProof, [
         showData[0],
         showData[1],
@@ -206,7 +214,6 @@ export function useGame() {
   const handleDealHandCard = async () => {
     try {
       dealStatus.setIsLoading(true);
-      await sleep(2000);
       const card = await contract?.queryCardFromDeck(gameId, cardIdx);
       const [dealProof, decryptedData, initDelta] =
         await zkContext?.generateDealData(

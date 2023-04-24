@@ -2,28 +2,14 @@ import { PropsWithChildren } from 'react';
 import { publicProvider } from 'wagmi/providers/public';
 import '@rainbow-me/rainbowkit/styles.css';
 
-import {
-  connectorsForWallets,
-  RainbowKitProvider,
-  darkTheme,
-} from '@rainbow-me/rainbowkit';
+import { RainbowKitProvider, darkTheme } from '@rainbow-me/rainbowkit';
 import { configureChains, createClient, WagmiConfig } from 'wagmi';
-import { foundry } from '@wagmi/core/chains';
-import * as allChains from 'wagmi/chains';
-import { jsonRpcProvider } from '@wagmi/core/providers/jsonRpc';
-import { mockWallet } from '../lib/mockWallet';
-import { TESTNET_URL } from '../lib/const';
+import { HarmanyTestnet } from '../config/chains';
 
-const { chains, provider } = configureChains(Object.values(allChains), [
-  jsonRpcProvider({ rpc: () => ({ http: TESTNET_URL }) }),
-]);
-
-const connectors = connectorsForWallets([
-  {
-    groupName: 'Testing',
-    wallets: [mockWallet()],
-  },
-]);
+const { chains, provider } = configureChains(
+  [HarmanyTestnet],
+  [publicProvider()]
+);
 
 const wagmiClient = createClient({
   autoConnect: true,
