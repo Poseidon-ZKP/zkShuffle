@@ -1,5 +1,5 @@
 import { InjectedConnector } from 'wagmi/connectors/injected';
-
+import { useSprings, animated, to as interpolate } from '@react-spring/web';
 import { useAccount, useConnect, useNetwork, useSwitchNetwork } from 'wagmi';
 
 import React, { useEffect, useMemo } from 'react';
@@ -29,7 +29,7 @@ const CARD_VALUES: Record<string, number> = {
   K: 13,
 };
 
-const createDeck = () => {
+export const createDeck = () => {
   const suits = ['♠', '♥', '♦', '♣'];
   const values = Object.keys(CARD_VALUES);
   const deck = suits.flatMap((suit) =>
@@ -39,7 +39,14 @@ const createDeck = () => {
   return deck;
 };
 
-const deck = createDeck();
+const cards = [
+  'https://upload.wikimedia.org/wikipedia/commons/f/f5/RWS_Tarot_08_Strength.jpg',
+  'https://upload.wikimedia.org/wikipedia/commons/5/53/RWS_Tarot_16_Tower.jpg',
+  'https://upload.wikimedia.org/wikipedia/commons/9/9b/RWS_Tarot_07_Chariot.jpg',
+  'https://upload.wikimedia.org/wikipedia/commons/d/db/RWS_Tarot_06_Lovers.jpg',
+  'https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/RWS_Tarot_02_High_Priestess.jpg/690px-RWS_Tarot_02_High_Priestess.jpg',
+  'https://upload.wikimedia.org/wikipedia/commons/d/de/RWS_Tarot_01_Magician.jpg',
+];
 
 export default function Home() {
   const { connect } = useConnect({
@@ -215,7 +222,7 @@ export default function Home() {
           <div className="h-full flex flex-col items-center justify-center text-white gap-10">
             {/* Creator */}
             <div className="flex flex-row gap-20">
-              <div className="relative z-10 bg-white rounded-xl shadow-xl ring-1 ring-slate-900/5 dark:bg-slate-800 dark:highlight-white/10">
+              <div className="relative z-10 bg-white rounded-xl shadow-xl  bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 dark:highlight-white/10">
                 <article>
                   <h2 className="text-lg font-semibold text-slate-900 pt-4 pb-2 px-4 sm:px-6 lg:px-4 xl:px-6 dark:text-slate-100 transition-opacity duration-[1.5s] delay-500 ">
                     Creator Address:{creator ? formatAddress(creator) : '--'}
@@ -286,7 +293,7 @@ export default function Home() {
                 </article>
               </div>
 
-              <div className="relative z-10 bg-white rounded-xl shadow-xl ring-1 ring-slate-900/5 dark:bg-slate-800 dark:highlight-white/10">
+              <div className="relative z-10 bg-white rounded-xl shadow-xl ring-1 ring-slate-900/5 bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 dark:highlight-white/10">
                 <article>
                   <h2 className="text-lg font-semibold text-slate-900 pt-4 pb-2 px-4 sm:px-6 lg:px-4 xl:px-6 dark:text-slate-100 transition-opacity duration-[1.5s] delay-500 ">
                     Joiner Address: {joiner ? formatAddress(joiner) : '--'}
