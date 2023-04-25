@@ -1,0 +1,42 @@
+{
+  "name": "@p0x-labs/king-soldier",
+  "version": "0.0.1",
+  "main": "index.js",
+  "license": "MIT",
+  "description": "Example integtration",
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.2.1",
+    "@nomiclabs/hardhat-waffle": "^2.0.3",
+    "@typechain/ethers-v5": "^10.1.1",
+    "@typechain/hardhat": "^6.1.4",
+    "@types/chai": "^4.3.4",
+    "@types/mocha": "^10.0.0",
+    "@types/node": "^18.11.9",
+    "chai": "^4.3.7",
+    "dotenv": "^16.0.3",
+    "ethereum-waffle": "^3.4.4",
+    "ethers": "^5.7.2",
+    "hardhat": "^2.12.5",
+    "hardhat-contract-sizer": "^2.6.1",
+    "solhint": "^3.3.7",
+    "ts-node": "^10.9.1",
+    "typechain": "^8.1.1",
+    "typescript": "^4.9.3"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.8.3",
+    "@poseidon-zkp/poseidon-zk-proof": "^0.0.1",
+    "circomlibjs": "^0.1.7",
+    "node-pandoc": "^0.3.0",
+    "snarkjs": "^0.5.0",
+    "solidity-docgen": "^0.6.0-beta.32"
+  },
+  "scripts": {
+    "compile": "hardhat compile --verbose",
+    "lint:sol": "solhint --config ./.solhint.json  \"contracts/**/*.sol\"",
+    "test": "hardhat test",
+    "deploy": "hardhat deploy",
+    "contract-size": "hardhat size-contracts",
+    "doc": "hardhat docgen"
+  }
+}
