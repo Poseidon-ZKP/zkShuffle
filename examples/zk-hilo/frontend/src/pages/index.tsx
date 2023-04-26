@@ -1,17 +1,15 @@
 import { InjectedConnector } from 'wagmi/connectors/injected';
-import { useSprings, animated, to as interpolate } from '@react-spring/web';
 import { useAccount, useConnect, useNetwork, useSwitchNetwork } from 'wagmi';
 
 import React, { useEffect, useMemo } from 'react';
 import { useGame } from '../hooks/useGame';
-import { useOwnerGame } from '../hooks/useOwnerGame';
 
 import { useResourceContext } from '../hooks/useResourceContext';
 import { formatAddress } from '../utils/common';
-import Button from '../components/Button';
 import StatusItem from '../components/StatusItem';
 import { HarmanyTestnet } from '../config/chains';
 import { useRouter } from 'next/router';
+import Button from '../components/Button';
 
 const CARD_VALUES: Record<string, number> = {
   A: 1,
@@ -38,15 +36,6 @@ export const createDeck = () => {
 
   return deck;
 };
-
-const cards = [
-  'https://upload.wikimedia.org/wikipedia/commons/f/f5/RWS_Tarot_08_Strength.jpg',
-  'https://upload.wikimedia.org/wikipedia/commons/5/53/RWS_Tarot_16_Tower.jpg',
-  'https://upload.wikimedia.org/wikipedia/commons/9/9b/RWS_Tarot_07_Chariot.jpg',
-  'https://upload.wikimedia.org/wikipedia/commons/d/db/RWS_Tarot_06_Lovers.jpg',
-  'https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/RWS_Tarot_02_High_Priestess.jpg/690px-RWS_Tarot_02_High_Priestess.jpg',
-  'https://upload.wikimedia.org/wikipedia/commons/d/de/RWS_Tarot_01_Magician.jpg',
-];
 
 export default function Home() {
   const { connect } = useConnect({
@@ -91,6 +80,7 @@ export default function Home() {
     handleShuffle,
     handleDealHandCard,
     handleShowCard,
+    handleReset,
   } = useGame();
 
   const creatorUIStatus = useMemo(() => {
@@ -373,8 +363,11 @@ export default function Home() {
               </div>
             }
             {gameId && winner && (
-              <div className="text-3xl font-mono font-medium text-sky-500">
-                winner is {winner}
+              <div className="flex flex-col items-center justify-center">
+                <div className="text-3xl font-mono font-medium text-sky-500">
+                  winner is {winner}
+                </div>
+                {/* <Button onClick={handleReset}>Try again</Button> */}
               </div>
             )}
           </div>
