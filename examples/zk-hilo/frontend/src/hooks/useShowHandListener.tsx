@@ -1,11 +1,16 @@
 // game ShowHand listener
 
-import { BigNumber, ethers } from 'ethers';
+import { BigNumber } from 'ethers';
 import { useEffect, useState } from 'react';
 
 function useShowHandListener(contract: any, creator: string, joiner: string) {
   const [creatorCardValue, setCreatorValue] = useState<number>();
   const [joinerCardValue, setJoinerValue] = useState<number>();
+
+  const reset = () => {
+    setCreatorValue(undefined);
+    setJoinerValue(undefined);
+  };
   useEffect(() => {
     if (!contract) return;
     const GameShowHandListener = async (
@@ -42,6 +47,7 @@ function useShowHandListener(contract: any, creator: string, joiner: string) {
 
   return {
     handValues,
+    reset,
   };
 }
 

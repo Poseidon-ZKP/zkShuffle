@@ -14,6 +14,13 @@ function useTransaction<Params = any, Response = any>(
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
+  const reset = () => {
+    setResult(undefined);
+    setIsError(false);
+    setIsSuccess(false);
+    setIsLoading(false);
+  };
+
   const callMethod = async (...fnArgs: any[]) => {
     setIsLoading(true);
     setIsError(false);
@@ -43,6 +50,7 @@ function useTransaction<Params = any, Response = any>(
     setIsLoading,
     setIsSuccess,
     setIsError,
+    reset,
   };
 }
 

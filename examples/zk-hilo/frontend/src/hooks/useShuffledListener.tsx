@@ -10,8 +10,14 @@ function useShuffledListener(
   const [isJoinerShuffled, setIsJoinerShuffled] = useState(false);
   const [isShouldTriggerJoinerShuffle, setIsShouldTriggerJoinerShuffle] =
     useState(false);
+
   const isCreator = creator === address;
 
+  const reset = () => {
+    setIsCreatorShuffled(false);
+    setIsJoinerShuffled(false);
+    setIsShouldTriggerJoinerShuffle(false);
+  };
   // game ShuffleListener
   useEffect(() => {
     if (!contract) return;
@@ -54,6 +60,7 @@ function useShuffledListener(
 
   return {
     shuffleStatus,
+    reset,
   };
 }
 

@@ -8,6 +8,11 @@ function useDealtListener(contract: any, creator: string, joiner: string) {
     creator: isCreatorDealt,
     joiner: isJoinerDealt,
   };
+
+  const reset = () => {
+    setIsCreatorDealt(false);
+    setIsJoinerDealt(false);
+  };
   // game DealListener
   useEffect(() => {
     if (!contract) return;
@@ -32,6 +37,7 @@ function useDealtListener(contract: any, creator: string, joiner: string) {
 
   return {
     dealStatus,
+    reset,
   };
 }
 

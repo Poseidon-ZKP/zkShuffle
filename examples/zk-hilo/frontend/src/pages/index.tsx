@@ -1,17 +1,15 @@
 import { InjectedConnector } from 'wagmi/connectors/injected';
-
 import { useAccount, useConnect, useNetwork, useSwitchNetwork } from 'wagmi';
 
 import React, { useEffect, useMemo } from 'react';
 import { useGame } from '../hooks/useGame';
-import { useOwnerGame } from '../hooks/useOwnerGame';
 
 import { useResourceContext } from '../hooks/useResourceContext';
 import { formatAddress } from '../utils/common';
-import Button from '../components/Button';
 import StatusItem from '../components/StatusItem';
 import { HarmanyTestnet } from '../config/chains';
 import { useRouter } from 'next/router';
+import Button from '../components/Button';
 
 const CARD_VALUES: Record<string, number> = {
   A: 1,
@@ -29,7 +27,7 @@ const CARD_VALUES: Record<string, number> = {
   K: 13,
 };
 
-const createDeck = () => {
+export const createDeck = () => {
   const suits = ['♠', '♥', '♦', '♣'];
   const values = Object.keys(CARD_VALUES);
   const deck = suits.flatMap((suit) =>
@@ -38,8 +36,6 @@ const createDeck = () => {
 
   return deck;
 };
-
-const deck = createDeck();
 
 export default function Home() {
   const { connect } = useConnect({
@@ -84,6 +80,7 @@ export default function Home() {
     handleShuffle,
     handleDealHandCard,
     handleShowCard,
+    handleReset,
   } = useGame();
 
   const creatorUIStatus = useMemo(() => {
@@ -215,7 +212,7 @@ export default function Home() {
           <div className="h-full flex flex-col items-center justify-center text-white gap-10">
             {/* Creator */}
             <div className="flex flex-row gap-20">
-              <div className="relative z-10 bg-white rounded-xl shadow-xl ring-1 ring-slate-900/5 dark:bg-slate-800 dark:highlight-white/10">
+              <div className="relative z-10 bg-white rounded-xl shadow-xl  bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 dark:highlight-white/10">
                 <article>
                   <h2 className="text-lg font-semibold text-slate-900 pt-4 pb-2 px-4 sm:px-6 lg:px-4 xl:px-6 dark:text-slate-100 transition-opacity duration-[1.5s] delay-500 ">
                     Creator Address:{creator ? formatAddress(creator) : '--'}
@@ -286,7 +283,7 @@ export default function Home() {
                 </article>
               </div>
 
-              <div className="relative z-10 bg-white rounded-xl shadow-xl ring-1 ring-slate-900/5 dark:bg-slate-800 dark:highlight-white/10">
+              <div className="relative z-10 bg-white rounded-xl shadow-xl ring-1 ring-slate-900/5 bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 dark:highlight-white/10">
                 <article>
                   <h2 className="text-lg font-semibold text-slate-900 pt-4 pb-2 px-4 sm:px-6 lg:px-4 xl:px-6 dark:text-slate-100 transition-opacity duration-[1.5s] delay-500 ">
                     Joiner Address: {joiner ? formatAddress(joiner) : '--'}
@@ -366,8 +363,11 @@ export default function Home() {
               </div>
             }
             {gameId && winner && (
-              <div className="text-3xl font-mono font-medium text-sky-500">
-                winner is {winner}
+              <div className="flex flex-col items-center justify-center">
+                <div className="text-3xl font-mono font-medium text-sky-500">
+                  winner is {winner}
+                </div>
+                {/* <Button onClick={handleReset}>Try again</Button> */}
               </div>
             )}
           </div>

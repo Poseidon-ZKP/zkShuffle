@@ -35,6 +35,20 @@ export const getContractWriteParams = (fucName: string, args?: any) => {
   };
 };
 
+export const defaultJoinerStatus = {
+  joinGame: false,
+  joinerShuffled: false,
+  joinerDealt: false,
+  joinerShowHand: -1,
+};
+
+export const defaultCreatorStatus = {
+  createGame: false,
+  creatorShuffled: false,
+  creatorDealt: false,
+  creatorShowHand: -1,
+};
+
 export function useGame() {
   const router = useRouter();
   const creator = router?.query?.creator as string;
@@ -50,19 +64,9 @@ export function useGame() {
   const [babyjub, setBabyjub] = useState<any>();
   const [winner, setWinner] = useState<string>();
 
-  const [creatorStatus, setCreatorStatus] = useState({
-    createGame: false,
-    creatorShuffled: false,
-    creatorDealt: false,
-    creatorShowHand: -1,
-  });
+  const [creatorStatus, setCreatorStatus] = useState(defaultCreatorStatus);
 
-  const [joinerStatus, setJoinerStatus] = useState({
-    joinGame: false,
-    joinerShuffled: false,
-    joinerDealt: false,
-    joinerShowHand: -1,
-  });
+  const [joinerStatus, setJoinerStatus] = useState(defaultJoinerStatus);
 
   // contracts functions
 
@@ -130,18 +134,15 @@ export function useGame() {
   };
 
   //listeners
-  const { dealStatus: dealListenerStatus } = useDealtListener(
+  const { dealStatus: dealListenerStatus, reset: dealListenerReset } =
+    useDealtListener(contract, creator, joiner);
+  const { handValues, reset: handValuesReset } = useShowHandListener(
     contract,
     creator,
     joiner
   );
-  const { handValues } = useShowHandListener(contract, creator, joiner);
-  const { shuffleStatus: shuffleListenerStatus } = useShuffledListener(
-    contract,
-    creator,
-    joiner,
-    address as string
-  );
+  const { shuffleStatus: shuffleListenerStatus, reset: shuffleReset } =
+    useShuffledListener(contract, creator, joiner, address as string);
 
   const handleGetWinner = (creatorValue: number, joinerValue: number) => {
     let winner = creatorValue > joinerValue ? creator : joiner;
@@ -169,8 +170,8 @@ export function useGame() {
     );
     const signer = provider.getSigner();
     const contract = getContract({
-      address: contractInfos.HiLo.address,
-      abi: contractInfos.HiLo.abi,
+      address: contractInfos?.HiLo?.address,
+      abi: contractInfos?.HiLo?.abi,
       signerOrProvider: signer,
     });
     setContract(contract);
@@ -238,6 +239,22 @@ export function useGame() {
     } finally {
       dealStatus.setIsLoading(false);
     }
+  };
+
+  const handleReset = () => {
+    setCreatorStatus(defaultCreatorStatus);
+    setJoinerStatus(defaultJoinerStatus);
+    setGameId(undefined);
+    setCurrentStatus(CurrentStatusEnum.CREATED_GAME);
+    setWinner(undefined);
+    dealListenerReset();
+    shuffleReset();
+    handValuesReset();
+    createGameStatus.reset();
+    joinGameStatus.reset();
+    shuffleStatus.reset();
+    dealStatus.reset();
+    showHandStatus.reset();
   };
 
   useEffect(() => {
@@ -410,5 +427,6 @@ export function useGame() {
     handleShuffle,
     handleDealHandCard,
     handleShowCard,
+    handleReset,
   };
 }
