@@ -17,6 +17,7 @@ jobs:
         with:
           node-version: 16
           registry-url: https://registry.npmjs.org/
+      - run: npm i -g corepack && corepack prepare yarn@stable --activate && yarn plugin import workspace-tools
       - run: yarn
       - run: yarn run publish
         env:
