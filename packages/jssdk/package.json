@@ -1,6 +1,6 @@
 {
   "name": "@poseidon-zkp/poseidon-zk-jssdk",
-  "version": "0.0.2",
+  "version": "0.0.1",
   "main": "index.js",
   "license": "MIT",
   "description": "A Typescript SDK for NodeJS and frontend ZK ability integration",
