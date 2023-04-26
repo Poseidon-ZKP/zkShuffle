@@ -240,9 +240,6 @@ describe("KS test", function () {
 
     const decryptWasmFile = resolve(resourceBasePath, "./wasm/decrypt.wasm");
     const decryptZkeyFile = resolve(resourceBasePath, "./zkey/decrypt.zkey");
-    const decryptVkey = await snarkjs.zKey.exportVerificationKey(
-      new Uint8Array(Buffer.from(readFileSync(decryptZkeyFile)))
-    );
 
     // deploy
     const [deployer, Alice, Bob] = await ethers.getSigners();
