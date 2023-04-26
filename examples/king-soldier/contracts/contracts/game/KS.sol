@@ -2,7 +2,7 @@
 pragma solidity >=0.8.4;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "../shuffle/IShuffle.sol";
 
 enum CharactorType {
@@ -20,7 +20,7 @@ struct Game {
     address winner;
 }
 
-contract KS {
+contract KS is Initializable {
     uint256 public largestgameId;
 
     IShuffle public shuffle1;
@@ -32,8 +32,8 @@ contract KS {
     uint256 public constant INVALID_CARD_INDEX = 999999;
 
     // Events
-    event GameCreated(uint256 gameId, address player);
-    event GameJoined(uint256 gameId, address player);
+    event GameCreated(uint256 gameId, address player, CharactorType ct);
+    event GameJoined(uint256 gameId, address player, CharactorType ct);
     event ShuffleDeck(uint256 gameId, address player);
     event DealCard(uint256 gameId, uint256 cardIdx, address player);
     event ChooseCard(
@@ -44,14 +44,17 @@ contract KS {
     );
     event GameEnded(uint256 gameId, address winner);
 
-    constructor(address shuffle1_, address shuffle2_) {
+    function initialize(
+        address shuffle1_,
+        address shuffle2_
+    ) public initializer {
         require(shuffle1_ != address(0), "shuffle1 empty address");
         require(shuffle2_ != address(0), "shuffle2 empty address");
 
         shuffle1 = IShuffle(shuffle1_);
         shuffle2 = IShuffle(shuffle2_);
 
-        largestgameId = 10;
+        largestgameId = 1000;
     }
 
     // Creates a game.
@@ -67,26 +70,21 @@ contract KS {
         games[gameId].players[0] = msg.sender;
         games[gameId].cts[0] = ct;
 
-        emit GameCreated(gameId, msg.sender);
+        emit GameCreated(gameId, msg.sender, ct);
     }
 
     // Joins a game with `gameId`.
-    function joinGame(
-        uint256 gameId,
-        uint256[2] memory pk,
-        CharactorType ct
-    ) external {
+    function joinGame(uint256 gameId, uint256[2] memory pk) external {
         require(games[gameId].players[0] != address(0), "game not created");
         require(msg.sender != games[gameId].players[0], "same player");
-        require(games[gameId].cts[0] != ct, "same charactor");
 
         games[gameId].players[1] = msg.sender;
-        games[gameId].cts[1] = ct;
+        games[gameId].cts[1] = CharactorType(1 - uint256(games[gameId].cts[0]));
 
         shuffle1.register(msg.sender, pk, gameId);
         shuffle2.register(msg.sender, pk, gameId);
 
-        emit GameJoined(gameId, msg.sender);
+        emit GameJoined(gameId, msg.sender, games[gameId].cts[1]);
     }
 
     // Shuffles the deck.

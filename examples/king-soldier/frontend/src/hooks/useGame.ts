@@ -179,32 +179,91 @@ function useGame({ creator, joiner, address }: UseGameProps) {
     setContract(contract);
   };
 
+  //finished creating game
   useEffect(() => {
-    if (createGameListenerValues.handValues.creator) {
-      console.log('first', createGameListenerValues.handValues.creator);
+    if (createGameListenerValues.creator) {
+      setGameStatus(GameStatus.WAITING_FOR_JOIN);
+      setCardType(createGameListenerValues.creator[2]);
+      setGameId(createGameListenerValues.creator[0]);
+      setCreatorStatus((prev) => {
+        return {
+          ...prev,
+          createGame: true,
+        };
+      });
+      joinGameStatus.run(
+        userPksAndsk?.pk[0],
+        userPksAndsk?.pk[1],
+        createGameListenerValues.creator[2] === CardType.KING
+          ? CardType.SOLDIER
+          : CardType.KING
+      );
+      console.log('first', createGameListenerValues.creator);
     }
-  }, [createGameListenerValues.handValues.creator]);
+  }, [createGameListenerValues.creator]);
+
+  //finished joining game
 
   useEffect(() => {
-    if (
-      shuffleDeckListenerValues.handValues.creator &&
-      shuffleDeckListenerValues.handValues.joiner
-    ) {
+    if (createGameListenerValues.joiner) {
+      setGameStatus(GameStatus.WAITING_FOR_CREATOR_SHUFFLE);
+      setJoinerStatus((prev) => {
+        return {
+          ...prev,
+          joinGame: true,
+        };
+      });
+      console.log('first', createGameListenerValues.creator);
+    }
+    return () => {};
+  }, [
+    createGameListenerValues.creator,
+    createGameListenerValues.joiner,
+    joinGameListenerValues.creator,
+  ]);
+
+  useEffect(() => {
+    if (shuffleDeckListenerValues.creator && shuffleDeckListenerValues.joiner) {
       // TODO
     }
-  }, [
-    shuffleDeckListenerValues.handValues.creator,
-    shuffleDeckListenerValues.handValues.joiner,
-  ]);
+  }, [shuffleDeckListenerValues.creator, shuffleDeckListenerValues.joiner]);
+
+  useEffect(() => {
+    if (!contract) return;
+    console.log('contract', contract);
+
+    const Listener = async (...args: any[]) => {
+      try {
+        console.log('args', args);
+        // console.log(`listen ${fnName}`);
+        // console.log('args', args);
+        // if (args[addressIndex] === creator) {
+        //   setCreatorValue(args);
+        // }
+        // if (args[addressIndex] === joiner) {
+        //   setJoinerValue(args);
+        // }
+      } catch (error) {
+        console.log(error, error);
+      }
+    };
+    contract?.on('GameCreated', Listener);
+    return () => {
+      contract?.off('GameCreated', Listener);
+    };
+  }, [contract, creator, joiner]);
 
   return {
     isCreator,
     gameStatus,
-    handleGetBabyPk,
-    handleGetContracts,
     createGameStatus,
     joinGameStatus,
     userPksAndsk,
+    creatorStatus,
+    userCardType,
+    joinerStatus,
+    handleGetBabyPk,
+    handleGetContracts,
   };
 }
 

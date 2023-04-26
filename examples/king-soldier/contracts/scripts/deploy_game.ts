@@ -1,4 +1,4 @@
-import { ethers } from "hardhat";
+import { ethers, upgrades } from "hardhat";
 import { writeToFile, getDeployment } from "./utils";
 
 async function main() {
@@ -13,20 +13,23 @@ async function main() {
     getDeployment().Shuffle2
   );
 
-  const gameContract = await (await ethers.getContractFactory("KS"))
-    .connect(deployer)
-    .deploy(shuffle1.address, shuffle2.address);
-  console.log(`KS deployed to ${gameContract.address}`);
+  const factory = (await ethers.getContractFactory("KS")).connect(deployer);
+  const ks = await upgrades.deployProxy(factory, [
+    shuffle1.address,
+    shuffle2.address,
+  ]);
+  await ks.deployed();
+  console.log(`KS deployed to ${ks.address}`);
 
-  await shuffle1.setGameContract(gameContract.address);
-  await shuffle2.setGameContract(gameContract.address);
+  await shuffle1.setGameContract(ks.address);
+  await shuffle2.setGameContract(ks.address);
   console.log("shuffle set game contract");
 
   // write addresses to artifactsDir/broadcast/latest.json
   const latest = {
     Shuffle1: shuffle1.address,
     Shuffle2: shuffle2.address,
-    KS: gameContract.address,
+    KS: ks.address,
   };
   writeToFile(latest);
 }

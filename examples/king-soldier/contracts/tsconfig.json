@@ -19,5 +19,6 @@
     "outDir": "dist"
   },
   "exclude": ["node_modules"],
-  "include": ["test", "contracts"]
+  "include": ["test", "contracts", "scripts"],
+  "files": ["./hardhat.config.ts"]
 }

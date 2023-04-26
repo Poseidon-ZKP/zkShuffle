@@ -1,5 +1,4 @@
-import { readFileSync } from 'fs';
-import { ethers } from 'hardhat';
+import { ethers, upgrades } from 'hardhat';
 import { resolve } from 'path';
 
 import {
@@ -7,7 +6,7 @@ import {
   generateShuffleEncryptV2Proof,
   packToSolidityProof,
   SolidityProof,
-} from '@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/proof';
+} from '@poseidon-zkp/poseidon-zk-proof/src/shuffle/proof';
 import {
   convertPk,
   keyGen,
@@ -17,15 +16,13 @@ import {
   string2Bigint,
   prepareDecryptData,
   ecX2Delta,
-} from '@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/utilities';
-import { shuffleEncryptV2Plaintext } from '@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/plaintext';
+} from '@poseidon-zkp/poseidon-zk-proof/src/shuffle/utilities';
+import { shuffleEncryptV2Plaintext } from '@poseidon-zkp/poseidon-zk-proof/src/shuffle/plaintext';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 const buildBabyjub = require('circomlibjs').buildBabyjub;
-const snarkjs = require('snarkjs');
 
 const fs = require('fs');
-const path = require('path');
 const https = require('https');
 
 const HOME_DIR = require('os').homedir();
@@ -234,9 +231,6 @@ describe('KS test', function () {
       resourceBasePath,
       './zkey/encrypt.zkey.5'
     );
-    const shuffleEncryptV2Vkey = await snarkjs.zKey.exportVerificationKey(
-      new Uint8Array(Buffer.from(readFileSync(shuffleEncryptV2ZkeyFile)))
-    );
 
     const decryptWasmFile = resolve(resourceBasePath, './wasm/decrypt.wasm');
     const decryptZkeyFile = resolve(resourceBasePath, './zkey/decrypt.zkey');
@@ -245,9 +239,16 @@ describe('KS test', function () {
     const [deployer, Alice, Bob] = await ethers.getSigners();
     const shuffle1 = await deployStateMachine(deployer);
     const shuffle2 = await deployStateMachine(deployer);
-    const ks = await (await ethers.getContractFactory('KS'))
-      .connect(deployer)
-      .deploy(shuffle1.address, shuffle2.address);
+
+    const factory = (await ethers.getContractFactory('KS')).connect(deployer);
+    const ks = await upgrades.deployProxy(factory, [
+      shuffle1.address,
+      shuffle2.address,
+    ]);
+    await ks.deployed();
+    // const ks = await (await ethers.getContractFactory("KS"))
+    //   .connect(deployer)
+    //   .deploy(shuffle1.address, shuffle2.address);
     // set game contract
     await shuffle1.setGameContract(ks.address);
     await shuffle2.setGameContract(ks.address);
@@ -276,7 +277,7 @@ describe('KS test', function () {
     const gameId = Number(await createGameTx.events[0].args.gameId);
     await ks
       .connect(Bob)
-      .joinGame(gameId, [convertPkArray[1][0], convertPkArray[1][1]], 0);
+      .joinGame(gameId, [convertPkArray[1][0], convertPkArray[1][1]]);
 
     console.log(`Alice: ${Alice.address}, Bob: ${Bob.address}`);
     console.log(

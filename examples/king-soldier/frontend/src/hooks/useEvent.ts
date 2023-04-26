@@ -17,34 +17,41 @@ function useEvent({
   creator,
   joiner,
 }: UseEventProps) {
-  const [creatorCardValue, setCreatorValue] = useState<any>();
-  const [joinerCardValue, setJoinerValue] = useState<any>();
+  const [creatorValue, setCreatorValue] = useState<any>();
+  const [joinerValue, setJoinerValue] = useState<any>();
+
   useEffect(() => {
     if (!contract) return;
-
-    console.log(`listen ${fnName}`);
-
-    const GameShowHandListener = async (...args: any[]) => {
-      if (args[addressIndex] === creator) {
-        setCreatorValue(args);
-      }
-      if (args[addressIndex] === joiner) {
-        setJoinerValue(args);
+    console.log('contract', contract);
+    console.log('fnName', fnName);
+    const Listener = async (...args: any[]) => {
+      try {
+        console.log(`listen ${fnName}`);
+        console.log('args', args);
+        if (args[addressIndex] === creator) {
+          setCreatorValue(args);
+        }
+        if (args[addressIndex] === joiner) {
+          setJoinerValue(args);
+        }
+      } catch (error) {
+        console.log(error, error);
       }
     };
-    contract?.on(fnName, GameShowHandListener);
+    contract?.on(fnName, Listener);
     return () => {
-      contract?.off(fnName, GameShowHandListener);
+      contract?.off(fnName, Listener);
     };
   }, [addressIndex, contract, creator, fnName, joiner]);
 
   const handValues = {
-    creator: creatorCardValue,
-    joiner: joinerCardValue,
+    creator: creatorValue,
+    joiner: joinerValue,
   };
 
   return {
-    handValues,
+    creator: creatorValue,
+    joiner: joinerValue,
   };
 }
 

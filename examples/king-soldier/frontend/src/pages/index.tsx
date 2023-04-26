@@ -1,14 +1,14 @@
 import { InjectedConnector } from 'wagmi/connectors/injected';
 import { useAccount, useConnect, useNetwork, useSwitchNetwork } from 'wagmi';
 import ReactCardFlip from 'react-card-flip';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import { useResourceContext } from '../hooks/useResourceContext';
 import { HarmanyTestnet } from '../config/chains';
 import { useRouter } from 'next/router';
 import { formatAddress } from '../utils/common';
 import Card from '../components/Card';
-import useGame, { GameStatus } from '../hooks/useGame';
+import useGame, { CardType, GameStatus } from '../hooks/useGame';
 import Button from '../components/Button';
 
 const CARD_VALUES: Record<string, number> = {
@@ -60,14 +60,33 @@ export default function Home() {
   }
   const { hasSetup, settingUp, setupBeforeJoin } = resourceContext;
 
-  const [isFlid, setIsFlid] = useState(false);
+  const {
+    isCreator,
+    gameStatus,
+    createGameStatus,
+    creatorStatus,
+    userPksAndsk,
+    userCardType,
+    handleGetBabyPk,
+    handleGetContracts,
+    joinerStatus,
+  } = useGame({
+    address: address,
+    creator: creator,
+    joiner: joiner,
+  });
 
-  const { isCreator, gameStatus, handleGetBabyPk, handleGetContracts } =
-    useGame({
-      address: address,
-      creator: creator,
-      joiner: joiner,
-    });
+  const creatorUIState = useMemo(() => {
+    return {
+      showStartGame: isCreator && !creatorStatus.createGame,
+    };
+  }, [creatorStatus.createGame, isCreator]);
+
+  const joinerUIState = useMemo(() => {
+    return {
+      showJoinGame: !isCreator && !joinerStatus.joinGame,
+    };
+  }, [isCreator, joinerStatus.joinGame]);
 
   useEffect(() => {
     if (hasSetup || settingUp) {
@@ -83,6 +102,77 @@ export default function Home() {
     handleGetBabyPk();
   }, [router.isReady]);
 
+  const CreatorGameAreaUI = () => {
+    return (
+      <>
+        {!creatorStatus.createGame ? (
+          <div className="flex flex-col justify-center items-center gap-20">
+            <div>I want to become</div>
+            <div className="flex  gap-6">
+              <Button
+                isSuccess={createGameStatus.isSuccess}
+                isError={createGameStatus.isError}
+                isLoading={createGameStatus.isLoading}
+                onClick={() => {
+                  createGameStatus.run(
+                    [userPksAndsk?.pk[0], userPksAndsk?.pk[1]],
+                    CardType.KING
+                  );
+                }}
+              >
+                KING
+              </Button>
+              <Button
+                isSuccess={createGameStatus.isSuccess}
+                isError={createGameStatus.isError}
+                isLoading={createGameStatus.isLoading}
+                onClick={() => {
+                  createGameStatus.run(
+                    [userPksAndsk?.pk[0], userPksAndsk?.pk[1]],
+                    CardType.SOLDIER
+                  );
+                }}
+              >
+                SOLDIER
+              </Button>
+            </div>
+          </div>
+        ) : (
+          GameStatus.WAITING_FOR_JOIN
+        )}
+      </>
+    );
+  };
+
+  const JoinerGameAreaUI = () => {
+    return (
+      <>
+        {!joinerStatus.joinGame && (
+          <div className="flex flex-col justify-center items-center gap-20">
+            {creatorStatus.createGame ? (
+              <Button
+                isSuccess={createGameStatus.isSuccess}
+                isError={createGameStatus.isError}
+                isLoading={createGameStatus.isLoading}
+                onClick={() => {
+                  createGameStatus.run(
+                    [userPksAndsk?.pk[0], userPksAndsk?.pk[1]],
+                    userCardType
+                  );
+                }}
+              >
+                JOIN
+              </Button>
+            ) : (
+              ' Waiting for creator creating game'
+            )}
+          </div>
+        )}
+      </>
+    );
+  };
+
+  console.log('joinerUIState', joinerUIState);
   if (!router.isReady) {
     return (
       <div className=" flex flex-col gap-10  h-screen items-center justify-center  text-2xl font-medium bg-slate-900 ">
@@ -172,31 +262,7 @@ export default function Home() {
 
           {/* GameArea */}
           <div className="p-4 flex flex-col justify-center items-center gap-10 flex-1 border-t border-b border-slate-700  ">
-            {gameStatus === GameStatus.WAITING_FOR_START && (
-              <div className="">
-                {isCreator ? (
-                  <div className="flex flex-col justify-center items-center gap-20">
-                    <div>I want to become</div>
-                    <div className="flex  gap-6">
-                      <Button>KING</Button>
-                      <Button>SOLDIER</Button>
-                    </div>
-                  </div>
-                ) : (
-                  GameStatus.WAITING_FOR_START
-                )}
-              </div>
-            )}
-
-            {gameStatus === GameStatus.WAITING_FOR_JOIN && (
-              <div className="">
-                {!isCreator ? (
-                  <Button>Join game</Button>
-                ) : (
-                  GameStatus.WAITING_FOR_JOIN
-                )}
-              </div>
-            )}
+            {isCreator ? <CreatorGameAreaUI /> : <JoinerGameAreaUI />}
             {/* <>
               <div className="w-full flex justify-between">
                 <Card

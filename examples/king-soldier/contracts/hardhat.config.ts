@@ -2,6 +2,7 @@ import { HardhatUserConfig } from "hardhat/config";
 import "@nomiclabs/hardhat-ethers";
 import "@nomiclabs/hardhat-waffle";
 import "@typechain/hardhat";
+import "@openzeppelin/hardhat-upgrades";
 import { config as dotenvConfig } from "dotenv";
 import { resolve } from "path";
 
@@ -19,7 +20,6 @@ const config: HardhatUserConfig = {
   paths: {
     sources: "./contracts",
     tests: "./test",
-    cache: "./artifacts/cache",
   },
   mocha: {
     timeout: 100000000,
