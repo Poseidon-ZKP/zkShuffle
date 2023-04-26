@@ -1,16 +1,11 @@
 import { execSync } from 'child_process';
 import fs from 'fs';
-import log4js from 'log4js';
 import path, { resolve } from 'path';
 import { exit } from 'process';
 const snarkjs = require('snarkjs');
 const createKeccakHash = require('keccak');
 const ffjavascript = require('ffjavascript');
 const https = require('https')
-
-const logger = log4js.getLogger();
-logger.level = "debug";
-logger.debug("log4js level debug");
 
 export type Curve = any;
 export type Error = any;
@@ -54,7 +49,7 @@ export async function generate_zkey_final_key(
     const bellman_2 = { type: "mem" };
     let zkey_final: any = { type: "mem", data: undefined };
     console.log(new Date().toUTCString() + " zkey start...")
-    await snarkjs.zKey.newZKey(r1cs_file, ptau_final, zkey_0, logger);
+    await snarkjs.zKey.newZKey(r1cs_file, ptau_final, zkey_0);
     await snarkjs.zKey.contribute(zkey_0, zkey_1, "p2_C1", "pa_Entropy1");
     await snarkjs.zKey.exportBellman(zkey_1, bellman_1);
     await snarkjs.zKey.bellmanContribute(curve, bellman_1, bellman_2, "pa_Entropy2");

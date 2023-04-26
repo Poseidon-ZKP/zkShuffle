@@ -988,6 +988,7 @@ __metadata:
     circom_tester: ^0.0.19
     circomlib: ^2.0.5
     circomlibjs: ^0.1.7
+    dotenv: ^16.0.3
     ethereum-waffle: ^3.4.4
     ethers: ^5.7.2
     ffjavascript: ^0.2.57
@@ -1015,6 +1016,7 @@ __metadata:
     "@types/node": ^18.11.9
     chai: ^4.3.7
     circomlibjs: ^0.1.7
+    dotenv: ^16.0.3
     ethereum-waffle: ^3.4.4
     ethers: ^5.7.2
     hardhat: ^2.12.5
@@ -1041,6 +1043,7 @@ __metadata:
     "@types/mocha": ^10.0.0
     "@types/node": ^18.11.9
     chai: ^4.3.7
+    dotenv: ^16.0.3
     ethereum-waffle: ^3.4.4
     ethers: ^5.7.2
     hardhat: ^2.12.2
@@ -1065,6 +1068,7 @@ __metadata:
     "@types/node": ^18.11.9
     chai: ^4.3.7
     circomlibjs-0-1-7: "npm:circomlibjs@^0.1.7"
+    dotenv: ^16.0.3
     ethereum-waffle: ^3.4.4
     ethers: ^5.7.2
     hardhat: ^2.12.2
@@ -4452,6 +4456,13 @@ __metadata:
   version: 0.1.2
   resolution: "dom-walk@npm:0.1.2"
   checksum: 19eb0ce9c6de39d5e231530685248545d9cd2bd97b2cb3486e0bfc0f2a393a9addddfd5557463a932b52fdfcf68ad2a619020cd2c74a5fe46fbecaa8e80872f3
+  languageName: node
+  linkType: hard
+
+"dotenv@npm:^16.0.3":
+  version: 16.0.3
+  resolution: "dotenv@npm:16.0.3"
+  checksum: afcf03f373d7a6d62c7e9afea6328e62851d627a4e73f2e12d0a8deae1cd375892004f3021883f8aec85932cd2834b091f568ced92b4774625b321db83b827f8
   languageName: node
   linkType: hard
 
