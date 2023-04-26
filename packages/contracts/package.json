@@ -23,6 +23,7 @@
     "typescript": "^4.9.3"
   },
   "dependencies": {
+    "@openzeppelin/contracts": "^4.8.3",
     "@poseidon-zkp/poseidon-zk-circuits": "0.0.1",
     "@poseidon-zkp/poseidon-zk-proof": "0.0.1",
     "circomlibjs": "^0.1.7",
