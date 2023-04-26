@@ -1,6 +1,6 @@
 {
   "name": "@poseidon-zkp/poseidon-zk-contracts",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "main": "index.js",
   "license": "MIT",
   "description": "Out-of-box smart contracts library enabling DApps to easily integrate ZK stacks",
@@ -24,8 +24,8 @@
   },
   "dependencies": {
     "@openzeppelin/contracts": "^4.8.3",
-    "@poseidon-zkp/poseidon-zk-circuits": "0.0.1",
-    "@poseidon-zkp/poseidon-zk-proof": "0.0.1",
+    "@poseidon-zkp/poseidon-zk-circuits": "0.0.2",
+    "@poseidon-zkp/poseidon-zk-proof": "0.0.2",
     "circomlibjs": "^0.1.7",
     "dotenv": "^16.0.3",
     "node-pandoc": "^0.3.0",
