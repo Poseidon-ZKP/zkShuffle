@@ -4,18 +4,23 @@ pragma solidity >=0.8.2 <0.9.0;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./IBaseStateManager.sol";
-import "./crypto.sol";
+import "./ECC.sol";
+import "./Card.sol";
+import "./IBaseGame.sol";
 
 struct ShuffleGameInfo {
     uint8 numCards;
     uint8 numPlayers;
     BaseState state;
-    address[] playerAddr;
-    uint256[] playerPkX;
-    uint256[] playerPKY;
+    IShuffleEncryptVerifier encryptVerifier;
+    uint256 curPlayerIndex;
     uint256 aggregatePkX;
     uint256 aggregatePkY;
     uint256 nonce;
+    address[] playerAddrs;
+    uint256[] playerPkX;
+    uint256[] playerPKY;
+    Deck deck;
 }
 
 /**
@@ -26,14 +31,21 @@ contract ShuffleManager is IBaseStateManager, Ownable {
     // event
     event GameContractCallError(address caller, bytes data);
 
+    // currently, all the decks shares the same decrypt circuits
+    IDecryptVerifier public decryptVerifier;
+
+    // Encryption verifier for 30 cards deck
+    address _deck30EncVerifier;
+
+    // Encryption verifier for 50 cards deck
+    address _deck52EncVerifier;
+
     // mapping between gameId and game contract address
     mapping(uint256 => address) _activeGames;
 
     // mapping between gameId and game info
+    // TODO: split into two things, gameInfos (immutable) and gameStates (mutable)
     mapping(uint256 => ShuffleGameInfo) gameInfos;
-
-    // mapping bewteen gameId and current player in turn to action
-    mapping(uint256 => uint256) currentPlayerIndex;
 
     // mapping between gameId and next game contract function to call
     mapping(uint256 => bytes) nextToCall;
@@ -56,6 +68,13 @@ contract ShuffleManager is IBaseStateManager, Ownable {
         _;
     }
 
+    // check if this is your turn
+    modifier checkTurn(uint256 gameId, address playerAddr){
+        ShuffleGameInfo memory info = gameInfos[gameId];
+        require(playerAddr == info.playerAddrs[info.curPlayerIndex]);
+        _;
+    }
+
     /**
      * create a new shuffle game
      */
@@ -66,8 +85,17 @@ contract ShuffleManager is IBaseStateManager, Ownable {
         uint256 newGameId = ++largestGameId;
         gameInfos[newGameId] = gameInfo;
         // TODO: do we need this? it should be by default 0?
-        currentPlayerIndex[newGameId] = 0;
+        gameInfos[newGameId].curPlayerIndex = 0;
         _activeGames[newGameId] = gameContract;
+        
+        // set up verifier contract according to deck type
+        if(IBaseGame(gameContract).cardConfig() == DeckConfig.Deck30Card) {
+            gameInfos[newGameId].encryptVerifier = IShuffleEncryptVerifier(_deck30EncVerifier);
+        } else if (IBaseGame(gameContract).cardConfig() == DeckConfig.Deck52Card) {
+            gameInfos[newGameId].encryptVerifier = IShuffleEncryptVerifier(_deck52EncVerifier);
+        } else {
+            gameInfos[newGameId].state = BaseState.GameError;
+        }
         return newGameId;
     }
 
@@ -86,7 +114,9 @@ contract ShuffleManager is IBaseStateManager, Ownable {
     }
 
     /**
-     * allow each player register, called by player (SDK)
+     * register, called by player (SDK)
+     * TODO: revist why do we need a playerAddress here
+     * Note: we don't need to check turn here
      */
     function playerRegister(
         uint256 gameId,
@@ -96,13 +126,13 @@ contract ShuffleManager is IBaseStateManager, Ownable {
     ) external returns (uint256 pid) {
         require(CurveBabyJubJub.isOnCurve(pkX, pkY), "Invalid public key");
         ShuffleGameInfo storage info = gameInfos[gameId];
-        require(info.playerAddr.length < info.numPlayers, "Game full");
-        
+        require(info.playerAddrs.length < info.numPlayers, "Game full");
+
         // assign pid before push to the array
-        pid = info.playerAddr.length;
-        
+        pid = info.playerAddrs.length;
+
         // update game info
-        info.playerAddr.push(playerAddress);
+        info.playerAddrs.push(playerAddress);
         info.playerPkX.push(pkX);
         info.playerPKY.push(pkY);
 
@@ -112,12 +142,59 @@ contract ShuffleManager is IBaseStateManager, Ownable {
             info.aggregatePkY = pkY;
         } else {
             (info.aggregatePkX, info.aggregatePkY) = CurveBabyJubJub.pointAdd(
-                info.aggregatePkX, info.aggregatePkY, pkX, pkY); 
+                info.aggregatePkX,
+                info.aggregatePkY,
+                pkX,
+                pkY
+            );
         }
 
         // if this is the last player to join
         if (pid == info.numPlayers - 1) {
-            info.nonce = mulmod(info.aggregatePkX, info.aggregatePkY, CurveBabyJubJub.Q);
+            info.nonce = mulmod(
+                info.aggregatePkX,
+                info.aggregatePkY,
+                CurveBabyJubJub.Q
+            );
+            callGameContract(gameId);
+        }
+    }
+
+    /**
+     * enter shuffle state, can only be called by game owner
+     */
+    function shuffle(uint256 gameId, bytes calldata next)
+        external
+        gameOwner(gameId)
+    {
+        ShuffleGameInfo storage info = gameInfos[gameId];
+        info.state = BaseState.Shuffle;
+        nextToCall[gameId] = next;
+    }
+
+    /**
+     * shuffle, called by each player (SDK)
+     */
+    function playerShuffle(
+        uint256 gameId,
+        address playerAddress,
+        uint256[8] memory proof,
+        Deck memory deck) 
+        external 
+        checkState(gameId, BaseState.Shuffle) 
+        checkTurn(gameId, playerAddress)
+    {
+        ShuffleGameInfo storage info = gameInfos[gameId];
+        info.encryptVerifier.verifyProof(
+            [proof[0], proof[1]],
+            [[proof[2], proof[3]], [proof[4], proof[5]]],
+            [proof[6], proof[7]],
+            zkShuffleCrypto.shuffleEncPublicInput(deck, info.deck, info.nonce, info.aggregatePkX, info.aggregatePkY)
+        );
+        info.deck = deck;
+        info.curPlayerIndex += 1;
+        if (info.curPlayerIndex == info.numPlayers) {
+            info.curPlayerIndex = 0;
             callGameContract(gameId);
         }
     }
@@ -127,22 +204,19 @@ contract ShuffleManager is IBaseStateManager, Ownable {
         uint256[] memory cards,
         uint8 playerId,
         bytes calldata callback
-    ) external gameOwner(gameId) {
-    }
+    ) external gameOwner(gameId) {}
 
     function playerDealCards() external {}
 
-    function shuffle(uint256 gameId, bytes calldata next) external checkState(gameId, BaseState.Registration) {}
-
     function error(uint256 gameId, bytes calldata next) external {}
 
-    function initDeck(uint256 gameId) internal {
-
-    }
+    function initDeck(uint256 gameId) internal {}
 
     // switch control to game contract, set the game to error state if the contract call failed
     function callGameContract(uint256 gameId) internal {
-        (bool success, bytes memory data) = _activeGames[gameId].call(nextToCall[gameId]);
+        (bool success, bytes memory data) = _activeGames[gameId].call(
+            nextToCall[gameId]
+        );
         if (!success) {
             emit GameContractCallError(_activeGames[gameId], data);
             gameInfos[gameId].state = BaseState.GameError;
