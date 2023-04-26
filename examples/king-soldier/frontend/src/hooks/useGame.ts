@@ -1,5 +1,5 @@
 import { Contract, ethers } from 'ethers';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { buildBabyjub } from 'circomlibjs';
 import { getContract } from '@wagmi/core';
 import { contracts as contractInfos } from '../const/contracts';
@@ -7,11 +7,17 @@ import { contracts as contractInfos } from '../const/contracts';
 import { PlayerInfos, getBabyjub, getPlayerPksAndSks } from '../utils/newUtils';
 import useWriteContract from './useWriteContract';
 import useEvent from './useEvent';
+import { useZKContext } from './useZKContext';
 
 export interface UseGameProps {
   creator: string;
   joiner: string;
   address?: `0x${string}`;
+}
+
+export enum CardType {
+  KING = 0,
+  SOLDIER = 1,
 }
 
 export enum GameStatus {
@@ -25,8 +31,10 @@ export enum GameStatus {
 function useGame({ creator, joiner, address }: UseGameProps) {
   const [contract, setContract] = useState<Contract>();
   const [playerPksAndSks, setPlayerPksAndSks] = useState<PlayerInfos>();
+  const [gameId, setGameId] = useState();
   const [gameStatus, setGameStatus] = useState(GameStatus.WAITING_FOR_START);
   const [babyjub, setBabyjub] = useState<any>();
+  const [cardType, setCardType] = useState<CardType>();
   const [creatorStatus, setCreatorStatus] = useState({
     createGame: false,
     creatorShuffled: false,
@@ -41,13 +49,18 @@ function useGame({ creator, joiner, address }: UseGameProps) {
     joinerShowHand: -1,
   });
 
+  const zkContext = useZKContext();
+
   const isCreator = creator === address;
-  const gameIndex = isCreator ? 1 : 0;
+  const creatorCardType = cardType;
+  const joinerCardType =
+    cardType === CardType.KING ? CardType.SOLDIER : CardType.KING;
+  const userCardType = isCreator ? creatorCardType : joinerCardType;
   const playerAddresses = [creator, joiner];
   const userPksAndsk = playerPksAndSks?.[address as string];
 
   const createGameStatus = useWriteContract(contract?.['createGame'], {
-    args: [[userPksAndsk?.pk[0], userPksAndsk?.pk[1]], gameIndex],
+    args: [],
     wait: true,
   });
 
@@ -56,7 +69,12 @@ function useGame({ creator, joiner, address }: UseGameProps) {
     wait: true,
   });
 
-  const createGameListenValues = useEvent({
+  const shuffleStatus = useWriteContract(contract?.['shuffle'], {
+    args: [],
+    wait: true,
+  });
+
+  const createGameListenerValues = useEvent({
     contract,
     fnName: 'GameCreated',
     addressIndex: 1,
@@ -64,9 +82,41 @@ function useGame({ creator, joiner, address }: UseGameProps) {
     joiner: joiner,
   });
 
-  const joinGameListenValues = useEvent({
+  const joinGameListenerValues = useEvent({
     contract,
     fnName: 'GameJoined',
+    addressIndex: 1,
+    creator: creator,
+    joiner: joiner,
+  });
+
+  const shuffleDeckListenerValues = useEvent({
+    contract,
+    fnName: 'ShuffleDeck',
+    addressIndex: 1,
+    creator: creator,
+    joiner: joiner,
+  });
+
+  const dealCardListenerValues = useEvent({
+    contract,
+    fnName: 'DealCard',
+    addressIndex: 2,
+    creator: creator,
+    joiner: joiner,
+  });
+
+  const chooseCardListenerValues = useEvent({
+    contract,
+    fnName: 'ChooseCard',
+    addressIndex: 2,
+    creator: creator,
+    joiner: joiner,
+  });
+
+  const gameEndedListenerValues = useEvent({
+    contract,
+    fnName: 'GameEnded',
     addressIndex: 1,
     creator: creator,
     joiner: joiner,
@@ -86,6 +136,35 @@ function useGame({ creator, joiner, address }: UseGameProps) {
     } catch (error) {}
   };
 
+  const handleShuffle = async () => {
+    try {
+      const key = await contract?.queryAggregatedPk(gameId, userCardType);
+      const aggregatedPk = [key[0].toBigInt(), key[1].toBigInt()];
+      const deck1 = await contract?.queryDeck(gameId, creatorCardType);
+      const [proof1, shuffleData1] = await zkContext?.genShuffleProof(
+        babyjub,
+        aggregatedPk,
+        deck1
+      );
+      const deck2 = await contract?.queryDeck(gameId, joinerCardType);
+
+      const [proof2, shuffleData2] = await zkContext?.genShuffleProof(
+        babyjub,
+        aggregatedPk,
+        deck2
+      );
+      await shuffleStatus.run(
+        proof1,
+        proof2,
+        shuffleData1,
+        shuffleData2,
+        gameId
+      );
+    } catch (error) {
+      console.log('error', error);
+    }
+  };
+
   const handleGetContracts = () => {
     if (!contractInfos) return;
     const provider = new ethers.providers.Web3Provider(
@@ -100,6 +179,24 @@ function useGame({ creator, joiner, address }: UseGameProps) {
     setContract(contract);
   };
 
+  useEffect(() => {
+    if (createGameListenerValues.handValues.creator) {
+      console.log('first', createGameListenerValues.handValues.creator);
+    }
+  }, [createGameListenerValues.handValues.creator]);
+
+  useEffect(() => {
+    if (
+      shuffleDeckListenerValues.handValues.creator &&
+      shuffleDeckListenerValues.handValues.joiner
+    ) {
+      // TODO
+    }
+  }, [
+    shuffleDeckListenerValues.handValues.creator,
+    shuffleDeckListenerValues.handValues.joiner,
+  ]);
+
   return {
     isCreator,
     gameStatus,
@@ -107,6 +204,7 @@ function useGame({ creator, joiner, address }: UseGameProps) {
     handleGetContracts,
     createGameStatus,
     joinGameStatus,
+    userPksAndsk,
   };
 }
 

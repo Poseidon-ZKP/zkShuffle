@@ -1,13 +1,13 @@
-import { readFileSync } from "fs";
-import { ethers } from "hardhat";
-import { resolve } from "path";
+import { readFileSync } from 'fs';
+import { ethers } from 'hardhat';
+import { resolve } from 'path';
 
 import {
   generateDecryptProof,
   generateShuffleEncryptV2Proof,
   packToSolidityProof,
   SolidityProof,
-} from "@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/proof";
+} from '@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/proof';
 import {
   convertPk,
   keyGen,
@@ -17,29 +17,29 @@ import {
   string2Bigint,
   prepareDecryptData,
   ecX2Delta,
-} from "@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/utilities";
-import { shuffleEncryptV2Plaintext } from "@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/plaintext";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+} from '@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/utilities';
+import { shuffleEncryptV2Plaintext } from '@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/plaintext';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
-const buildBabyjub = require("circomlibjs").buildBabyjub;
-const snarkjs = require("snarkjs");
+const buildBabyjub = require('circomlibjs').buildBabyjub;
+const snarkjs = require('snarkjs');
 
-const fs = require("fs");
-const path = require("path");
-const https = require("https");
+const fs = require('fs');
+const path = require('path');
+const https = require('https');
 
-const HOME_DIR = require("os").homedir();
-const P0X_DIR = resolve(HOME_DIR, "./.poseidon-zkp");
-const P0X_AWS_URL = "https://p0x-labs.s3.amazonaws.com/refactor/";
+const HOME_DIR = require('os').homedir();
+const P0X_DIR = resolve(HOME_DIR, './.poseidon-zkp');
+const P0X_AWS_URL = 'https://p0x-labs.s3.amazonaws.com/refactor/';
 async function dnld_aws(file_name: string) {
   fs.mkdir(P0X_DIR, () => {});
-  fs.mkdir(resolve(P0X_DIR, "./wasm"), () => {});
-  fs.mkdir(resolve(P0X_DIR, "./zkey"), () => {});
+  fs.mkdir(resolve(P0X_DIR, './wasm'), () => {});
+  fs.mkdir(resolve(P0X_DIR, './zkey'), () => {});
   return new Promise((reslv, reject) => {
     if (!fs.existsSync(resolve(P0X_DIR, file_name))) {
       const file = fs.createWriteStream(resolve(P0X_DIR, file_name));
       https.get(P0X_AWS_URL + file_name, (resp: any) => {
-        file.on("finish", () => {
+        file.on('finish', () => {
           file.close();
           reslv(0);
         });
@@ -56,20 +56,20 @@ const resourceBasePath = P0X_DIR;
 // Deploys shuffle_encrypt_verifier_5cards.
 async function deployEncrypt() {
   return await (
-    await ethers.getContractFactory("Shuffle_encryptVerifier_5cards")
+    await ethers.getContractFactory('Shuffle_encryptVerifier_5cards')
   ).deploy();
 }
 
 // Depploys contract for decryption.
 async function deployDecrypt() {
-  return await (await ethers.getContractFactory("DecryptVerifier")).deploy();
+  return await (await ethers.getContractFactory('DecryptVerifier')).deploy();
 }
 
 // Deploys contract for shuffle state machine.
 async function deployStateMachine(shuffleStateMachineOwner: SignerWithAddress) {
   const shuffle_encrypt = await deployEncrypt();
   const decrypt_verifier_contract = await deployDecrypt();
-  return await (await ethers.getContractFactory("Shuffle"))
+  return await (await ethers.getContractFactory('Shuffle'))
     .connect(shuffleStateMachineOwner)
     .deploy(shuffle_encrypt.address, decrypt_verifier_contract.address);
 }
@@ -205,7 +205,7 @@ async function generateShowHandData(
   return [solidityProof, decryptProof.publicSignals];
 }
 
-describe("KS test", function () {
+describe('KS test', function () {
   const NumCard2Deal = 5;
   const numPlayers = 2;
   const numCards = BigInt(5);
@@ -215,37 +215,37 @@ describe("KS test", function () {
   beforeEach(async () => {
     await Promise.all(
       [
-        "wasm/encrypt.wasm.5",
-        "wasm/decrypt.wasm",
-        "zkey/encrypt.zkey.5",
-        "zkey/decrypt.zkey",
+        'wasm/encrypt.wasm.5',
+        'wasm/decrypt.wasm',
+        'zkey/encrypt.zkey.5',
+        'zkey/decrypt.zkey',
       ].map(async (e) => {
         await dnld_aws(e);
       })
     );
   });
 
-  it("KS Game works normally", async () => {
+  it('KS Game works normally', async () => {
     const shuffleEncryptV2WasmFile = resolve(
       resourceBasePath,
-      "./wasm/encrypt.wasm.5"
+      './wasm/encrypt.wasm.5'
     );
     const shuffleEncryptV2ZkeyFile = resolve(
       resourceBasePath,
-      "./zkey/encrypt.zkey.5"
+      './zkey/encrypt.zkey.5'
     );
     const shuffleEncryptV2Vkey = await snarkjs.zKey.exportVerificationKey(
       new Uint8Array(Buffer.from(readFileSync(shuffleEncryptV2ZkeyFile)))
     );
 
-    const decryptWasmFile = resolve(resourceBasePath, "./wasm/decrypt.wasm");
-    const decryptZkeyFile = resolve(resourceBasePath, "./zkey/decrypt.zkey");
+    const decryptWasmFile = resolve(resourceBasePath, './wasm/decrypt.wasm');
+    const decryptZkeyFile = resolve(resourceBasePath, './zkey/decrypt.zkey');
 
     // deploy
     const [deployer, Alice, Bob] = await ethers.getSigners();
     const shuffle1 = await deployStateMachine(deployer);
     const shuffle2 = await deployStateMachine(deployer);
-    const ks = await (await ethers.getContractFactory("KS"))
+    const ks = await (await ethers.getContractFactory('KS'))
       .connect(deployer)
       .deploy(shuffle1.address, shuffle2.address);
     // set game contract
@@ -280,7 +280,7 @@ describe("KS test", function () {
 
     console.log(`Alice: ${Alice.address}, Bob: ${Bob.address}`);
     console.log(
-      "Alice creates a game using Soldier, Bob joins the game using King"
+      'Alice creates a game using Soldier, Bob joins the game using King'
     );
 
     // shuffle
@@ -311,7 +311,7 @@ describe("KS test", function () {
     await ks
       .connect(Alice)
       .shuffle(proof1, proof2, shuffleData1, shuffleData2, gameId);
-    console.log("Alice shuffled 2 decks");
+    console.log('Alice shuffled 2 decks');
 
     deck1 = await ks.queryDeck(gameId, 0);
     deck2 = await ks.queryDeck(gameId, 1);
@@ -336,7 +336,7 @@ describe("KS test", function () {
     await ks
       .connect(Bob)
       .shuffle(proof1, proof2, shuffleData1, shuffleData2, gameId);
-    console.log("Bob shuffled 2 decks");
+    console.log('Bob shuffled 2 decks');
 
     // deal
     // deal to Alice
@@ -410,7 +410,7 @@ describe("KS test", function () {
         .showHand(gameId, i, proof, [decryptedData[0], decryptedData[1]]);
 
       const aliceCardValue = await ks.getCardValue(gameId, i, 0);
-      const aliceRole = Number(aliceCardValue) == 0 ? "Soldier" : "Citizen";
+      const aliceRole = Number(aliceCardValue) == 0 ? 'Soldier' : 'Citizen';
 
       console.log(
         `In the round ${i + 1}, Alice showed her card No.${
@@ -430,7 +430,7 @@ describe("KS test", function () {
         .connect(Bob)
         .showHand(gameId, i, proof, [decryptedData[0], decryptedData[1]]);
       const bobCardValue = await ks.getCardValue(gameId, i, 1);
-      const bobRole = Number(bobCardValue) == 0 ? "King" : "Citizen";
+      const bobRole = Number(bobCardValue) == 0 ? 'King' : 'Citizen';
       console.log(
         `In the round ${i + 1}, Bob showed his card No.${
           i + 1

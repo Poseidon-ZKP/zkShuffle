@@ -175,7 +175,13 @@ export default function Home() {
             {gameStatus === GameStatus.WAITING_FOR_START && (
               <div className="">
                 {isCreator ? (
-                  <Button>Start game</Button>
+                  <div className="flex flex-col justify-center items-center gap-20">
+                    <div>I want to become</div>
+                    <div className="flex  gap-6">
+                      <Button>KING</Button>
+                      <Button>SOLDIER</Button>
+                    </div>
+                  </div>
                 ) : (
                   GameStatus.WAITING_FOR_START
                 )}
