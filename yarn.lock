@@ -979,13 +979,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@poseidon-zkp/poseidon-zk-circuits@0.0.2, @poseidon-zkp/poseidon-zk-circuits@workspace:packages/circuits":
+"@poseidon-zkp/poseidon-zk-circuits@0.0.3, @poseidon-zkp/poseidon-zk-circuits@workspace:packages/circuits":
   version: 0.0.0-use.local
   resolution: "@poseidon-zkp/poseidon-zk-circuits@workspace:packages/circuits"
   dependencies:
     "@nomiclabs/hardhat-ethers": ^2.2.1
     "@nomiclabs/hardhat-waffle": ^2.0.3
-    "@poseidon-zkp/poseidon-zk-proof": 0.0.2
+    "@poseidon-zkp/poseidon-zk-proof": 0.0.3
     "@typechain/ethers-v5": ^10.1.1
     "@typechain/hardhat": ^6.1.4
     "@types/chai": ^4.3.4
@@ -1015,8 +1015,8 @@ __metadata:
     "@nomiclabs/hardhat-ethers": ^2.2.1
     "@nomiclabs/hardhat-waffle": ^2.0.3
     "@openzeppelin/contracts": ^4.8.3
-    "@poseidon-zkp/poseidon-zk-circuits": 0.0.2
-    "@poseidon-zkp/poseidon-zk-proof": 0.0.2
+    "@poseidon-zkp/poseidon-zk-circuits": 0.0.3
+    "@poseidon-zkp/poseidon-zk-proof": 0.0.3
     "@typechain/ethers-v5": ^10.1.1
     "@typechain/hardhat": ^6.1.4
     "@types/chai": ^4.3.4
@@ -1061,7 +1061,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@poseidon-zkp/poseidon-zk-proof@0.0.2, @poseidon-zkp/poseidon-zk-proof@workspace:packages/proof":
+"@poseidon-zkp/poseidon-zk-proof@0.0.3, @poseidon-zkp/poseidon-zk-proof@workspace:packages/proof":
   version: 0.0.0-use.local
   resolution: "@poseidon-zkp/poseidon-zk-proof@workspace:packages/proof"
   dependencies:
