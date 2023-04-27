@@ -352,8 +352,8 @@ export function useGame() {
   useEffect(() => {
     const GameCreatedListener = async (arg1: any, arg2: any) => {
       try {
+        console.log('GameCreatedListener', arg1, arg2);
         const gameId = Number(arg1);
-
         const creatorAddress = arg2;
         setCreatorStatus((preStats) => {
           return { ...preStats, createGame: true };
@@ -422,6 +422,7 @@ export function useGame() {
     userPksAndsk,
     shuffleStatus,
     showHandStatus,
+
     handleShuffle,
     handleDealHandCard,
     handleShowCard,
