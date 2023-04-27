@@ -10,7 +10,7 @@
   "scripts": {
     "compile": "yarn workspaces foreach run compile",
     "test": "cd packages/contracts && yarn test && cd ../proof && yarn test",
-    "publish": "yarn workspaces foreach run publish",
+    "publish": "yarn workspaces foreach run pub2npmjs",
     "doc": "cd packages/contracts && yarn doc"
   },
   "installConfig": {

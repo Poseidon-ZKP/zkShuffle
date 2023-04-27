@@ -1,13 +1,13 @@
 {
   "name": "@poseidon-zkp/poseidon-zk-circuits",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "main": "index.js",
   "license": "MIT",
   "description": "A Circom circuits library for ZK Applications",
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.2.1",
     "@nomiclabs/hardhat-waffle": "^2.0.3",
-    "@poseidon-zkp/poseidon-zk-proof": "0.0.3",
+    "@poseidon-zkp/poseidon-zk-proof": "0.0.4",
     "@typechain/ethers-v5": "^10.1.1",
     "@typechain/hardhat": "^6.1.4",
     "@types/chai": "^4.3.4",
@@ -30,7 +30,7 @@
   "scripts": {
     "compile": "yarn ts-node utils/build_circuits.ts",
     "prepublish": "yarn compile",
-    "publish": "npm publish --access=public",
+    "pub2npmjs": "npm publish --access=public",
     "test": "hardhat test",
     "checksum": "yarn ts-node utils/generate_checksum.ts",
     "upload": "echo 'todo'"

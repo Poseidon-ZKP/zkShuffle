@@ -1,6 +1,6 @@
 {
   "name": "@poseidon-zkp/poseidon-zk-contracts",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "main": "index.js",
   "license": "MIT",
   "description": "Out-of-box smart contracts library enabling DApps to easily integrate ZK stacks",
@@ -24,8 +24,8 @@
   },
   "dependencies": {
     "@openzeppelin/contracts": "^4.8.3",
-    "@poseidon-zkp/poseidon-zk-circuits": "0.0.3",
-    "@poseidon-zkp/poseidon-zk-proof": "0.0.3",
+    "@poseidon-zkp/poseidon-zk-circuits": "0.0.4",
+    "@poseidon-zkp/poseidon-zk-proof": "0.0.4",
     "circomlibjs": "^0.1.7",
     "dotenv": "^16.0.3",
     "node-pandoc": "^0.3.0",
@@ -36,7 +36,7 @@
     "compile": "hardhat compile --verbose",
     "lint:sol": "solhint --config ./.solhint.json  \"contracts/**/*.sol\"",
     "test": "hardhat test",
-    "publish": "npm publish --access=public",
+    "pub2npmjs": "npm publish --access=public",
     "deploy": "hardhat deploy",
     "contract-size": "hardhat size-contracts",
     "doc": "hardhat docgen"

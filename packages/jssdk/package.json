@@ -1,11 +1,11 @@
 {
   "name": "@poseidon-zkp/poseidon-zk-jssdk",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "main": "index.js",
   "license": "MIT",
   "description": "A Typescript SDK for NodeJS and frontend ZK ability integration",
   "scripts": {
-    "publish": "npm publish --access=public"
+    "pub2npmjs": "npm publish --access=public"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.2.1",
