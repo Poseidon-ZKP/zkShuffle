@@ -348,7 +348,6 @@ export function useGame() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameId, shuffleListenerStatus.isShouldTriggerJoinerShuffle]);
 
-  console.log('contract', contract?.filters);
   // game CreateListener
   useEffect(() => {
     if (!contract || !joiner) return;
