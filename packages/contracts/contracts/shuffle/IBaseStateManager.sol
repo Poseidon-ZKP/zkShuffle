@@ -2,6 +2,8 @@
 
 pragma solidity >=0.8.2 <0.9.0;
 
+import "./BitMaps.sol";
+
 /** All games share these 6 base state
  * Created: game is created
  * Registration: player registration state
@@ -34,8 +36,8 @@ interface IBaseStateManager {
     // TODO: here we could use bitmap? to save some gas cost
     function dealCardsTo(
         uint256 gameId,
-        uint256[] memory cards,
-        uint8 playerId,
+        BitMaps.BitMap256 memory cards,
+        uint256 playerId,
         bytes calldata next
     ) external;
 

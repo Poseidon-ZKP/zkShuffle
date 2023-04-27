@@ -5,8 +5,9 @@ pragma solidity >=0.8.2 <0.9.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./IBaseStateManager.sol";
 import "./ECC.sol";
-import "./Card.sol";
+import "./Deck.sol";
 import "./IBaseGame.sol";
+import "./BitMaps.sol";
 
 struct ShuffleGameInfo {
     uint8 numCards;
@@ -69,7 +70,7 @@ contract ShuffleManager is IBaseStateManager, Ownable {
     }
 
     // check if this is your turn
-    modifier checkTurn(uint256 gameId, address playerAddr){
+    modifier checkTurn(uint256 gameId, address playerAddr) {
         ShuffleGameInfo memory info = gameInfos[gameId];
         require(playerAddr == info.playerAddrs[info.curPlayerIndex]);
         _;
@@ -87,12 +88,18 @@ contract ShuffleManager is IBaseStateManager, Ownable {
         // TODO: do we need this? it should be by default 0?
         gameInfos[newGameId].curPlayerIndex = 0;
         _activeGames[newGameId] = gameContract;
-        
+
         // set up verifier contract according to deck type
-        if(IBaseGame(gameContract).cardConfig() == DeckConfig.Deck30Card) {
-            gameInfos[newGameId].encryptVerifier = IShuffleEncryptVerifier(_deck30EncVerifier);
-        } else if (IBaseGame(gameContract).cardConfig() == DeckConfig.Deck52Card) {
-            gameInfos[newGameId].encryptVerifier = IShuffleEncryptVerifier(_deck52EncVerifier);
+        if (IBaseGame(gameContract).cardConfig() == DeckConfig.Deck30Card) {
+            gameInfos[newGameId].encryptVerifier = IShuffleEncryptVerifier(
+                _deck30EncVerifier
+            );
+        } else if (
+            IBaseGame(gameContract).cardConfig() == DeckConfig.Deck52Card
+        ) {
+            gameInfos[newGameId].encryptVerifier = IShuffleEncryptVerifier(
+                _deck52EncVerifier
+            );
         } else {
             gameInfos[newGameId].state = BaseState.GameError;
         }
@@ -179,9 +186,10 @@ contract ShuffleManager is IBaseStateManager, Ownable {
         uint256 gameId,
         address playerAddress,
         uint256[8] memory proof,
-        Deck memory deck) 
-        external 
-        checkState(gameId, BaseState.Shuffle) 
+        Deck memory deck
+    )
+        external
+        checkState(gameId, BaseState.Shuffle)
         checkTurn(gameId, playerAddress)
     {
         ShuffleGameInfo storage info = gameInfos[gameId];
@@ -189,7 +197,13 @@ contract ShuffleManager is IBaseStateManager, Ownable {
             [proof[0], proof[1]],
             [[proof[2], proof[3]], [proof[4], proof[5]]],
             [proof[6], proof[7]],
-            zkShuffleCrypto.shuffleEncPublicInput(deck, info.deck, info.nonce, info.aggregatePkX, info.aggregatePkY)
+            zkShuffleCrypto.shuffleEncPublicInput(
+                deck,
+                info.deck,
+                info.nonce,
+                info.aggregatePkX,
+                info.aggregatePkY
+            )
         );
         info.deck = deck;
         info.curPlayerIndex += 1;
@@ -199,13 +213,30 @@ contract ShuffleManager is IBaseStateManager, Ownable {
         }
     }
 
+    /**
+     * can only called by game contract,
+     * specifiy a set of cards to be dealed to a players
+     */
     function dealCardsTo(
         uint256 gameId,
-        uint256[] memory cards,
-        uint8 playerId,
+        BitMaps.BitMap256 memory cards,
+        uint256 playerId,
         bytes calldata callback
-    ) external gameOwner(gameId) {}
+    ) external gameOwner(gameId) {
+        // TODO: add a checking of the remaining deck size
+        ShuffleGameInfo storage info = gameInfos[gameId];
+        // change to Play state if not already in the state
+        if (info.state != BaseState.Play) {
+            info.state = BaseState.Play;
+        }
+        
 
+        
+    }
+
+    /**
+     * deal (draw) card from each player (SDK)
+     */
     function playerDealCards() external {}
 
     function error(uint256 gameId, bytes calldata next) external {}

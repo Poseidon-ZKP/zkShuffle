@@ -2,7 +2,7 @@
 
 pragma solidity >=0.8.2 <0.9.0;
 
-import "./Card.sol";
+import "./Deck.sol";
 
 
 interface IBaseGame {

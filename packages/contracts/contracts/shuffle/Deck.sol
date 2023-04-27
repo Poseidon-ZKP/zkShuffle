@@ -2,13 +2,7 @@
 
 pragma solidity >=0.8.2 <0.9.0;
 
-// Card as two baby jubjub curve points
-struct Card {
-    uint256 X0;
-    uint256 Y0;
-    uint256 X1;
-    uint256 Y1;
-}
+import "./BitMaps.sol";
 
 // currently, we support 30 card deck and 52 card deck
 enum DeckConfig {
@@ -29,10 +23,16 @@ enum DeckConfig {
 struct Deck {
     // config
     DeckConfig config;
+    // deal record, a BitMap support up to 256 players
+    BitMaps.BitMap256 dealRecord; 
     // x0 of cards
     uint256[] X0;
     // x1 of cards
     uint256[] X1;
+    // y0 of cards
+    uint256[] Y0;
+    // y1 of cards
+    uint256[] Y1;
     // 2 selectors for recovering y coordinates
     uint256[2] Selector;
 }
