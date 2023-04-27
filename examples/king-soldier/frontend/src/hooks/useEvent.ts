@@ -22,8 +22,7 @@ function useEvent({
 
   useEffect(() => {
     if (!contract) return;
-    console.log('contract', contract);
-    console.log('fnName', fnName);
+
     const Listener = async (...args: any[]) => {
       try {
         console.log(`listen ${fnName}`);

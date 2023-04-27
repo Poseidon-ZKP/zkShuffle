@@ -63,24 +63,26 @@ export default function Home() {
   const {
     isCreator,
     gameStatus,
-    createGameStatus,
+    createGameKingStatus,
+    createGameSoldierStatus,
     creatorStatus,
     userPksAndsk,
     userCardType,
+    joinerStatus,
+    createGameStatus,
     handleGetBabyPk,
     handleGetContracts,
-    joinerStatus,
   } = useGame({
     address: address,
     creator: creator,
     joiner: joiner,
   });
 
-  const creatorUIState = useMemo(() => {
-    return {
-      showStartGame: isCreator && !creatorStatus.createGame,
-    };
-  }, [creatorStatus.createGame, isCreator]);
+  // const creatorUIState = useMemo(() => {
+  //   return {
+  //     showStartGame: isCreator && !creatorStatus.createGame,
+  //   };
+  // }, [creatorStatus.createGame, isCreator]);
 
   const joinerUIState = useMemo(() => {
     return {
@@ -110,11 +112,11 @@ export default function Home() {
             <div>I want to become</div>
             <div className="flex  gap-6">
               <Button
-                isSuccess={createGameStatus.isSuccess}
-                isError={createGameStatus.isError}
-                isLoading={createGameStatus.isLoading}
+                isSuccess={createGameKingStatus.isSuccess}
+                isError={createGameKingStatus.isError}
+                isLoading={createGameKingStatus.isLoading}
                 onClick={() => {
-                  createGameStatus.run(
+                  createGameKingStatus.run(
                     [userPksAndsk?.pk[0], userPksAndsk?.pk[1]],
                     CardType.KING
                   );
@@ -123,11 +125,11 @@ export default function Home() {
                 KING
               </Button>
               <Button
-                isSuccess={createGameStatus.isSuccess}
-                isError={createGameStatus.isError}
-                isLoading={createGameStatus.isLoading}
+                isSuccess={createGameSoldierStatus.isSuccess}
+                isError={createGameSoldierStatus.isError}
+                isLoading={createGameSoldierStatus.isLoading}
                 onClick={() => {
-                  createGameStatus.run(
+                  createGameSoldierStatus.run(
                     [userPksAndsk?.pk[0], userPksAndsk?.pk[1]],
                     CardType.SOLDIER
                   );

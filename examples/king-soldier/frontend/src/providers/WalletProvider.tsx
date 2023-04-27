@@ -5,9 +5,10 @@ import '@rainbow-me/rainbowkit/styles.css';
 import { RainbowKitProvider, darkTheme } from '@rainbow-me/rainbowkit';
 import { configureChains, createClient, WagmiConfig } from 'wagmi';
 import { HarmanyTestnet } from '../config/chains';
+import { arbitrumGoerli } from 'wagmi/chains';
 
 const { chains, provider } = configureChains(
-  [HarmanyTestnet],
+  [arbitrumGoerli],
   [publicProvider()]
 );
 

@@ -59,10 +59,22 @@ function useGame({ creator, joiner, address }: UseGameProps) {
   const playerAddresses = [creator, joiner];
   const userPksAndsk = playerPksAndSks?.[address as string];
 
-  const createGameStatus = useWriteContract(contract?.['createGame'], {
+  const createGameKingStatus = useWriteContract(contract?.['createGame'], {
     args: [],
     wait: true,
   });
+  const createGameSoldierStatus = useWriteContract(contract?.['createGame'], {
+    args: [],
+    wait: true,
+  });
+
+  const createGameStatus = {
+    isSuccess:
+      createGameKingStatus.isSuccess || createGameSoldierStatus.isSuccess,
+    isError: createGameKingStatus.isError || createGameSoldierStatus.isError,
+    isLoading:
+      createGameKingStatus.isLoading || createGameSoldierStatus.isLoading,
+  };
 
   const joinGameStatus = useWriteContract(contract?.['joinGame'], {
     args: [],
@@ -198,7 +210,6 @@ function useGame({ creator, joiner, address }: UseGameProps) {
           ? CardType.SOLDIER
           : CardType.KING
       );
-      console.log('first', createGameListenerValues.creator);
     }
   }, [createGameListenerValues.creator]);
 
@@ -213,7 +224,6 @@ function useGame({ creator, joiner, address }: UseGameProps) {
           joinGame: true,
         };
       });
-      console.log('first', createGameListenerValues.creator);
     }
     return () => {};
   }, [
@@ -230,19 +240,11 @@ function useGame({ creator, joiner, address }: UseGameProps) {
 
   useEffect(() => {
     if (!contract) return;
-    console.log('contract', contract);
 
     const Listener = async (...args: any[]) => {
       try {
+        console.log(`listen createGame`);
         console.log('args', args);
-        // console.log(`listen ${fnName}`);
-        // console.log('args', args);
-        // if (args[addressIndex] === creator) {
-        //   setCreatorValue(args);
-        // }
-        // if (args[addressIndex] === joiner) {
-        //   setJoinerValue(args);
-        // }
       } catch (error) {
         console.log(error, error);
       }
@@ -256,12 +258,14 @@ function useGame({ creator, joiner, address }: UseGameProps) {
   return {
     isCreator,
     gameStatus,
-    createGameStatus,
+    createGameKingStatus,
+    createGameSoldierStatus,
     joinGameStatus,
     userPksAndsk,
     creatorStatus,
     userCardType,
     joinerStatus,
+    createGameStatus,
     handleGetBabyPk,
     handleGetContracts,
   };

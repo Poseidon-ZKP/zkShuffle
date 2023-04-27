@@ -350,7 +350,6 @@ export function useGame() {
 
   // game CreateListener
   useEffect(() => {
-    if (!contract || !joiner) return;
     const GameCreatedListener = async (arg1: any, arg2: any) => {
       try {
         const gameId = Number(arg1);
@@ -379,8 +378,7 @@ export function useGame() {
     return () => {
       contract?.off('GameCreated', GameCreatedListener);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userPksAndsk?.pk]);
+  }, [address, contract, creator, joinGameStatus, joiner, userPksAndsk?.pk]);
 
   // game JoinListener
   useEffect(() => {
