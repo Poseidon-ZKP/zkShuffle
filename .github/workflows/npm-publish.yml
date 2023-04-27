@@ -6,7 +6,9 @@ name: Node.js Package
 on:
   pull_request:
     branches:
-    - main
+      - main                # when PR merge to main
+    paths :
+      - '.version'          # when .version modified in PR
 
 jobs:
   publish-npm:
