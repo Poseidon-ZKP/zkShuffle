@@ -38,7 +38,7 @@ async function main() {
   console.log(`Shuffle 1 deployed to ${shuffle1.address}`);
 
   const shuffle2 = await deployShuffle(deployer);
-  console.log(`Shuffle 1 deployed to ${shuffle2.address}`);
+  console.log(`Shuffle 2 deployed to ${shuffle2.address}`);
 
   const latest = {
     Shuffle1: shuffle1.address,
