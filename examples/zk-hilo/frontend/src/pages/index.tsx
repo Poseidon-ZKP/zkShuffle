@@ -360,6 +360,11 @@ export default function Home() {
                 {currentStatus}
               </div>
             }
+            {gameId && (
+              <div className="flex flex-col items-center justify-center">
+                Current game Id:{gameId}
+              </div>
+            )}
             {gameId && winner && (
               <div className="flex flex-col items-center justify-center">
                 <div className="text-3xl font-mono font-medium text-sky-500">

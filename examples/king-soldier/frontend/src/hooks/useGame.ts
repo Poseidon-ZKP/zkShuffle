@@ -88,7 +88,8 @@ function useGame({ creator, joiner, address }: UseGameProps) {
 
   const createGameListenerValues = useEvent({
     contract,
-    fnName: 'GameCreated',
+    filter: contract?.filters?.GameCreated(),
+    isStop: gameStatus !== GameStatus.WAITING_FOR_START,
     addressIndex: 1,
     creator: creator,
     joiner: joiner,
@@ -96,7 +97,7 @@ function useGame({ creator, joiner, address }: UseGameProps) {
 
   const joinGameListenerValues = useEvent({
     contract,
-    fnName: 'GameJoined',
+    filter: contract?.filters?.GameJoined(),
     addressIndex: 1,
     creator: creator,
     joiner: joiner,
@@ -104,7 +105,7 @@ function useGame({ creator, joiner, address }: UseGameProps) {
 
   const shuffleDeckListenerValues = useEvent({
     contract,
-    fnName: 'ShuffleDeck',
+    filter: contract?.filters?.ShuffleDeck(),
     addressIndex: 1,
     creator: creator,
     joiner: joiner,
@@ -112,7 +113,7 @@ function useGame({ creator, joiner, address }: UseGameProps) {
 
   const dealCardListenerValues = useEvent({
     contract,
-    fnName: 'DealCard',
+    filter: contract?.filters?.DealCard(),
     addressIndex: 2,
     creator: creator,
     joiner: joiner,
@@ -120,7 +121,7 @@ function useGame({ creator, joiner, address }: UseGameProps) {
 
   const chooseCardListenerValues = useEvent({
     contract,
-    fnName: 'ChooseCard',
+    filter: contract?.filters?.ChooseCard(),
     addressIndex: 2,
     creator: creator,
     joiner: joiner,
@@ -128,7 +129,7 @@ function useGame({ creator, joiner, address }: UseGameProps) {
 
   const gameEndedListenerValues = useEvent({
     contract,
-    fnName: 'GameEnded',
+    filter: contract?.filters?.GameEnded(),
     addressIndex: 1,
     creator: creator,
     joiner: joiner,

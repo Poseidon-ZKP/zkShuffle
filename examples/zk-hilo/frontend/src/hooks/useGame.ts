@@ -193,7 +193,7 @@ export function useGame() {
   const handleShowCard = async () => {
     try {
       showHandStatus.setIsLoading(true);
-      await sleep(2000);
+      await sleep(isCreator ? 3000 : 7000);
       const card = await contract?.queryCardInDeal(gameId, showIdx);
       const [showProof, showData] = await zkContext?.generateShowHandData(
         userPksAndsk?.sk as string,
@@ -215,7 +215,7 @@ export function useGame() {
   const handleDealHandCard = async () => {
     try {
       dealStatus.setIsLoading(true);
-      await sleep(2000);
+      await sleep(isCreator ? 3000 : 7000);
       const card = await contract?.queryCardFromDeck(gameId, cardIdx);
       const [dealProof, decryptedData, initDelta] =
         await zkContext?.generateDealData(
