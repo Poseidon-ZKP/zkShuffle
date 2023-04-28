@@ -57,6 +57,8 @@ function useEvent({
           })
         );
 
+        console.log('logs', logs);
+
         logs.forEach((log: any) => {
           const event = contract.interface.parseLog(log);
           listener(...event.args);

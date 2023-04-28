@@ -193,7 +193,7 @@ export function useGame() {
   const handleShowCard = async () => {
     try {
       showHandStatus.setIsLoading(true);
-      await sleep(isCreator ? 3000 : 7000);
+      await sleep(2000);
       const card = await contract?.queryCardInDeal(gameId, showIdx);
       const [showProof, showData] = await zkContext?.generateShowHandData(
         userPksAndsk?.sk as string,
@@ -204,6 +204,9 @@ export function useGame() {
       await showHandStatus?.run(gameId, showIdx, showProof, [
         showData[0],
         showData[1],
+        {
+          gasLimit: 2000000,
+        },
       ]);
     } catch (error) {
       showHandStatus.setIsError(true);
@@ -215,7 +218,7 @@ export function useGame() {
   const handleDealHandCard = async () => {
     try {
       dealStatus.setIsLoading(true);
-      await sleep(isCreator ? 3000 : 7000);
+      await sleep(2000);
       const card = await contract?.queryCardFromDeck(gameId, cardIdx);
       const [dealProof, decryptedData, initDelta] =
         await zkContext?.generateDealData(
@@ -229,7 +232,10 @@ export function useGame() {
         cardIdx,
         dealProof,
         [decryptedData[0], decryptedData[1]],
-        [initDelta[0], initDelta[1]]
+        [initDelta[0], initDelta[1]],
+        {
+          gasLimit: 2000000,
+        }
       );
     } catch (error) {
       dealStatus.setIsSuccess(false);
