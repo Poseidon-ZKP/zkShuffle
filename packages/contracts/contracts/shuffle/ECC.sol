@@ -242,4 +242,29 @@ library CurveBabyJubJub {
             }
         }
     }
+
+    /**
+     * @dev recover Y from X, delta (TODO: boyuan please update the math here), and sign  
+     */ 
+    function recoverY(
+        uint256 x,
+        uint256 delta,
+        bool sign
+    ) internal pure returns (uint256 y) {
+        require(
+            delta <=
+                10944121435919637611123202872628637544274182200208017171849102093287904247808,
+            "Invalid delta"
+        );
+        require(
+            CurveBabyJubJub.isOnCurve(x, delta),
+            "Not on baby jubjub curve"
+        );
+        if (sign) {
+            y = delta;
+        } else {
+            y = CurveBabyJubJub.Q - delta;
+        }
+    }
+
 }

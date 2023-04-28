@@ -12,13 +12,17 @@ import "./BitMaps.sol";
 struct ShuffleGameInfo {
     uint8 numCards;
     uint8 numPlayers;
-    BaseState state;
     IShuffleEncryptVerifier encryptVerifier;
+}
+
+struct ShuffleGameState {
+    BaseState state;
     uint256 curPlayerIndex;
     uint256 aggregatePkX;
     uint256 aggregatePkY;
     uint256 nonce;
     address[] playerAddrs;
+    address[] signingAddrs;
     uint256[] playerPkX;
     uint256[] playerPKY;
     Deck deck;
@@ -45,8 +49,11 @@ contract ShuffleManager is IBaseStateManager, Ownable {
     mapping(uint256 => address) _activeGames;
 
     // mapping between gameId and game info
-    // TODO: split into two things, gameInfos (immutable) and gameStates (mutable)
+    //  (game info is immutable once a game is created)
     mapping(uint256 => ShuffleGameInfo) gameInfos;
+
+    // mapping between gameId and game state
+    mapping(uint256 => ShuffleGameState) gameStates;
 
     // mapping between gameId and next game contract function to call
     mapping(uint256 => bytes) nextToCall;
@@ -65,14 +72,18 @@ contract ShuffleManager is IBaseStateManager, Ownable {
 
     // check state
     modifier checkState(uint256 gameId, BaseState state) {
-        require(state == gameInfos[gameId].state, "Check state failed");
+        require(state == gameStates[gameId].state, "Check state failed");
         _;
     }
 
     // check if this is your turn
-    modifier checkTurn(uint256 gameId, address playerAddr) {
-        ShuffleGameInfo memory info = gameInfos[gameId];
-        require(playerAddr == info.playerAddrs[info.curPlayerIndex]);
+    modifier checkTurn(uint256 gameId) {
+        ShuffleGameState storage state = gameStates[gameId];
+        require(
+            msg.sender == state.playerAddrs[state.curPlayerIndex] ||
+            msg.sender == state.signingAddrs[state.curPlayerIndex],
+            "not your turn!"
+        );
         _;
     }
 
@@ -85,8 +96,8 @@ contract ShuffleManager is IBaseStateManager, Ownable {
     ) external returns (uint256) {
         uint256 newGameId = ++largestGameId;
         gameInfos[newGameId] = gameInfo;
-        // TODO: do we need this? it should be by default 0?
-        gameInfos[newGameId].curPlayerIndex = 0;
+        // TODO: do we need to explicit start
+        // an intialization logic of gameStates[newGameId]?
         _activeGames[newGameId] = gameContract;
 
         // set up verifier contract according to deck type
@@ -101,7 +112,7 @@ contract ShuffleManager is IBaseStateManager, Ownable {
                 _deck52EncVerifier
             );
         } else {
-            gameInfos[newGameId].state = BaseState.GameError;
+            gameStates[newGameId].state = BaseState.GameError;
         }
         return newGameId;
     }
@@ -115,8 +126,8 @@ contract ShuffleManager is IBaseStateManager, Ownable {
         gameOwner(gameId)
         checkState(gameId, BaseState.Created)
     {
-        ShuffleGameInfo storage info = gameInfos[gameId];
-        info.state = BaseState.Registration;
+        ShuffleGameState storage state = gameStates[gameId];
+        state.state = BaseState.Registration;
         nextToCall[gameId] = next;
     }
 
@@ -127,30 +138,32 @@ contract ShuffleManager is IBaseStateManager, Ownable {
      */
     function playerRegister(
         uint256 gameId,
-        address playerAddress,
+        address signingAddr,
         uint256 pkX,
         uint256 pkY
     ) external returns (uint256 pid) {
         require(CurveBabyJubJub.isOnCurve(pkX, pkY), "Invalid public key");
-        ShuffleGameInfo storage info = gameInfos[gameId];
-        require(info.playerAddrs.length < info.numPlayers, "Game full");
+        ShuffleGameInfo memory info = gameInfos[gameId];
+        ShuffleGameState storage state = gameStates[gameId];
+        require(state.playerAddrs.length < info.numPlayers, "Game full");
 
         // assign pid before push to the array
-        pid = info.playerAddrs.length;
+        pid = state.playerAddrs.length;
 
         // update game info
-        info.playerAddrs.push(playerAddress);
-        info.playerPkX.push(pkX);
-        info.playerPKY.push(pkY);
+        state.playerAddrs.push(msg.sender);
+        state.signingAddrs.push(signingAddr);
+        state.playerPkX.push(pkX);
+        state.playerPKY.push(pkY);
 
         // update aggregated PK
         if (pid == 0) {
-            info.aggregatePkX = pkX;
-            info.aggregatePkY = pkY;
+            state.aggregatePkX = pkX;
+            state.aggregatePkY = pkY;
         } else {
-            (info.aggregatePkX, info.aggregatePkY) = CurveBabyJubJub.pointAdd(
-                info.aggregatePkX,
-                info.aggregatePkY,
+            (state.aggregatePkX, state.aggregatePkY) = CurveBabyJubJub.pointAdd(
+                state.aggregatePkX,
+                state.aggregatePkY,
                 pkX,
                 pkY
             );
@@ -158,9 +171,9 @@ contract ShuffleManager is IBaseStateManager, Ownable {
 
         // if this is the last player to join
         if (pid == info.numPlayers - 1) {
-            info.nonce = mulmod(
-                info.aggregatePkX,
-                info.aggregatePkY,
+            state.nonce = mulmod(
+                state.aggregatePkX,
+                state.aggregatePkY,
                 CurveBabyJubJub.Q
             );
             callGameContract(gameId);
@@ -174,8 +187,8 @@ contract ShuffleManager is IBaseStateManager, Ownable {
         external
         gameOwner(gameId)
     {
-        ShuffleGameInfo storage info = gameInfos[gameId];
-        info.state = BaseState.Shuffle;
+        ShuffleGameState storage state = gameStates[gameId];
+        state.state = BaseState.Shuffle;
         nextToCall[gameId] = next;
     }
 
@@ -184,31 +197,27 @@ contract ShuffleManager is IBaseStateManager, Ownable {
      */
     function playerShuffle(
         uint256 gameId,
-        address playerAddress,
         uint256[8] memory proof,
-        Deck memory deck
-    )
-        external
-        checkState(gameId, BaseState.Shuffle)
-        checkTurn(gameId, playerAddress)
-    {
-        ShuffleGameInfo storage info = gameInfos[gameId];
+        CompressedDeck memory compDeck
+    ) external checkState(gameId, BaseState.Shuffle) checkTurn(gameId) {
+        ShuffleGameInfo memory info = gameInfos[gameId];
+        ShuffleGameState storage state = gameStates[gameId];
         info.encryptVerifier.verifyProof(
             [proof[0], proof[1]],
             [[proof[2], proof[3]], [proof[4], proof[5]]],
             [proof[6], proof[7]],
             zkShuffleCrypto.shuffleEncPublicInput(
-                deck,
-                info.deck,
-                info.nonce,
-                info.aggregatePkX,
-                info.aggregatePkY
+                compDeck,
+                zkShuffleCrypto.getCompressedDeck(state.deck),
+                state.nonce,
+                state.aggregatePkX,
+                state.aggregatePkY
             )
         );
-        info.deck = deck;
-        info.curPlayerIndex += 1;
-        if (info.curPlayerIndex == info.numPlayers) {
-            info.curPlayerIndex = 0;
+        zkShuffleCrypto.setDeckUnsafe(compDeck, state.deck);
+        state.curPlayerIndex += 1;
+        if (state.curPlayerIndex == state.playerAddrs.length) {
+            state.curPlayerIndex = 0;
             callGameContract(gameId);
         }
     }
@@ -221,23 +230,104 @@ contract ShuffleManager is IBaseStateManager, Ownable {
         uint256 gameId,
         BitMaps.BitMap256 memory cards,
         uint256 playerId,
-        bytes calldata callback
+        bytes calldata next
     ) external gameOwner(gameId) {
-        // TODO: add a checking of the remaining deck size
-        ShuffleGameInfo storage info = gameInfos[gameId];
+        ShuffleGameState storage state = gameStates[gameId];
+        // TODO: maybe add a checking of the remaining deck size
+        // this check could removed if we formally verified the contract
+        require(state.curPlayerIndex == 0, "internal erorr! ");
+        require(
+            playerId < gameInfos[gameId].numPlayers, 
+            "game contract error: deal card to an invalid player id");
+        
         // change to Play state if not already in the state
-        if (info.state != BaseState.Play) {
-            info.state = BaseState.Play;
+        if (state.state != BaseState.Play) {
+            state.state = BaseState.Play;
         }
+        state.deck.cardsToDeal = cards;
+        state.deck.playerToDeal = playerId;
         
-
-        
+        // we assume a game must have at least 2 or more players,
+        // otherwise the game should stop
+        if (playerId == 0) {
+            state.curPlayerIndex = 1;
+        }
+        nextToCall[gameId] = next;
     }
 
     /**
      * deal (draw) card from each player (SDK)
      */
-    function playerDealCards() external {}
+    function playerDealCards(
+        uint256 gameId,
+        DecryptProof[] memory proofs,
+        Card[] memory decryptedCards,
+        uint256[2][] memory initDeltas
+    ) external checkState(gameId, BaseState.Play) checkTurn(gameId) {
+        ShuffleGameInfo memory info = gameInfos[gameId];
+        ShuffleGameState storage state = gameStates[gameId];
+        uint256 numberCardsToDeal = BitMaps.memberCountUpTo(state.deck.cardsToDeal, info.numCards);
+        require(
+            proofs.length == numberCardsToDeal,
+            "number of proofs is wrong!"
+        );
+        require(
+            decryptedCards.length == numberCardsToDeal,
+            "number of decrypted cards is wrong!"
+        );
+        require(
+            initDeltas[0].length == numberCardsToDeal && initDeltas[0].length == numberCardsToDeal,
+            "init delta's shape is invalid!"
+        );
+        uint256 counter = 0;
+        for (uint256 cid = 0; cid < uint256(info.numCards); cid++) {
+            if (BitMaps.get(state.deck.cardsToDeal, cid)) {
+                // update decrypted card
+                _updateDecryptedCard(gameId, cid, proofs[counter], decryptedCards[counter], initDeltas[counter]);
+                counter ++;
+            }
+        }
+        state.curPlayerIndex ++;
+        if (state.curPlayerIndex == state.deck.playerToDeal) {
+            state.curPlayerIndex ++;
+        }
+        if (state.curPlayerIndex == info.numPlayers) {
+            state.curPlayerIndex = 0;
+            callGameContract(gameId);
+        }
+    }
+
+    /**
+     * update a decrypted card.
+     */
+    function _updateDecryptedCard(
+        uint256 gameId,
+        uint256 cardIndex,
+        DecryptProof memory proof,
+        Card memory decryptedCard,
+        uint256[2] memory initDelta
+    ) internal {
+        ShuffleGameState storage state = gameStates[gameId];
+        require(
+            BitMaps.get(state.deck.dealRecord[cardIndex], state.curPlayerIndex),
+            "Card has been dealt to this player already"
+        );
+        // recover Y0 and Y1 from the current X0 and X1
+        state.deck.Y0[cardIndex] = CurveBabyJubJub.recoverY(
+            state.deck.X0[cardIndex], 
+            initDelta[0],
+            BitMaps.get(state.deck.selector0, cardIndex));
+        state.deck.Y1[cardIndex] = CurveBabyJubJub.recoverY(
+            state.deck.X1[cardIndex],
+            initDelta[1],
+            BitMaps.get(state.deck.selector1, cardIndex));
+        
+        decryptVerifier.verifyProof(proof.A, proof.B, proof.C, proof.PI);
+        // update X1 and Y1 in the deck
+        state.deck.X1[cardIndex] = decryptedCard.X;
+        state.deck.Y1[cardIndex] = decryptedCard.Y;
+        BitMaps.set(state.deck.dealRecord[state.curPlayerIndex], cardIndex);
+    }
 
     function error(uint256 gameId, bytes calldata next) external {}
 
@@ -250,7 +340,7 @@ contract ShuffleManager is IBaseStateManager, Ownable {
         );
         if (!success) {
             emit GameContractCallError(_activeGames[gameId], data);
-            gameInfos[gameId].state = BaseState.GameError;
+            gameStates[gameId].state = BaseState.GameError;
         }
     }
 }

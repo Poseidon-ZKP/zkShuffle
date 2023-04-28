@@ -44,5 +44,15 @@ library BitMaps {
         uint256 mask = 1 << (index & 0xff);
         bitmap._data &= ~mask;
     }
-    
+    /**
+     * @dev get member count up to a boundry (not included)
+     */
+    function memberCountUpTo(BitMap256 memory bitmap, uint256 upTo) internal pure returns (uint256 count){
+        count = 0;
+        for (uint256 i=0; i<upTo; i++){
+            if(get(bitmap, i)){
+                count ++;
+            }
+        }
+    }
 }
