@@ -1,6 +1,14 @@
 import { useEffect, useState } from 'react';
+import { CurrentStatusEnum, PULL_DATA_TIME } from './useGame';
+import { getLogPrams } from '../utils/contracts';
 
-function useDealtListener(contract: any, creator: string, joiner: string) {
+function useDealtListener(
+  contract: any,
+  creator: string,
+  joiner: string,
+  provider: any,
+  currentStatus: CurrentStatusEnum
+) {
   const [isCreatorDealt, setIsCreatorDealt] = useState(false);
   const [isJoinerDealt, setIsJoinerDealt] = useState(false);
 
@@ -13,27 +21,69 @@ function useDealtListener(contract: any, creator: string, joiner: string) {
     setIsCreatorDealt(false);
     setIsJoinerDealt(false);
   };
-  // game DealListener
+
+  const GameDealtListener = async (arg1: any, arg2: any, address: any) => {
+    try {
+      console.log('address', address);
+
+      if (address === creator) {
+        setIsCreatorDealt(true);
+      }
+      if (address === joiner) {
+        setIsJoinerDealt(true);
+      }
+    } catch (error) {}
+  };
   useEffect(() => {
+    let interval: string | number | NodeJS.Timeout | null | undefined = null;
     if (!contract) return;
-    const GameDealtListener = async (arg1: any, arg2: any, address: any) => {
-      try {
-        console.log('address', address);
-
-        if (address === creator) {
-          setIsCreatorDealt(true);
+    const filter = contract.filters.DealCard();
+    if (currentStatus !== CurrentStatusEnum.WAITING_FOR_DEAL) {
+      interval && clearInterval(interval);
+    } else {
+      interval = setInterval(async () => {
+        console.log('GameDealtListener');
+        const logs = await provider.getLogs(
+          getLogPrams({
+            filter: filter,
+            address: contract?.address,
+            provider: provider,
+          })
+        );
+        const lastLog = logs[logs.length - 1];
+        if (lastLog) {
+          const event = contract.interface.parseLog(lastLog);
+          GameDealtListener(event.args[0], event.args[1], event.args[2]);
         }
-        if (address === joiner) {
-          setIsJoinerDealt(true);
-        }
-      } catch (error) {}
-    };
+      }, PULL_DATA_TIME);
+    }
 
-    contract?.on('DealCard', GameDealtListener);
     return () => {
-      contract?.off('DealCard', GameDealtListener);
+      interval && clearInterval(interval);
     };
-  }, [contract, creator, joiner]);
+  }, [contract, provider, joiner, creator, currentStatus]);
+
+  // game DealListener
+  // useEffect(() => {
+  //   if (!contract) return;
+  //   const GameDealtListener = async (arg1: any, arg2: any, address: any) => {
+  //     try {
+  //       console.log('address', address);
+
+  //       if (address === creator) {
+  //         setIsCreatorDealt(true);
+  //       }
+  //       if (address === joiner) {
+  //         setIsJoinerDealt(true);
+  //       }
+  //     } catch (error) {}
+  //   };
+
+  //   contract?.on('DealCard', GameDealtListener);
+  //   return () => {
+  //     contract?.off('DealCard', GameDealtListener);
+  //   };
+  // }, [contract, creator, joiner]);
 
   return {
     dealStatus,

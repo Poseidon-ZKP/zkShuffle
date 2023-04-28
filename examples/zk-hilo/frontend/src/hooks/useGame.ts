@@ -12,6 +12,7 @@ import useShowHandListener from './useShowHandListener';
 import useShuffledListener from './useShuffledListener';
 import useWriteContract from './useWriteContract';
 import { sleep } from '../utils/common';
+import { getLogPrams } from '../utils/contracts';
 
 export enum CurrentStatusEnum {
   WAITING_FOR_START = 'waiting for start',
@@ -49,6 +50,8 @@ export const defaultCreatorStatus = {
   creatorShowHand: -1,
 };
 
+export const PULL_DATA_TIME = 2000;
+
 export function useGame() {
   const router = useRouter();
   const provider = useProvider();
@@ -79,6 +82,7 @@ export function useGame() {
   const zkContext = useZKContext();
 
   const handleQueryAggregatedPk = async (gameId: number) => {
+    await sleep(8000);
     const keys = await contract?.queryAggregatedPk(gameId);
     const deck = await contract?.queryDeck(gameId);
     const aggregatedPk = [keys[0].toBigInt(), keys[1].toBigInt()];
@@ -121,7 +125,7 @@ export function useGame() {
     try {
       shuffleStatus.setIsLoading(true);
       const [solidityProof, comData] = await handleQueryAggregatedPk(gameId);
-
+      debugger;
       let res = await shuffleStatus.run(solidityProof, comData, gameId);
 
       return res;
@@ -136,14 +140,23 @@ export function useGame() {
 
   //listeners
   const { dealStatus: dealListenerStatus, reset: dealListenerReset } =
-    useDealtListener(contract, creator, joiner);
+    useDealtListener(contract, creator, joiner, provider, currentStatus);
   const { handValues, reset: handValuesReset } = useShowHandListener(
     contract,
+    provider,
+    currentStatus,
     creator,
     joiner
   );
   const { shuffleStatus: shuffleListenerStatus, reset: shuffleReset } =
-    useShuffledListener(contract, creator, joiner, address as string);
+    useShuffledListener(
+      contract,
+      creator,
+      joiner,
+      address as string,
+      provider,
+      currentStatus
+    );
 
   const handleGetWinner = (creatorValue: number, joinerValue: number) => {
     let winner = creatorValue > joinerValue ? creator : joiner;
@@ -197,13 +210,10 @@ export function useGame() {
         showData,
         userPksAndsk
       );
-      await showHandStatus?.run(
-        gameId,
-        showIdx,
-        showProof,
-        [showData[0], showData[1]]
-        // { gasLimit: 500000 }
-      );
+      await showHandStatus?.run(gameId, showIdx, showProof, [
+        showData[0],
+        showData[1],
+      ]);
     } catch (error) {
       showHandStatus.setIsError(true);
       showHandStatus.setIsLoading(false);
@@ -256,6 +266,44 @@ export function useGame() {
     shuffleStatus.reset();
     dealStatus.reset();
     showHandStatus.reset();
+  };
+
+  const GameCreatedListener = async (arg1: any, arg2: any) => {
+    try {
+      console.log('GameCreatedListener', arg1, arg2);
+      await sleep(2000);
+      // debugger;
+      const gameId = Number(arg1);
+      const creatorAddress = arg2;
+      setCreatorStatus((preStats) => {
+        return { ...preStats, createGame: true };
+      });
+      setCurrentStatus(CurrentStatusEnum.WAITING_FOR_JOIN);
+      setGameId(gameId);
+
+      if (creator === creatorAddress) {
+        if (joiner === address) {
+          // await joinGameStatus.run(gameId, [
+          //   userPksAndsk?.pk[0],
+          //   userPksAndsk?.pk[1],
+          // ]);
+        }
+      }
+    } catch (error) {
+      console.log('error', error);
+    }
+  };
+
+  const GameJoinedListener = async (arg1: any, joinerAddress: any) => {
+    try {
+      if (joiner === joinerAddress) {
+        setJoinerStatus((preStats) => {
+          return { ...preStats, joinGame: true };
+        });
+        setCurrentStatus(CurrentStatusEnum.WAITING_FOR_CREATOR_SHUFFLE);
+        // setIsJoined(true);
+      }
+    } catch (error) {}
   };
 
   useEffect(() => {
@@ -349,85 +397,76 @@ export function useGame() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameId, shuffleListenerStatus.isShouldTriggerJoinerShuffle]);
 
-  // game CreateListener
-  useEffect(() => {
-    if (!contract || !joiner) return;
-    const GameCreatedListener = async (arg1: any, arg2: any) => {
-      try {
-        console.log('GameCreatedListener', arg1, arg2);
-        const gameId = Number(arg1);
-        const creatorAddress = arg2;
-        setCreatorStatus((preStats) => {
-          return { ...preStats, createGame: true };
-        });
-        setCurrentStatus(CurrentStatusEnum.WAITING_FOR_JOIN);
-        setGameId(gameId);
-
-        if (creator === creatorAddress) {
-          if (joiner === address) {
-            await joinGameStatus.run(gameId, [
-              userPksAndsk?.pk[0],
-              userPksAndsk?.pk[1],
-            ]);
-          }
-        }
-      } catch (error) {
-        console.log('error', error);
-      }
-    };
-
-    contract?.on('GameCreated', GameCreatedListener);
-    return () => {
-      contract?.off('GameCreated', GameCreatedListener);
-    };
-  }, [userPksAndsk?.pk]);
-
-  // game JoinListener
   useEffect(() => {
     if (!contract) return;
-    const GameJoinedListener = async (arg1: any, joinerAddress: any) => {
-      try {
-        if (joiner === joinerAddress) {
-          setJoinerStatus((preStats) => {
-            return { ...preStats, joinGame: true };
-          });
-          setCurrentStatus(CurrentStatusEnum.WAITING_FOR_CREATOR_SHUFFLE);
-          // setIsJoined(true);
-        }
-      } catch (error) {}
-    };
-
-    contract?.on('GameJoined', GameJoinedListener);
-    return () => {
-      contract?.off('GameJoined', GameJoinedListener);
-    };
-  }, [contract, joiner]);
-
-  useEffect(() => {
-    if (!contract) return;
+    let interval: string | number | NodeJS.Timeout | null | undefined = null;
     const filter = contract.filters.GameCreated();
+    if (currentStatus !== CurrentStatusEnum.WAITING_FOR_START) {
+      interval && clearInterval(interval);
+    } else {
+      interval = setInterval(
+        async () => {
+          console.log('1111', 1111);
+          // 获取最新的10个块的事件日志
+          const fromBlock = (await provider.getBlockNumber()) - 15;
+          const toBlock = 'latest';
+          const logs = await provider.getLogs({
+            address: contract?.address,
+            fromBlock,
+            toBlock,
+            topics: filter.topics,
+          });
 
-    const interval = setInterval(async () => {
-      // 获取最新的10个块的事件日志
-      const fromBlock = (await provider.getBlockNumber()) - 10;
-      const toBlock = 'latest';
-      const logs = await provider.getLogs({
-        address: contract?.address,
-        fromBlock,
-        toBlock,
-        topics: filter.topics,
-      });
-      logs.forEach((log) => {
-        const event = contract.interface.parseLog(log);
-        console.log('Event name:', event.name);
-        console.log('Event arguments:', event.args);
-      });
-    }, 5000); // 每5秒查询一次事件
+          const lastLog = logs[logs.length - 1];
+
+          if (
+            lastLog &&
+            currentStatus === CurrentStatusEnum.WAITING_FOR_START
+          ) {
+            const event = contract.interface.parseLog(lastLog);
+            console.log('Event name:', event.name);
+
+            await GameCreatedListener(event.args[0], event.args[1]);
+          }
+        },
+        PULL_DATA_TIME,
+        currentStatus
+      );
+    }
 
     return () => {
-      clearInterval(interval);
+      interval && clearInterval(interval);
     };
-  }, [contract]);
+  }, [contract, currentStatus, userPksAndsk]);
+
+  useEffect(() => {
+    if (!contract) return;
+    let interval: string | number | NodeJS.Timeout | null | undefined = null;
+    const filter = contract.filters.GameJoined();
+    if (currentStatus !== CurrentStatusEnum.WAITING_FOR_JOIN) {
+      interval && clearInterval(interval);
+    } else {
+      interval = setInterval(async () => {
+        console.log('csacac');
+        const logs = await provider.getLogs(
+          getLogPrams({
+            filter: filter,
+            address: contract?.address,
+            provider: provider,
+          })
+        );
+        const lastLog = logs[logs.length - 1];
+        if (lastLog && currentStatus === CurrentStatusEnum.WAITING_FOR_JOIN) {
+          const event = contract.interface.parseLog(lastLog);
+          await GameJoinedListener(event.args[0], event.args[1]);
+        }
+      }, PULL_DATA_TIME);
+    }
+
+    return () => {
+      interval && clearInterval(interval);
+    };
+  }, [contract, currentStatus, provider, joiner]);
 
   return {
     playerAddresses,
