@@ -229,10 +229,7 @@ export function useGame() {
         cardIdx,
         dealProof,
         [decryptedData[0], decryptedData[1]],
-        [initDelta[0], initDelta[1]],
-        {
-          gasLimit: 2000000,
-        }
+        [initDelta[0], initDelta[1]]
       );
     } catch (error) {
       dealStatus.setIsSuccess(false);
