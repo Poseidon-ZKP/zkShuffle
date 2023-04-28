@@ -1,15 +1,12 @@
 import { useAccount, useConnect, useNetwork, useSwitchNetwork } from 'wagmi';
-import { MetaMaskConnector } from 'wagmi/connectors/metaMask';
 import React, { useEffect, useMemo } from 'react';
 import { useGame } from '../hooks/useGame';
 
 import { useResourceContext } from '../hooks/useResourceContext';
 import { formatAddress } from '../utils/common';
 import StatusItem from '../components/StatusItem';
-import { HarmanyTestnet } from '../config/chains';
 import { useRouter } from 'next/router';
 import { arbitrumGoerli } from 'wagmi/chains';
-import Button from '../components/Button';
 
 const CARD_VALUES: Record<string, number> = {
   A: 1,

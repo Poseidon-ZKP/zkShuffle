@@ -50,19 +50,16 @@ function useShowHandListener(
             provider: provider,
           })
         );
-        const lastLog = logs[logs.length - 1];
 
-        if (lastLog) {
-          const event = contract.interface.parseLog(lastLog);
-          console.log('Event name:', event.name);
-          console.log('event.args', event.args, event.args[0], event.args[1]);
-          await GameShowHandListener(
+        logs.forEach((log: any) => {
+          const event = contract.interface.parseLog(log);
+          GameShowHandListener(
             event.args[0],
             event.args[1],
             event.args[2],
             event.args[3]
           );
-        }
+        });
       }, PULL_DATA_TIME);
     } else {
       interval && clearInterval(interval);

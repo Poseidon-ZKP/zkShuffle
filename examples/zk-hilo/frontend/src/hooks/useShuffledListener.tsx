@@ -64,11 +64,11 @@ function useShuffledListener(
             provider: provider,
           })
         );
-        const lastLog = logs[logs.length - 1];
-        if (lastLog) {
-          const event = contract.interface.parseLog(lastLog);
+
+        logs.forEach((log: any) => {
+          const event = contract.interface.parseLog(log);
           GameShuffledListener(event.args[0], event.args[1]);
-        }
+        });
       }, PULL_DATA_TIME);
     }
 

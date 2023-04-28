@@ -42,7 +42,6 @@ function useDealtListener(
       interval && clearInterval(interval);
     } else {
       interval = setInterval(async () => {
-        console.log('GameDealtListener');
         const logs = await provider.getLogs(
           getLogPrams({
             filter: filter,
@@ -50,11 +49,10 @@ function useDealtListener(
             provider: provider,
           })
         );
-        const lastLog = logs[logs.length - 1];
-        if (lastLog) {
-          const event = contract.interface.parseLog(lastLog);
+        logs.forEach((log: any) => {
+          const event = contract.interface.parseLog(log);
           GameDealtListener(event.args[0], event.args[1], event.args[2]);
-        }
+        });
       }, PULL_DATA_TIME);
     }
 

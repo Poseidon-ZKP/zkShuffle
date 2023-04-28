@@ -125,7 +125,6 @@ export function useGame() {
     try {
       shuffleStatus.setIsLoading(true);
       const [solidityProof, comData] = await handleQueryAggregatedPk(gameId);
-      debugger;
       let res = await shuffleStatus.run(solidityProof, comData, gameId);
 
       return res;
@@ -194,7 +193,7 @@ export function useGame() {
   const handleShowCard = async () => {
     try {
       showHandStatus.setIsLoading(true);
-      await sleep(isCreator ? 1000 : 8000);
+      await sleep(2000);
       const card = await contract?.queryCardInDeal(gameId, showIdx);
       const [showProof, showData] = await zkContext?.generateShowHandData(
         userPksAndsk?.sk as string,
@@ -202,14 +201,6 @@ export function useGame() {
         card
       );
 
-      console.log(
-        'showHandParams',
-        gameId,
-        showIdx,
-        showProof,
-        showData,
-        userPksAndsk
-      );
       await showHandStatus?.run(gameId, showIdx, showProof, [
         showData[0],
         showData[1],
@@ -224,7 +215,7 @@ export function useGame() {
   const handleDealHandCard = async () => {
     try {
       dealStatus.setIsLoading(true);
-      await sleep(isCreator ? 1000 : 8000);
+      await sleep(2000);
       const card = await contract?.queryCardFromDeck(gameId, cardIdx);
       const [dealProof, decryptedData, initDelta] =
         await zkContext?.generateDealData(
@@ -270,9 +261,8 @@ export function useGame() {
 
   const GameCreatedListener = async (arg1: any, arg2: any) => {
     try {
-      console.log('GameCreatedListener', arg1, arg2);
-      await sleep(2000);
-      // debugger;
+      await sleep(3000);
+
       const gameId = Number(arg1);
       const creatorAddress = arg2;
       setCreatorStatus((preStats) => {
@@ -406,7 +396,6 @@ export function useGame() {
     } else {
       interval = setInterval(
         async () => {
-          console.log('1111', 1111);
           // 获取最新的10个块的事件日志
           const fromBlock = (await provider.getBlockNumber()) - 15;
           const toBlock = 'latest';
@@ -447,7 +436,6 @@ export function useGame() {
       interval && clearInterval(interval);
     } else {
       interval = setInterval(async () => {
-        console.log('csacac');
         const logs = await provider.getLogs(
           getLogPrams({
             filter: filter,
