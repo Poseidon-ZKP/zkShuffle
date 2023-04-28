@@ -193,21 +193,28 @@ export function useGame() {
   const handleShowCard = async () => {
     try {
       showHandStatus.setIsLoading(true);
-      await sleep(2000);
+      await sleep(isCreator ? 2000 : 6000);
+
       const card = await contract?.queryCardInDeal(gameId, showIdx);
+      console.log('gameId', gameId);
+      console.log('showIdx', showIdx);
+      console.log('card', card);
+
       const [showProof, showData] = await zkContext?.generateShowHandData(
         userPksAndsk?.sk as string,
         userPksAndsk?.pk as string[],
         card
       );
 
-      await showHandStatus?.run(gameId, showIdx, showProof, [
-        showData[0],
-        showData[1],
+      await showHandStatus?.run(
+        gameId,
+        showIdx,
+        showProof,
+        [showData[0], showData[1]],
         {
           gasLimit: 2000000,
-        },
-      ]);
+        }
+      );
     } catch (error) {
       showHandStatus.setIsError(true);
       showHandStatus.setIsLoading(false);
@@ -341,7 +348,7 @@ export function useGame() {
       handleShowCard();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dealListenerStatus.creator, dealListenerStatus.joiner]);
+  }, [dealListenerStatus.creator, dealListenerStatus.joiner, showIdx]);
 
   //if both are finished shuffling, then deal
   useEffect(() => {

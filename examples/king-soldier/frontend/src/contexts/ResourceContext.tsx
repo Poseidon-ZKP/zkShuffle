@@ -12,19 +12,28 @@ import { getLocalKey, setLocalPK } from '../utils/store';
 
 const numBits = BigInt(251);
 
-export type RESOURCE_TYPE = 'shuffle_encrypt_v2' | 'decrypt';
+export type RESOURCE_TYPE =
+  | 'encrypt.wasm.5'
+  | 'decrypt.zkey'
+  | 'encrypt.zkey.5'
+  | 'decrypt.wasm';
 export type FILE_TYPE = 'wasm' | 'zkey';
 export type PublicKey = string[]; // should be 2 Uint8Arrays in 32 length
 export type Keys = { g: PublicKey; sk: string | string[]; pk: PublicKey };
 
 export function getResourcePath(resType: RESOURCE_TYPE, fileType: FILE_TYPE) {
-  return `https://p0x-labs.s3.amazonaws.com/${fileType}/${resType}.${fileType}`;
+  return `https://p0x-labs.s3.amazonaws.com/${fileType}/${resType}`;
 }
 
-const shuffleEncryptZkeyFile = getResourcePath('shuffle_encrypt_v2', 'zkey');
-const shuffleEncryptWasmFile = getResourcePath('shuffle_encrypt_v2', 'wasm');
-const decryptZkeyFile = getResourcePath('decrypt', 'zkey');
-const decryptWasmFile = getResourcePath('decrypt', 'wasm');
+const shuffleEncryptZkeyFile = getResourcePath('encrypt.zkey.5', 'zkey');
+const shuffleEncryptWasmFile = getResourcePath('encrypt.wasm.5', 'wasm');
+const decryptZkeyFile = getResourcePath('decrypt.zkey', 'zkey');
+const decryptWasmFile = getResourcePath('decrypt.wasm', 'wasm');
+
+console.log('shuffleEncryptZkeyFile', shuffleEncryptZkeyFile);
+console.log('shuffleEncryptWasmFile', shuffleEncryptWasmFile);
+console.log('decryptZkeyFile', decryptZkeyFile);
+console.log('decryptWasmFile', decryptWasmFile);
 
 export type ResourceContextStateType = {
   decryptWasmData: Uint8Array | null;

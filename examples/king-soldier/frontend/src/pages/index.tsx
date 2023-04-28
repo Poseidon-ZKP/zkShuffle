@@ -45,9 +45,7 @@ export default function Home() {
   const creator = router?.query?.creator as string;
   const joiner = router?.query?.joiner as string;
 
-  const { connect } = useConnect({
-    connector: new InjectedConnector(),
-  });
+  const { connect, connectors } = useConnect();
 
   const { chain } = useNetwork();
   const { address } = useAccount();
@@ -64,15 +62,19 @@ export default function Home() {
   const {
     isCreator,
     gameStatus,
+    gameId,
     createGameKingStatus,
     createGameSoldierStatus,
     creatorStatus,
     userPksAndsk,
     userCardType,
     joinerStatus,
+    joinGameStatus,
+    shuffleStatus,
     createGameStatus,
     handleGetBabyPk,
     handleGetContracts,
+    handleShuffle,
   } = useGame({
     address: address,
     creator: creator,
@@ -108,7 +110,7 @@ export default function Home() {
   const CreatorGameAreaUI = () => {
     return (
       <>
-        {!creatorStatus.createGame ? (
+        {!creatorStatus.createGame && (
           <div className="flex flex-col justify-center items-center gap-20">
             <div>I want to become</div>
             <div className="flex  gap-6">
@@ -140,8 +142,27 @@ export default function Home() {
               </Button>
             </div>
           </div>
-        ) : (
-          GameStatus.WAITING_FOR_JOIN
+        )}
+        {creatorStatus.createGame && (
+          <div className="flex flex-col justify-center items-center gap-20">
+            {joinerStatus.joinGame ? (
+              <div className="flex  gap-6">
+                {' '}
+                <Button
+                  isSuccess={shuffleStatus.isSuccess}
+                  isError={shuffleStatus.isError}
+                  isLoading={shuffleStatus.isLoading}
+                  onClick={() => {
+                    handleShuffle();
+                  }}
+                >
+                  shuffle
+                </Button>{' '}
+              </div>
+            ) : (
+              'Waiting'
+            )}
+          </div>
         )}
       </>
     );
@@ -154,20 +175,40 @@ export default function Home() {
           <div className="flex flex-col justify-center items-center gap-20">
             {creatorStatus.createGame ? (
               <Button
-                isSuccess={createGameStatus.isSuccess}
-                isError={createGameStatus.isError}
-                isLoading={createGameStatus.isLoading}
+                isSuccess={joinGameStatus.isSuccess}
+                isError={joinGameStatus.isError}
+                isLoading={joinGameStatus.isLoading}
                 onClick={() => {
-                  createGameStatus.run(
-                    [userPksAndsk?.pk[0], userPksAndsk?.pk[1]],
-                    userCardType
-                  );
+                  joinGameStatus.run(gameId, [
+                    userPksAndsk?.pk[0],
+                    userPksAndsk?.pk[1],
+                  ]);
                 }}
               >
                 JOIN
               </Button>
             ) : (
               ' Waiting for creator creating game'
+            )}
+          </div>
+        )}
+        {joinerStatus.joinGame && (
+          <div className="flex flex-col justify-center items-center gap-20">
+            {creatorStatus.creatorShuffled ? (
+              <div className="flex  gap-6">
+                <Button
+                  isSuccess={shuffleStatus.isSuccess}
+                  isError={shuffleStatus.isError}
+                  isLoading={shuffleStatus.isLoading}
+                  onClick={() => {
+                    handleShuffle();
+                  }}
+                >
+                  shuffle
+                </Button>
+              </div>
+            ) : (
+              'Waiting for creator shuffle'
             )}
           </div>
         )}
@@ -260,8 +301,10 @@ export default function Home() {
         <div className="flex flex-col  w-[82rem] h-[48rem]  bg-slate-800 shadow group rounded-2xl">
           {/* Creator */}
           <ul className="p-8">
-            <li> Address:{formatAddress(creator)}</li>
-            <li>Current Status:Not Created</li>
+            <li> Address:{formatAddress(creator)} </li>
+            <li>
+              Current Status:{gameId ? `gameId ${gameId}` : 'Not Created'}
+            </li>
           </ul>
 
           {/* GameArea */}

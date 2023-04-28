@@ -6,8 +6,10 @@ import { contracts as contractInfos } from '../const/contracts';
 
 import { PlayerInfos, getBabyjub, getPlayerPksAndSks } from '../utils/newUtils';
 import useWriteContract from './useWriteContract';
-import useEvent from './useEvent';
+import useEvent, { PULL_DATA_TIME } from './useEvent';
 import { useZKContext } from './useZKContext';
+import { useProvider } from 'wagmi';
+import { getLogPrams } from '../utils/contracts';
 
 export interface UseGameProps {
   creator: string;
@@ -50,7 +52,7 @@ function useGame({ creator, joiner, address }: UseGameProps) {
   });
 
   const zkContext = useZKContext();
-
+  const provider = useProvider();
   const isCreator = creator === address;
   const creatorCardType = cardType;
   const joinerCardType =
@@ -97,6 +99,7 @@ function useGame({ creator, joiner, address }: UseGameProps) {
 
   const joinGameListenerValues = useEvent({
     contract,
+    isStop: gameStatus !== GameStatus.WAITING_FOR_JOIN,
     filter: contract?.filters?.GameJoined(),
     addressIndex: 1,
     creator: creator,
@@ -151,6 +154,7 @@ function useGame({ creator, joiner, address }: UseGameProps) {
 
   const handleShuffle = async () => {
     try {
+      debugger;
       const key = await contract?.queryAggregatedPk(gameId, userCardType);
       const aggregatedPk = [key[0].toBigInt(), key[1].toBigInt()];
       const deck1 = await contract?.queryDeck(gameId, creatorCardType);
@@ -204,20 +208,13 @@ function useGame({ creator, joiner, address }: UseGameProps) {
           createGame: true,
         };
       });
-      joinGameStatus.run(
-        userPksAndsk?.pk[0],
-        userPksAndsk?.pk[1],
-        createGameListenerValues.creator[2] === CardType.KING
-          ? CardType.SOLDIER
-          : CardType.KING
-      );
     }
   }, [createGameListenerValues.creator]);
 
   //finished joining game
 
   useEffect(() => {
-    if (createGameListenerValues.joiner) {
+    if (joinGameListenerValues.joiner) {
       setGameStatus(GameStatus.WAITING_FOR_CREATOR_SHUFFLE);
       setJoinerStatus((prev) => {
         return {
@@ -227,34 +224,12 @@ function useGame({ creator, joiner, address }: UseGameProps) {
       });
     }
     return () => {};
-  }, [
-    createGameListenerValues.creator,
-    createGameListenerValues.joiner,
-    joinGameListenerValues.creator,
-  ]);
-
+  }, [joinGameListenerValues.joiner]);
   useEffect(() => {
     if (shuffleDeckListenerValues.creator && shuffleDeckListenerValues.joiner) {
       // TODO
     }
   }, [shuffleDeckListenerValues.creator, shuffleDeckListenerValues.joiner]);
-
-  useEffect(() => {
-    if (!contract) return;
-
-    const Listener = async (...args: any[]) => {
-      try {
-        console.log(`listen createGame`);
-        console.log('args', args);
-      } catch (error) {
-        console.log(error, error);
-      }
-    };
-    contract?.on('GameCreated', Listener);
-    return () => {
-      contract?.off('GameCreated', Listener);
-    };
-  }, [contract, creator, joiner]);
 
   return {
     isCreator,
@@ -262,11 +237,14 @@ function useGame({ creator, joiner, address }: UseGameProps) {
     createGameKingStatus,
     createGameSoldierStatus,
     joinGameStatus,
+    shuffleStatus,
+    gameId,
     userPksAndsk,
     creatorStatus,
     userCardType,
     joinerStatus,
     createGameStatus,
+    handleShuffle,
     handleGetBabyPk,
     handleGetContracts,
   };
