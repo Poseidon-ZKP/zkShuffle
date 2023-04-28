@@ -201,13 +201,15 @@ export function useGame() {
         card
       );
 
-      await showHandStatus?.run(gameId, showIdx, showProof, [
-        showData[0],
-        showData[1],
+      await showHandStatus?.run(
+        gameId,
+        showIdx,
+        showProof,
+        [showData[0], showData[1]],
         {
-          gasLimit: 2000000,
-        },
-      ]);
+          gasLimit: 20000000,
+        }
+      );
     } catch (error) {
       showHandStatus.setIsError(true);
       showHandStatus.setIsLoading(false);
@@ -234,7 +236,7 @@ export function useGame() {
         [decryptedData[0], decryptedData[1]],
         [initDelta[0], initDelta[1]],
         {
-          gasLimit: 2000000,
+          gasLimit: 20000000,
         }
       );
     } catch (error) {
