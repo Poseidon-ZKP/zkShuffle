@@ -5,7 +5,7 @@ import { buildBabyjub } from 'circomlibjs';
 import { contracts as contractInfos } from '../const/contracts';
 import { PlayerInfos, getBabyjub, getPlayerPksAndSks } from '../utils/newUtils';
 import { Contract, ethers } from 'ethers';
-import { useAccount } from 'wagmi';
+import { useAccount, useProvider } from 'wagmi';
 import { useZKContext } from './useZKContext';
 import useDealtListener from './useDealtListener';
 import useShowHandListener from './useShowHandListener';
@@ -51,6 +51,7 @@ export const defaultCreatorStatus = {
 
 export function useGame() {
   const router = useRouter();
+  const provider = useProvider();
   const creator = router?.query?.creator as string;
   const joiner = router?.query?.joiner as string;
   const [currentStatus, setCurrentStatus] = useState<CurrentStatusEnum>(
@@ -379,7 +380,7 @@ export function useGame() {
     return () => {
       contract?.off('GameCreated', GameCreatedListener);
     };
-  }, [address, contract, creator, joinGameStatus, joiner, userPksAndsk?.pk]);
+  }, [userPksAndsk?.pk]);
 
   // game JoinListener
   useEffect(() => {
@@ -401,6 +402,24 @@ export function useGame() {
       contract?.off('GameJoined', GameJoinedListener);
     };
   }, [contract, joiner]);
+
+  useEffect(() => {
+    if (!provider) return;
+    // const filter = contract?.filters?.GameCreated();
+    console.log('contract', contract);
+    const filter = {
+      address: contract?.address,
+      topics: contract?.interface.getEventTopic('GameCreated'),
+      fromBlock: 0,
+      toBlock: 'latest',
+    };
+
+    // setInterval(async () => {
+    //   const logs = await provider.getLogs();
+    //   console.log(logs);
+    // }, 5000);
+  }, [provider, contract]);
+
   return {
     playerAddresses,
     contract,

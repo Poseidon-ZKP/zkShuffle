@@ -1,5 +1,7 @@
 import { PropsWithChildren } from 'react';
 import { publicProvider } from 'wagmi/providers/public';
+import { jsonRpcProvider } from 'wagmi/providers/jsonRpc';
+
 import '@rainbow-me/rainbowkit/styles.css';
 
 import { RainbowKitProvider, darkTheme } from '@rainbow-me/rainbowkit';
@@ -8,7 +10,16 @@ import { HarmanyTestnet } from '../config/chains';
 
 const { chains, provider } = configureChains(
   [HarmanyTestnet],
-  [publicProvider()]
+
+  [
+    jsonRpcProvider({
+      rpc: () => ({
+        http: `https://api.s0.b.hmny.io`,
+      }),
+    }),
+
+    publicProvider(),
+  ]
 );
 
 const wagmiClient = createClient({
