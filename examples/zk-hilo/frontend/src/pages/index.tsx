@@ -1,6 +1,5 @@
-import { InjectedConnector } from 'wagmi/connectors/injected';
 import { useAccount, useConnect, useNetwork, useSwitchNetwork } from 'wagmi';
-
+import { MetaMaskConnector } from 'wagmi/connectors/metaMask';
 import React, { useEffect, useMemo } from 'react';
 import { useGame } from '../hooks/useGame';
 
@@ -9,6 +8,7 @@ import { formatAddress } from '../utils/common';
 import StatusItem from '../components/StatusItem';
 import { HarmanyTestnet } from '../config/chains';
 import { useRouter } from 'next/router';
+import { arbitrumGoerli } from 'wagmi/chains';
 import Button from '../components/Button';
 
 const CARD_VALUES: Record<string, number> = {
@@ -38,14 +38,13 @@ export const createDeck = () => {
 };
 
 export default function Home() {
-  const { connect } = useConnect({
-    connector: new InjectedConnector(),
-  });
+  const { connect, connectors } = useConnect();
+
   const router = useRouter();
   const { chain } = useNetwork();
   const { address } = useAccount();
   const { error, isLoading, pendingChainId, switchNetwork } = useSwitchNetwork({
-    chainId: HarmanyTestnet.id,
+    chainId: arbitrumGoerli.id,
   });
 
   const resourceContext = useResourceContext();
@@ -150,7 +149,9 @@ export default function Home() {
         <div className="text-2xl font-medium">please connect wallet first</div>
         <div
           onClick={() => {
-            connect();
+            connect({
+              connector: connectors[0],
+            });
           }}
           className="px-6 py-2 hover:opacity-70 text-base font-medium rounded-lg bg-slate-100 text-slate-900  text-center cursor-pointer dark:bg-slate-600 dark:text-slate-400 dark:highlight-white/10"
         >
@@ -160,11 +161,11 @@ export default function Home() {
     );
   }
 
-  if (chain?.id !== HarmanyTestnet.id) {
+  if (chain?.id !== arbitrumGoerli.id) {
     return (
       <div className=" flex flex-col gap-10  h-screen items-center justify-center  text-2xl font-medium bg-slate-900 ">
         <div className="text-2xl font-medium">
-          Only support Harmany test network now
+          Only support Arbitrum Goerli test network now
         </div>
         <div
           onClick={() => {
@@ -176,7 +177,7 @@ export default function Home() {
           }}
           className="px-6 py-2 text-base font-medium rounded-lg bg-slate-100 text-slate-900  text-center cursor-pointer dark:bg-slate-600 dark:text-slate-400 dark:highlight-white/10 hover:opacity-70"
         >
-          Switch to Harmany test
+          Switch to Arbitrum Goerli test
         </div>
       </div>
     );

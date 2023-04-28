@@ -2,7 +2,7 @@ import ShuffleContract from '../../../contracts/artifacts/contracts/shuffle/shuf
 import HiLo from '../../../contracts/artifacts/contracts/game/HiLo.sol/HiLo.json';
 import Broadcast from '../../../contracts/broadcast/latest.json';
 
-export const contractAddress = '0xAB4E623e127AEA40458186f688Ff1574f707B0Fe';
+export const contractAddress = '0x22c284b67e36AdbA061909039E6c53e5961dbBF0';
 export const contracts = {
   // HiLoToken: {
   //   address: Broadcast.HiLoToken,

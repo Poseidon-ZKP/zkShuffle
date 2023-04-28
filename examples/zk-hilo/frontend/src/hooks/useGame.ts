@@ -403,6 +403,32 @@ export function useGame() {
     };
   }, [contract, joiner]);
 
+  useEffect(() => {
+    if (!contract) return;
+    const filter = contract.filters.GameCreated();
+
+    const interval = setInterval(async () => {
+      // 获取最新的10个块的事件日志
+      const fromBlock = (await provider.getBlockNumber()) - 10;
+      const toBlock = 'latest';
+      const logs = await provider.getLogs({
+        address: contract?.address,
+        fromBlock,
+        toBlock,
+        topics: filter.topics,
+      });
+      logs.forEach((log) => {
+        const event = contract.interface.parseLog(log);
+        console.log('Event name:', event.name);
+        console.log('Event arguments:', event.args);
+      });
+    }, 5000); // 每5秒查询一次事件
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [contract]);
+
   return {
     playerAddresses,
     contract,
