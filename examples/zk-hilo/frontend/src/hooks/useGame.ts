@@ -403,23 +403,6 @@ export function useGame() {
     };
   }, [contract, joiner]);
 
-  useEffect(() => {
-    if (!provider) return;
-    // const filter = contract?.filters?.GameCreated();
-    console.log('contract', contract);
-    const filter = {
-      address: contract?.address,
-      topics: contract?.interface.getEventTopic('GameCreated'),
-      fromBlock: 0,
-      toBlock: 'latest',
-    };
-
-    // setInterval(async () => {
-    //   const logs = await provider.getLogs();
-    //   console.log(logs);
-    // }, 5000);
-  }, [provider, contract]);
-
   return {
     playerAddresses,
     contract,
