@@ -17,10 +17,12 @@ struct ShuffleGameInfo {
 
 struct ShuffleGameState {
     BaseState state;
+    uint8 openning;
     uint256 curPlayerIndex;
     uint256 aggregatePkX;
     uint256 aggregatePkY;
     uint256 nonce;
+    mapping (uint256 => uint256) playerHand;
     address[] playerAddrs;
     address[] signingAddrs;
     uint256[] playerPkX;
@@ -81,7 +83,7 @@ contract ShuffleManager is IBaseStateManager, Ownable {
         ShuffleGameState storage state = gameStates[gameId];
         require(
             msg.sender == state.playerAddrs[state.curPlayerIndex] ||
-            msg.sender == state.signingAddrs[state.curPlayerIndex],
+                msg.sender == state.signingAddrs[state.curPlayerIndex],
             "not your turn!"
         );
         _;
@@ -89,6 +91,7 @@ contract ShuffleManager is IBaseStateManager, Ownable {
 
     /**
      * create a new shuffle game
+     * TODO: decide this function to be called by SDK or game contract
      */
     function createShuffleGame(
         ShuffleGameInfo memory gameInfo,
@@ -118,7 +121,7 @@ contract ShuffleManager is IBaseStateManager, Ownable {
     }
 
     /**
-     * enter register state, can only be called by game owner
+     * [Game Contract]: enter register state, can only be called by game owner
      * currently, we only support player registering during the beginning of the game
      */
     function register(uint256 gameId, bytes calldata next)
@@ -132,8 +135,7 @@ contract ShuffleManager is IBaseStateManager, Ownable {
     }
 
     /**
-     * register, called by player (SDK)
-     * TODO: revist why do we need a playerAddress here
+     * [SDK]: register, called by player
      * Note: we don't need to check turn here
      */
     function playerRegister(
@@ -176,12 +178,12 @@ contract ShuffleManager is IBaseStateManager, Ownable {
                 state.aggregatePkY,
                 CurveBabyJubJub.Q
             );
-            callGameContract(gameId);
+            _callGameContract(gameId);
         }
     }
 
     /**
-     * enter shuffle state, can only be called by game owner
+     * [Game Contract]: enter shuffle state, can only be called by game owner
      */
     function shuffle(uint256 gameId, bytes calldata next)
         external
@@ -193,7 +195,7 @@ contract ShuffleManager is IBaseStateManager, Ownable {
     }
 
     /**
-     * shuffle, called by each player (SDK)
+     * [SDK]: shuffle, called by each player 
      */
     function playerShuffle(
         uint256 gameId,
@@ -218,12 +220,12 @@ contract ShuffleManager is IBaseStateManager, Ownable {
         state.curPlayerIndex += 1;
         if (state.curPlayerIndex == state.playerAddrs.length) {
             state.curPlayerIndex = 0;
-            callGameContract(gameId);
+            _callGameContract(gameId);
         }
     }
 
     /**
-     * can only called by game contract,
+     * [Game Contract]: can only called by game contract,
      * specifiy a set of cards to be dealed to a players
      */
     function dealCardsTo(
@@ -237,16 +239,17 @@ contract ShuffleManager is IBaseStateManager, Ownable {
         // this check could removed if we formally verified the contract
         require(state.curPlayerIndex == 0, "internal erorr! ");
         require(
-            playerId < gameInfos[gameId].numPlayers, 
-            "game contract error: deal card to an invalid player id");
-        
+            playerId < gameInfos[gameId].numPlayers,
+            "game contract error: deal card to an invalid player id"
+        );
+
         // change to Play state if not already in the state
-        if (state.state != BaseState.Play) {
-            state.state = BaseState.Play;
+        if (state.state != BaseState.Deal) {
+            state.state = BaseState.Deal;
         }
         state.deck.cardsToDeal = cards;
         state.deck.playerToDeal = playerId;
-        
+
         // we assume a game must have at least 2 or more players,
         // otherwise the game should stop
         if (playerId == 0) {
@@ -256,17 +259,20 @@ contract ShuffleManager is IBaseStateManager, Ownable {
     }
 
     /**
-     * deal (draw) card from each player (SDK)
+     * [SDK]: deal (draw) card from each player
      */
     function playerDealCards(
         uint256 gameId,
         DecryptProof[] memory proofs,
         Card[] memory decryptedCards,
         uint256[2][] memory initDeltas
-    ) external checkState(gameId, BaseState.Play) checkTurn(gameId) {
+    ) external checkState(gameId, BaseState.Deal) checkTurn(gameId) {
         ShuffleGameInfo memory info = gameInfos[gameId];
         ShuffleGameState storage state = gameStates[gameId];
-        uint256 numberCardsToDeal = BitMaps.memberCountUpTo(state.deck.cardsToDeal, info.numCards);
+        uint256 numberCardsToDeal = BitMaps.memberCountUpTo(
+            state.deck.cardsToDeal,
+            info.numCards
+        );
         require(
             proofs.length == numberCardsToDeal,
             "number of proofs is wrong!"
@@ -276,29 +282,37 @@ contract ShuffleManager is IBaseStateManager, Ownable {
             "number of decrypted cards is wrong!"
         );
         require(
-            initDeltas[0].length == numberCardsToDeal && initDeltas[0].length == numberCardsToDeal,
+            initDeltas[0].length == numberCardsToDeal &&
+                initDeltas[0].length == numberCardsToDeal,
             "init delta's shape is invalid!"
         );
         uint256 counter = 0;
         for (uint256 cid = 0; cid < uint256(info.numCards); cid++) {
             if (BitMaps.get(state.deck.cardsToDeal, cid)) {
                 // update decrypted card
-                _updateDecryptedCard(gameId, cid, proofs[counter], decryptedCards[counter], initDeltas[counter]);
-                counter ++;
+                _updateDecryptedCard(
+                    gameId,
+                    cid,
+                    proofs[counter],
+                    decryptedCards[counter],
+                    initDeltas[counter]
+                );
+                counter++;
             }
         }
-        state.curPlayerIndex ++;
+        state.curPlayerIndex++;
         if (state.curPlayerIndex == state.deck.playerToDeal) {
-            state.curPlayerIndex ++;
+            state.curPlayerIndex++;
         }
         if (state.curPlayerIndex == info.numPlayers) {
             state.curPlayerIndex = 0;
-            callGameContract(gameId);
+            state.playerHand[state.deck.playerToDeal] ++;
+            _callGameContract(gameId);
         }
     }
 
     /**
-     * update a decrypted card.
+     * [Internal]: update a decrypted card.
      */
     function _updateDecryptedCard(
         uint256 gameId,
@@ -310,18 +324,20 @@ contract ShuffleManager is IBaseStateManager, Ownable {
         ShuffleGameState storage state = gameStates[gameId];
         require(
             BitMaps.get(state.deck.dealRecord[cardIndex], state.curPlayerIndex),
-            "Card has been dealt to this player already"
+            "This player has decrypted this card already"
         );
         // recover Y0 and Y1 from the current X0 and X1
         state.deck.Y0[cardIndex] = CurveBabyJubJub.recoverY(
-            state.deck.X0[cardIndex], 
+            state.deck.X0[cardIndex],
             initDelta[0],
-            BitMaps.get(state.deck.selector0, cardIndex));
+            BitMaps.get(state.deck.selector0, cardIndex)
+        );
         state.deck.Y1[cardIndex] = CurveBabyJubJub.recoverY(
             state.deck.X1[cardIndex],
             initDelta[1],
-            BitMaps.get(state.deck.selector1, cardIndex));
-        
+            BitMaps.get(state.deck.selector1, cardIndex)
+        );
+
         decryptVerifier.verifyProof(proof.A, proof.B, proof.C, proof.PI);
         // update X1 and Y1 in the deck
         state.deck.X1[cardIndex] = decryptedCard.X;
@@ -329,12 +345,77 @@ contract ShuffleManager is IBaseStateManager, Ownable {
         BitMaps.set(state.deck.dealRecord[state.curPlayerIndex], cardIndex);
     }
 
-    function error(uint256 gameId, bytes calldata next) external {}
+    // [Game Contract]: specify a player to open a number of cards
+    function openCards(
+        uint256 gameId,
+        uint256 playerId,
+        uint8 openningNum,
+        bytes calldata next
+    ) external gameOwner(gameId) checkState(gameId, BaseState.Open) {
+        ShuffleGameState storage state = gameStates[gameId];
+        require(openningNum <= state.playerHand[playerId], "don't have enough card to open");
+        state.openning = openningNum;
+        state.curPlayerIndex = playerId;
+        nextToCall[gameId] = next;
+    }
 
-    function initDeck(uint256 gameId) internal {}
+    // [SDK]: player open one or more cards
+    function playerOpenCards(
+        uint256 gameId,
+        BitMaps.BitMap256 memory cards,
+        DecryptProof[] memory proofs,
+        Card[] memory decryptedCards
+    ) external checkState(gameId, BaseState.Open) checkTurn(gameId) {
+        ShuffleGameInfo memory info = gameInfos[gameId];
+        ShuffleGameState storage state = gameStates[gameId];
+        uint256 numberCardsToOpen = BitMaps.memberCountUpTo(
+            state.deck.cardsToDeal,
+            info.numCards
+        );
+        require(numberCardsToOpen == state.openning, "cards passed by player doesn't match number to open");
+        require(
+            proofs.length == numberCardsToOpen,
+            "number of proofs is wrong!"
+        );
+        require(
+            decryptedCards.length == numberCardsToOpen,
+            "number of decrypted cards is wrong!"
+        );
+        uint[2] memory dummy = [uint(0), uint(0)];
+        uint256 counter = 0;
+        for (uint256 cid = 0; cid < uint256(info.numCards); cid++) {
+            if (BitMaps.get(cards, cid)) {
+                // update decrypted card
+                _updateDecryptedCard(
+                    gameId,
+                    cid,
+                    proofs[counter],
+                    decryptedCards[counter],
+                    dummy
+                );
+                counter++;
+            }
+        }
+        // reset the openning register
+        state.openning = 0;
+        // update players handcard status
+        state.playerHand[state.curPlayerIndex] --;
+        // call the next action
+        _callGameContract(gameId);
+    }
+
+    // goes into error state
+    function error(uint256 gameId, bytes calldata next)
+        external
+        gameOwner(gameId)
+    {
+        gameStates[gameId].state = BaseState.GameError;
+        nextToCall[gameId] = next;
+        _callGameContract(gameId);
+    }
 
     // switch control to game contract, set the game to error state if the contract call failed
-    function callGameContract(uint256 gameId) internal {
+    function _callGameContract(uint256 gameId) internal {
         (bool success, bytes memory data) = _activeGames[gameId].call(
             nextToCall[gameId]
         );
@@ -342,5 +423,9 @@ contract ShuffleManager is IBaseStateManager, Ownable {
             emit GameContractCallError(_activeGames[gameId], data);
             gameStates[gameId].state = BaseState.GameError;
         }
+    }
+
+    function _initDeck(uint256 gameId) internal {
+        
     }
 }

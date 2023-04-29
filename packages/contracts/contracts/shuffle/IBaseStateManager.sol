@@ -16,7 +16,8 @@ enum BaseState {
     Created,
     Registration,
     Shuffle,
-    Play,
+    Deal,
+    Open,
     GameError,
     Complete
 }
@@ -29,11 +30,7 @@ interface IBaseStateManager {
     function register(uint256 gameId, bytes calldata next) external;
 
     // deal a set of cards to a specific player
-    // Currently, dealCardsTo can only be called under two states:
-    // 1. Shuffle state, this will transit to Play state
-    // 2. Play state
     // An error is thrown if dealCardsTo is called under any other states
-    // TODO: here we could use bitmap? to save some gas cost
     function dealCardsTo(
         uint256 gameId,
         BitMaps.BitMap256 memory cards,
@@ -44,6 +41,14 @@ interface IBaseStateManager {
     // shuffle the remaining deck, this will transit the base state to Shuffle
     function shuffle(uint256 gameId, bytes calldata next) external;
 
-    // transit to error state
+    // specify a player to open a specified number of cards
+    function openCards(
+        uint256 gameId,
+        uint256 playerId,
+        uint8 openningNum,
+        bytes calldata next
+    ) external;
+
+    // transit to error state, game devs call specify error handling logic in the callback
     function error(uint256 gameId, bytes calldata next) external;
 }
