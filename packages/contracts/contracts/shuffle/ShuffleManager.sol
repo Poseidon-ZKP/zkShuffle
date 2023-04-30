@@ -9,12 +9,14 @@ import "./Deck.sol";
 import "./IBaseGame.sol";
 import "./BitMaps.sol";
 
+// immutable information of each game
 struct ShuffleGameInfo {
     uint8 numCards;
     uint8 numPlayers;
     IShuffleEncryptVerifier encryptVerifier;
 }
 
+// mutable state of each game
 struct ShuffleGameState {
     BaseState state;
     uint8 openning;
@@ -63,6 +65,12 @@ contract ShuffleManager is IBaseStateManager, Ownable {
     // counter of gameID
     uint256 public largestGameId;
 
+    event PlayerTurn (
+        uint256 gameId;
+        uint256 playerIndex;
+        BaseState.State state;
+    );
+
     // check whether the caller is the game owner
     modifier gameOwner(uint256 gameId) {
         require(
@@ -89,6 +97,25 @@ contract ShuffleManager is IBaseStateManager, Ownable {
         _;
     }
 
+    // get number of card of a gameId
+    function gameCardNum(uint256 gameId) public view override returns(uint256) {
+        require(gameId <= largestGameId, "Invalid gameId");
+        return gameInfos[gameId].numCards;
+    }
+
+    // get the current player index (who need to take action)
+    function curPlayerIndex(uint256 gameId) public view override returns(uint256) {
+        require(gameId <= largestGameId, "Invalid gameId");
+        return gameStates[gameId].curPlayerIndex;
+    }
+
+    // get decrypt record of a single card
+    function gameCardDecryptRecord(uint256 gameId, uint256 cardIdx) public view override returns(BitMaps.BitMap256) {
+        require(gameId <= largestGameId, "Invalid gameId");
+        require(cardIdx < gameInfos[gameId].numCards, "Invalid cardIdx");
+        return gameStates[gameId].deck.decryptRecord[cardIdx];
+    }
+
     /**
      * create a new shuffle game
      * TODO: decide this function to be called by SDK or game contract
@@ -103,6 +130,8 @@ contract ShuffleManager is IBaseStateManager, Ownable {
         // an intialization logic of gameStates[newGameId]?
         _activeGames[newGameId] = gameContract;
 
+        ShuffleGameState storage state = gameStates[newGameId];
+
         // set up verifier contract according to deck type
         if (IBaseGame(gameContract).cardConfig() == DeckConfig.Deck30Card) {
             gameInfos[newGameId].encryptVerifier = IShuffleEncryptVerifier(
@@ -115,8 +144,12 @@ contract ShuffleManager is IBaseStateManager, Ownable {
                 _deck52EncVerifier
             );
         } else {
-            gameStates[newGameId].state = BaseState.GameError;
+            state = BaseState.GameError;
         }
+
+        // init deck
+        zkShuffleCrypto.initDeck(state.deck);
+
         return newGameId;
     }
 
@@ -188,10 +221,12 @@ contract ShuffleManager is IBaseStateManager, Ownable {
     function shuffle(uint256 gameId, bytes calldata next)
         external
         gameOwner(gameId)
-    {
+    {   
+        require(state.curPlayerIndex == 0, "wrong player index to start shuffle");
         ShuffleGameState storage state = gameStates[gameId];
         state.state = BaseState.Shuffle;
         nextToCall[gameId] = next;
+        emit PlayerTurn(gameId, state.curPlayerIndex, BaseState.Shuffle);
     }
 
     /**
@@ -218,9 +253,13 @@ contract ShuffleManager is IBaseStateManager, Ownable {
         );
         zkShuffleCrypto.setDeckUnsafe(compDeck, state.deck);
         state.curPlayerIndex += 1;
+        // end shuffle state and execute call back
+        // if this is the last player to shuffle
         if (state.curPlayerIndex == state.playerAddrs.length) {
             state.curPlayerIndex = 0;
             _callGameContract(gameId);
+        } else {
+            emit PlayerTurn(gameId, state.curPlayerIndex, BaseState.Shuffle);
         }
     }
 
@@ -256,6 +295,7 @@ contract ShuffleManager is IBaseStateManager, Ownable {
             state.curPlayerIndex = 1;
         }
         nextToCall[gameId] = next;
+        emit PlayerTurn(gameId, state.curPlayerIndex, BaseState.Deal);
     }
 
     /**
@@ -308,6 +348,8 @@ contract ShuffleManager is IBaseStateManager, Ownable {
             state.curPlayerIndex = 0;
             state.playerHand[state.deck.playerToDeal] ++;
             _callGameContract(gameId);
+        } else {
+            emit PlayerTurn(gameId, state.curPlayerIndex, BaseState.Deal);
         }
     }
 
@@ -323,7 +365,7 @@ contract ShuffleManager is IBaseStateManager, Ownable {
     ) internal {
         ShuffleGameState storage state = gameStates[gameId];
         require(
-            BitMaps.get(state.deck.dealRecord[cardIndex], state.curPlayerIndex),
+            BitMaps.get(state.deck.decryptRecord[cardIndex], state.curPlayerIndex),
             "This player has decrypted this card already"
         );
         // recover Y0 and Y1 from the current X0 and X1
@@ -342,7 +384,7 @@ contract ShuffleManager is IBaseStateManager, Ownable {
         // update X1 and Y1 in the deck
         state.deck.X1[cardIndex] = decryptedCard.X;
         state.deck.Y1[cardIndex] = decryptedCard.Y;
-        BitMaps.set(state.deck.dealRecord[state.curPlayerIndex], cardIndex);
+        BitMaps.set(state.deck.decryptRecord[state.curPlayerIndex], cardIndex);
     }
 
     // [Game Contract]: specify a player to open a number of cards
@@ -357,6 +399,7 @@ contract ShuffleManager is IBaseStateManager, Ownable {
         state.openning = openningNum;
         state.curPlayerIndex = playerId;
         nextToCall[gameId] = next;
+        emit PlayerTurn(gameId, playerId, BaseState.Open);
     }
 
     // [SDK]: player open one or more cards
@@ -425,7 +468,4 @@ contract ShuffleManager is IBaseStateManager, Ownable {
         }
     }
 
-    function _initDeck(uint256 gameId) internal {
-        
-    }
 }
