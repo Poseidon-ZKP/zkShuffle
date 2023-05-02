@@ -4,11 +4,13 @@ pragma solidity >=0.8.2 <0.9.0;
 
 import "./Deck.sol";
 
+// immutable information of each game
+struct ShuffleGameInfo {
+    uint8 numCards;
+    uint8 numPlayers;
+    IShuffleEncryptVerifier encryptVerifier;
+}
 
 interface IBaseGame {
     function cardConfig() external view returns (DeckConfig);
-    function newGame(uint numPlayers) external returns (uint gid);
-    function joinGame(address account, uint gameId) external;
-    function shuffle(uint gameId) external;
-    function startGame(uint gameId) external;
 }

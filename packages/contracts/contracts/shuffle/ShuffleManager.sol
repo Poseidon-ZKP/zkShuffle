@@ -9,13 +9,6 @@ import "./Deck.sol";
 import "./IBaseGame.sol";
 import "./BitMaps.sol";
 
-// immutable information of each game
-struct ShuffleGameInfo {
-    uint8 numCards;
-    uint8 numPlayers;
-    IShuffleEncryptVerifier encryptVerifier;
-}
-
 // mutable state of each game
 struct ShuffleGameState {
     BaseState state;
@@ -117,18 +110,14 @@ contract ShuffleManager is IBaseStateManager, Ownable {
     }
 
     /**
-     * create a new shuffle game
-     * TODO: decide this function to be called by SDK or game contract
+     * create a new shuffle game (call by the game contract)
      */
-    function createShuffleGame(
-        ShuffleGameInfo memory gameInfo,
-        address gameContract
-    ) external returns (uint256) {
+    function createShuffleGame(uint8 numPlayers) external returns (uint256) {
         uint256 newGameId = ++largestGameId;
         gameInfos[newGameId] = gameInfo;
         // TODO: do we need to explicit start
         // an intialization logic of gameStates[newGameId]?
-        _activeGames[newGameId] = gameContract;
+        _activeGames[newGameId] = msg.sender;
 
         ShuffleGameState storage state = gameStates[newGameId];
 
@@ -154,16 +143,6 @@ contract ShuffleManager is IBaseStateManager, Ownable {
     }
 
     /**
-     * [SDK]: createGame, called by player
-     */
-    function playerCreateGame(IBaseGame game, uint numPlayers) external returns (uint gid) {
-        // call game-spcific newGameHandler[game]
-        game.newGame(numPlayers);
-
-        // TODO: call createShuffleGame
-    }
-
-    /**
      * [Game Contract]: enter register state, can only be called by game owner
      * currently, we only support player registering during the beginning of the game
      */
@@ -186,7 +165,7 @@ contract ShuffleManager is IBaseStateManager, Ownable {
         address signingAddr,
         uint256 pkX,
         uint256 pkY
-    ) external returns (uint256 pid) {
+    ) external checkState(gameId, BaseState.Register) returns (uint256 pid) {
         require(CurveBabyJubJub.isOnCurve(pkX, pkY), "Invalid public key");
         ShuffleGameInfo memory info = gameInfos[gameId];
         ShuffleGameState storage state = gameStates[gameId];

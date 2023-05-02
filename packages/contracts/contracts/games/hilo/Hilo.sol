@@ -11,15 +11,11 @@ import "../../shuffle/IBaseStateManager.sol";
 contract Hilo is IBaseGame {
     IBaseStateManager ishuffle;
 
-    // check whether the caller is the shuffle Manager
-    modifier onlyShuffleManager() {
-        require(address(ishuffle) == msg.sender, "Caller is not shuffle manager.");
-        _;
-    }
-
     function cardConfig() external override pure returns (DeckConfig) {
         return DeckConfig.Deck52Card;
     }
+
+    bool created;
 
     constructor(
         IBaseStateManager _ishuffle
@@ -27,30 +23,19 @@ contract Hilo is IBaseGame {
         ishuffle = _ishuffle;
     }
 
-    // only trigger by shuffleStateManager, else SDK need operate with gameContract,
-    function newGame(
-        uint numPlayers
-    ) external override onlyShuffleManager returns (uint gid) {
-        // game-specific logic ?
+    // create a new game by a player 
+    function newGame() {
+        uint256 gameId = ishuffle.createShuffleGame(2);
+        created = true;
+        // move the game into "Player Registering" State, 
+        // a.k.a. BaseState.Register
+        ishuffle.register(gameId, abi.encode("moveToShuffleStage"));
     }
-
-    function joinGame(
-        address account,
+    
+    function moveToShuffleStage(
         uint gameId
-    ) external override onlyShuffleManager  {
-        // game-specific join logic
-    }
-
-    function shuffle(
-        uint gameId
-    ) external override onlyShuffleManager  {
-        // game-specific join logic
-    }
-
-    function startGame(
-        uint gameId
-    ) external override onlyShuffleManager {
-        dealCard0ToPlayer0(gameId);
+    ) internal {
+        ishuffle.shuffle(gameId, abi.encode("dealCard0ToPlayer0"));
     }
 
     function dealCard0ToPlayer0(
@@ -65,7 +50,6 @@ contract Hilo is IBaseGame {
             0,
             next
         );
-
     }
 
     function dealCard1ToPlayer1(
