@@ -154,6 +154,16 @@ contract ShuffleManager is IBaseStateManager, Ownable {
     }
 
     /**
+     * [SDK]: createGame, called by player
+     */
+    function playerCreateGame(IBaseGame game, uint numPlayers) external returns (uint gid) {
+        // call game-spcific newGameHandler[game]
+        game.newGame(numPlayers);
+
+        // TODO: call createShuffleGame
+    }
+
+    /**
      * [Game Contract]: enter register state, can only be called by game owner
      * currently, we only support player registering during the beginning of the game
      */
