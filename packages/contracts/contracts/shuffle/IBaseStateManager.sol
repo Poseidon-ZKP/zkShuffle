@@ -51,4 +51,10 @@ interface IBaseStateManager {
 
     // transit to error state, game devs call specify error handling logic in the callback
     function error(uint256 gameId, bytes calldata next) external;
+
+    // public view function
+    function gameCardNum(uint256 gameId) external view returns(uint256);
+    function curPlayerIndex(uint gameId) external view returns(uint);
+    //function gameStatus(uint gameId) external view returns(uint);
+    function gameCardDecryptRecord(uint gameId, uint cardIdx) external view returns(BitMaps.BitMap256 memory);
 }

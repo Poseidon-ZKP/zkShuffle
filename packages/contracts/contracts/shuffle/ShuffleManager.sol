@@ -66,9 +66,9 @@ contract ShuffleManager is IBaseStateManager, Ownable {
     uint256 public largestGameId;
 
     event PlayerTurn (
-        uint256 gameId;
-        uint256 playerIndex;
-        BaseState.State state;
+        uint256 gameId,
+        uint256 playerIndex,
+        BaseState state
     );
 
     // check whether the caller is the game owner
@@ -110,7 +110,7 @@ contract ShuffleManager is IBaseStateManager, Ownable {
     }
 
     // get decrypt record of a single card
-    function gameCardDecryptRecord(uint256 gameId, uint256 cardIdx) public view override returns(BitMaps.BitMap256) {
+    function gameCardDecryptRecord(uint256 gameId, uint256 cardIdx) public view override returns(BitMaps.BitMap256 memory) {
         require(gameId <= largestGameId, "Invalid gameId");
         require(cardIdx < gameInfos[gameId].numCards, "Invalid cardIdx");
         return gameStates[gameId].deck.decryptRecord[cardIdx];
@@ -144,7 +144,7 @@ contract ShuffleManager is IBaseStateManager, Ownable {
                 _deck52EncVerifier
             );
         } else {
-            state = BaseState.GameError;
+            state.state = BaseState.GameError;
         }
 
         // init deck
@@ -158,7 +158,7 @@ contract ShuffleManager is IBaseStateManager, Ownable {
      * currently, we only support player registering during the beginning of the game
      */
     function register(uint256 gameId, bytes calldata next)
-        external
+        external override
         gameOwner(gameId)
         checkState(gameId, BaseState.Created)
     {
@@ -219,11 +219,11 @@ contract ShuffleManager is IBaseStateManager, Ownable {
      * [Game Contract]: enter shuffle state, can only be called by game owner
      */
     function shuffle(uint256 gameId, bytes calldata next)
-        external
+        external override
         gameOwner(gameId)
     {   
-        require(state.curPlayerIndex == 0, "wrong player index to start shuffle");
         ShuffleGameState storage state = gameStates[gameId];
+        require(state.curPlayerIndex == 0, "wrong player index to start shuffle");
         state.state = BaseState.Shuffle;
         nextToCall[gameId] = next;
         emit PlayerTurn(gameId, state.curPlayerIndex, BaseState.Shuffle);
@@ -272,7 +272,7 @@ contract ShuffleManager is IBaseStateManager, Ownable {
         BitMaps.BitMap256 memory cards,
         uint256 playerId,
         bytes calldata next
-    ) external gameOwner(gameId) {
+    ) external override gameOwner(gameId) {
         ShuffleGameState storage state = gameStates[gameId];
         // TODO: maybe add a checking of the remaining deck size
         // this check could removed if we formally verified the contract
@@ -393,7 +393,7 @@ contract ShuffleManager is IBaseStateManager, Ownable {
         uint256 playerId,
         uint8 openningNum,
         bytes calldata next
-    ) external gameOwner(gameId) checkState(gameId, BaseState.Open) {
+    ) external override gameOwner(gameId) checkState(gameId, BaseState.Open) {
         ShuffleGameState storage state = gameStates[gameId];
         require(openningNum <= state.playerHand[playerId], "don't have enough card to open");
         state.openning = openningNum;
@@ -449,7 +449,7 @@ contract ShuffleManager is IBaseStateManager, Ownable {
 
     // goes into error state
     function error(uint256 gameId, bytes calldata next)
-        external
+        external override
         gameOwner(gameId)
     {
         gameStates[gameId].state = BaseState.GameError;

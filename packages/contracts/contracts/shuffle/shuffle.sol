@@ -20,7 +20,7 @@ library TexasHoldemPoker1 {
 enum TexasStates {
     Fold,
     Call,
-    Etc,
+    Etc
 }
 
 interface ISimpleGame {
@@ -30,8 +30,8 @@ interface ISimpleGame {
 contract TexasHoldemPoker2 {
 
     function handleAction(IStateManager stateManager, TexasStates state, bytes calldata input) external {
-        if (state == Fold) {
-            (uint256 amount, uint256 value) = abi.decode(input);
+        if (state == TexasStates.Fold) {
+            (uint256 amount, uint256 value) = abi.decode(input, (uint, uint));
             stateManager.moveTurnTo(value);
         }
         // ...
@@ -48,19 +48,19 @@ contract GameManager {
     // generate card setup
     // draw game
 
-    function startNewGame(address gameId) {
+    function startNewGame(address gameId) external {
     }
 
     function doAction(uint256 gameId, bytes4 actionId, bytes calldata actionData) external {
         // verify proof
-        _activeGames[gameId].staticcall(abi.encodePacked(actionId, this, actionData));
+        (bool success,) = _activeGames[gameId].staticcall(abi.encodePacked(actionId, this, actionData));
         // emit some events 
         // and etc
     }
 
     function doAction2(uint256 gameId, uint8 actionId, bytes calldata actionData) external {
         // verify proof
-        _activeGames[gameId].handleACtion();
+        //ISimpleGame(_activeGames[gameId]).handleACtion();
         // emit some events
         // and etc
     }

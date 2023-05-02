@@ -219,7 +219,7 @@ library zkShuffleCrypto {
             deck.X0[i] = 0;
             deck.X1[i] = INIT_X1[i];
         }
-        deck.selector0 = 4503599627370495 >> (52 - deckSize(deck.config));
-        deck.selector1 = 3075935501959818 >> (52 - deckSize(deck.config));
+        deck.selector0 = BitMaps.BitMap256(4503599627370495 >> (52 - deckSize(deck.config)));
+        deck.selector1 = BitMaps.BitMap256(3075935501959818 >> (52 - deckSize(deck.config)));
     }
 }
