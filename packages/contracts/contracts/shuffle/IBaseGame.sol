@@ -11,5 +11,4 @@ interface IBaseGame {
     function joinGame(address account, uint gameId) external;
     function shuffle(uint gameId) external;
     function startGame(uint gameId) external;
-    function endGame(uint gameId) external;
 }

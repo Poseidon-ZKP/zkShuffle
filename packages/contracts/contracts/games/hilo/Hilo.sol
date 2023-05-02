@@ -50,27 +50,65 @@ contract Hilo is IBaseGame {
     function startGame(
         uint gameId
     ) external override onlyShuffleManager {
-        dealCard0ToPlayer0();
+        dealCard0ToPlayer0(gameId);
     }
 
-    function dealCard0ToPlayer0() public onlyShuffleManager {
+    function dealCard0ToPlayer0(
+        uint gameId
+    ) internal  {
+        BitMaps.BitMap256 memory cards;
+        cards._data = 1;    // ...0001
+        bytes memory next = abi.encodeWithSelector(this.dealCard1ToPlayer1.selector, gameId);
+        ishuffle.dealCardsTo(
+            gameId,
+            cards,
+            0,
+            next
+        );
 
     }
 
-    function dealCard1ToPlayer1() external onlyShuffleManager {
+    function dealCard1ToPlayer1(
+        uint gameId
+    ) external onlyShuffleManager {
+        BitMaps.BitMap256 memory cards;
+        cards._data = 2;    // ...0010
+        bytes memory next = abi.encodeWithSelector(this.openCard0.selector, gameId);
+        ishuffle.dealCardsTo(
+            gameId,
+            cards,
+            0,
+            next
+        );
     }
 
-    function openCard0() external onlyShuffleManager {
+    function openCard0(
+        uint gameId
+    ) external onlyShuffleManager {
+        bytes memory next = abi.encodeWithSelector(this.openCard1.selector, gameId);
+        ishuffle.openCards(
+            gameId,
+            0,
+            1,
+            next
+        );
     }
 
     function openCard1(
         uint gameId
     ) external onlyShuffleManager {
-        endGame(gameId);
+        bytes memory next = abi.encodeWithSelector(this.endGame.selector, gameId);
+        ishuffle.openCards(
+            gameId,
+            1,
+            1,
+            next
+        );
     }
 
     function endGame(
         uint gameId
-    ) public override onlyShuffleManager {
+    ) public onlyShuffleManager {
+        // game-specific cleanup
     }
 }
