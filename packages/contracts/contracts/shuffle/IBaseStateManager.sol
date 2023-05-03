@@ -26,6 +26,8 @@ enum BaseState {
  * @title Base state manager
  */
 interface IBaseStateManager {
+    function createShuffleGame(uint8 numPlayers) external returns (uint256);
+
     // transit to register player stage
     function register(uint256 gameId, bytes calldata next) external;
 

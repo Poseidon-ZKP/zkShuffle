@@ -112,9 +112,11 @@ contract ShuffleManager is IBaseStateManager, Ownable {
     /**
      * create a new shuffle game (call by the game contract)
      */
-    function createShuffleGame(uint8 numPlayers) external returns (uint256) {
+    function createShuffleGame(uint8 numPlayers) external override returns (uint256) {
         uint256 newGameId = ++largestGameId;
-        gameInfos[newGameId] = gameInfo;
+        gameInfos[newGameId].numPlayers = numPlayers;
+
+
         // TODO: do we need to explicit start
         // an intialization logic of gameStates[newGameId]?
         _activeGames[newGameId] = msg.sender;
@@ -122,16 +124,18 @@ contract ShuffleManager is IBaseStateManager, Ownable {
         ShuffleGameState storage state = gameStates[newGameId];
 
         // set up verifier contract according to deck type
-        if (IBaseGame(gameContract).cardConfig() == DeckConfig.Deck30Card) {
+        if (IBaseGame(msg.sender).cardConfig() == DeckConfig.Deck30Card) {
             gameInfos[newGameId].encryptVerifier = IShuffleEncryptVerifier(
                 _deck30EncVerifier
             );
+            gameInfos[newGameId].numCards = 30;
         } else if (
-            IBaseGame(gameContract).cardConfig() == DeckConfig.Deck52Card
+            IBaseGame(msg.sender).cardConfig() == DeckConfig.Deck52Card
         ) {
             gameInfos[newGameId].encryptVerifier = IShuffleEncryptVerifier(
                 _deck52EncVerifier
             );
+            gameInfos[newGameId].numCards = 52;
         } else {
             state.state = BaseState.GameError;
         }
@@ -165,7 +169,7 @@ contract ShuffleManager is IBaseStateManager, Ownable {
         address signingAddr,
         uint256 pkX,
         uint256 pkY
-    ) external checkState(gameId, BaseState.Register) returns (uint256 pid) {
+    ) external checkState(gameId, BaseState.Registration) returns (uint256 pid) {
         require(CurveBabyJubJub.isOnCurve(pkX, pkY), "Invalid public key");
         ShuffleGameInfo memory info = gameInfos[gameId];
         ShuffleGameState storage state = gameStates[gameId];

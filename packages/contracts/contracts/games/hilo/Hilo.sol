@@ -11,11 +11,19 @@ import "../../shuffle/IBaseStateManager.sol";
 contract Hilo is IBaseGame {
     IBaseStateManager ishuffle;
 
+    // check whether the caller is the shuffle Manager
+    modifier onlyShuffleManager() {
+        require(address(ishuffle) == msg.sender, "Caller is not shuffle manager.");
+        _;
+    }
+
     function cardConfig() external override pure returns (DeckConfig) {
         return DeckConfig.Deck52Card;
     }
 
-    bool created;
+    uint256 public largestGameId;
+    mapping(uint => uint) shuffleGameId;
+    mapping(uint => address) gameOwners;
 
     constructor(
         IBaseStateManager _ishuffle
@@ -24,28 +32,35 @@ contract Hilo is IBaseGame {
     }
 
     // create a new game by a player 
-    function newGame() {
+    function newGame() external {
         uint256 gameId = ishuffle.createShuffleGame(2);
-        created = true;
+        shuffleGameId[++largestGameId] = gameId;
+        gameOwners[largestGameId] = msg.sender;
+    }
+
+    function allowJoinGame(
+        uint gameId
+    ) external {
         // move the game into "Player Registering" State, 
-        // a.k.a. BaseState.Register
-        ishuffle.register(gameId, abi.encode("moveToShuffleStage"));
+        bytes memory next = abi.encodeWithSelector(this.moveToShuffleStage.selector, gameId);
+        ishuffle.register(shuffleGameId[gameId], next);
     }
     
     function moveToShuffleStage(
         uint gameId
-    ) internal {
-        ishuffle.shuffle(gameId, abi.encode("dealCard0ToPlayer0"));
+    ) external onlyShuffleManager {
+        bytes memory next = abi.encodeWithSelector(this.dealCard0ToPlayer0.selector, gameId);
+        ishuffle.shuffle(shuffleGameId[gameId], next);
     }
 
     function dealCard0ToPlayer0(
         uint gameId
-    ) internal  {
+    ) external onlyShuffleManager {
         BitMaps.BitMap256 memory cards;
         cards._data = 1;    // ...0001
         bytes memory next = abi.encodeWithSelector(this.dealCard1ToPlayer1.selector, gameId);
         ishuffle.dealCardsTo(
-            gameId,
+            shuffleGameId[gameId],
             cards,
             0,
             next
@@ -59,9 +74,9 @@ contract Hilo is IBaseGame {
         cards._data = 2;    // ...0010
         bytes memory next = abi.encodeWithSelector(this.openCard0.selector, gameId);
         ishuffle.dealCardsTo(
-            gameId,
+            shuffleGameId[gameId],
             cards,
-            0,
+            1,
             next
         );
     }
@@ -71,7 +86,7 @@ contract Hilo is IBaseGame {
     ) external onlyShuffleManager {
         bytes memory next = abi.encodeWithSelector(this.openCard1.selector, gameId);
         ishuffle.openCards(
-            gameId,
+            shuffleGameId[gameId],
             0,
             1,
             next
@@ -83,7 +98,7 @@ contract Hilo is IBaseGame {
     ) external onlyShuffleManager {
         bytes memory next = abi.encodeWithSelector(this.endGame.selector, gameId);
         ishuffle.openCards(
-            gameId,
+            shuffleGameId[gameId],
             1,
             1,
             next
@@ -92,7 +107,7 @@ contract Hilo is IBaseGame {
 
     function endGame(
         uint gameId
-    ) public onlyShuffleManager {
+    ) external onlyShuffleManager {
         // game-specific cleanup
     }
 }

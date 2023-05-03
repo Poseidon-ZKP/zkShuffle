@@ -5,7 +5,7 @@ async function fullporcess() {
 
     // deploy gameContract
 
-    // shuffle.newGame
+    // Hilo.newGame
 
     // shuffle.playerRegister
 
