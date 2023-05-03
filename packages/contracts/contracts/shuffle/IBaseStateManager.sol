@@ -59,4 +59,10 @@ interface IBaseStateManager {
     function curPlayerIndex(uint gameId) external view returns(uint);
     //function gameStatus(uint gameId) external view returns(uint);
     function gameCardDecryptRecord(uint gameId, uint cardIdx) external view returns(BitMaps.BitMap256 memory);
+
+    event Register(
+        uint256 indexed gameId,
+        uint256 playerId,
+        address playerAddr
+    );
 }

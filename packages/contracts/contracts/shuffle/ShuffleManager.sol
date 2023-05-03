@@ -217,6 +217,7 @@ contract ShuffleManager is IBaseStateManager, Ownable {
                 pkY
             );
         }
+        emit Register(gameId, pid, msg.sender);
 
         // if this is the last player to join
         if (pid == info.numPlayers - 1) {

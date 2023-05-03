@@ -2,7 +2,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { shuffleEncryptV2Plaintext } from "@poseidon-zkp/poseidon-zk-proof/src/shuffle/plaintext";
 import { dealCompressedCard, dealUncompressedCard, generateShuffleEncryptV2Proof, packToSolidityProof, SolidityProof } from "@poseidon-zkp/poseidon-zk-proof/src/shuffle/proof";
 import { prepareShuffleDeck, sampleFieldElements, samplePermutation} from "@poseidon-zkp/poseidon-zk-proof/src/shuffle/utilities";
-import { Game__factory, IGame, IShuffle, Shuffle, Shuffle__factory} from "../types";
+import { Game__factory, IGame, IShuffle, Shuffle, ShuffleManager, ShuffleManager__factory, Shuffle__factory} from "../types";
 import { resolve } from 'path';
 
 const buildBabyjub = require('circomlibjs').buildBabyjub;
@@ -47,9 +47,7 @@ export type Deck = any;
 export class ShuffleContext {
 
     babyjub : any
-    //smc : IShuffle
-    smc : Shuffle
-    game : IGame
+    smc : ShuffleManager
     owner : SignerWithAddress
     pk : EC
     sk : any
@@ -57,17 +55,13 @@ export class ShuffleContext {
     encrypt_zkey : any
     decrypt_wasm : any
     decrypt_zkey : any
-    // Game Abstract ?
 
     constructor(
-        stateMachineContract : IShuffle,
-        gameContract : IGame,
+        shuffleManagerContract : ShuffleManager,
         owner : SignerWithAddress
     ) {
-        this.game = gameContract.connect(owner)
         this.owner = owner
-        this.smc = Shuffle__factory.connect(stateMachineContract.address, owner)
-        //this.smc = stateMachineContract.connect(owner)
+        this.smc = ShuffleManager__factory.connect(shuffleManagerContract.address, owner)
     }
 
 	async init(
@@ -100,6 +94,11 @@ export class ShuffleContext {
         ]
         this.sk = keys.sk
 	}
+
+    async joinGame(gameId : number) {
+        await (await this.smc.playerRegister(gameId, this.owner.address, this.pk[0], this.pk[1])).wait()
+        return await this.getPlayerId(gameId)
+    }
 
     // pull player's Id for gameId
     async getPlayerId(gameId : number) {

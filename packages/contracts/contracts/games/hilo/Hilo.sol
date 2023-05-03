@@ -9,11 +9,17 @@ import "../../shuffle/IBaseStateManager.sol";
 // 1. state-less game contract don't care about shuffle-state,
 //    so they only impl the game logic interface define in IBaseGame
 contract Hilo is IBaseGame {
-    IBaseStateManager ishuffle;
+    IBaseStateManager public ishuffle;
 
     // check whether the caller is the shuffle Manager
     modifier onlyShuffleManager() {
         require(address(ishuffle) == msg.sender, "Caller is not shuffle manager.");
+        _;
+    }
+
+    // check whether the caller is the game owner
+    modifier onlyGameOwner(uint gameId) {
+        require(gameOwners[gameId] == msg.sender, "Caller is not game owner.");
         _;
     }
 
@@ -41,7 +47,7 @@ contract Hilo is IBaseGame {
 
     function allowJoinGame(
         uint gameId
-    ) external {
+    ) external onlyGameOwner(gameId) {
         // move the game into "Player Registering" State, 
         bytes memory next = abi.encodeWithSelector(this.moveToShuffleStage.selector, gameId);
         ishuffle.register(shuffleGameId[gameId], next);
