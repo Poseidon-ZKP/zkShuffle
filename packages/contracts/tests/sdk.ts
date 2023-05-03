@@ -1,7 +1,7 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethers } from "hardhat";
 import { exit } from "process";
-import { BaseState, ShuffleContext, sleep } from "../sdk/context";
+import { BaseState, NOT_TRUN, ShuffleContext, sleep } from "../sdk/context";
 import { Hilo, Hilo__factory, ShuffleManager, ShuffleManager__factory } from "../types";
 import { deploy_shuffle_manager } from "./deploy";
 
@@ -24,16 +24,20 @@ async function player_run(
     while (state != BaseState.Complete) {
         [state, nextBlock] = await player.checkPlayerTurn(gameId, playerIdx, nextBlock)
 
-        if (state != undefined) {
+        //console.log("player ", playerIdx, " state : ", state, " nextBlock ", nextBlock)
+        if (state != NOT_TRUN) {
             switch(state) {
                 case BaseState.Shuffle :
                     console.log("Player ", playerIdx, " 's Shuffle turn!")
+                    //await player.shuffle(gameId, playerIdx)
                     break
                 case BaseState.Deal :
                     console.log("Player ", playerIdx, " 's Deal Decrypt turn!")
+                    //await player.draw(gameId, state.deck.cardsToDeal)
                     break
                 case BaseState.Open :
                     console.log("Player ", playerIdx, " 's Open Decrypt turn!")
+                    //await player.open(gameId, state.deck.cardsToDeal)
                     break
                 case BaseState.Complete :
                     console.log("Player ", playerIdx, " 's Game End!")

@@ -42,7 +42,7 @@ export type BabyJub = any;
 export type EC = any;
 export type Deck = any;
 
-
+export const NOT_TRUN = -1
 export enum BaseState {
     Created,
     Registration,
@@ -151,7 +151,7 @@ export class ShuffleContext {
             return [e.args.state, nextBlock]
         }
         
-        return [undefined, nextBlock]
+        return [NOT_TRUN, nextBlock]
     }
 
     // Generates a secret key between 0 ~ min(2**numBits-1, Fr size).
@@ -207,12 +207,6 @@ export class ShuffleContext {
         gameId: number,
         playerIdx : any
     ) {
-        while ((await this.smc.gamePlayerIdx(gameId)).toNumber() != playerIdx) {
-            // wait for my turn
-            await sleep(10000)
-        }
-        console.log("Player ", playerIdx, " 's Shuffle turn!")
-
         const start = Date.now()
         await this._shuffle(gameId)
         console.log("Player ", playerIdx, " Shuffled in ", Date.now() - start, "s")

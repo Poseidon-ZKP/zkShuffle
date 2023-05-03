@@ -125,6 +125,17 @@ contract ShuffleManager is IBaseStateManager, Ownable {
         return gameStates[gameId].deck.decryptRecord[cardIdx];
     }
 
+    // Returns the aggregated public key for all players.
+    function queryAggregatedPk(
+        uint256 gameId
+    ) external view override returns (uint px, uint py) {
+        require(
+            gameStates[gameId].state != BaseState.Registration,
+            "aggregated pk is not ready"
+        );
+        return (gameStates[gameId].aggregatePkX, gameStates[gameId].aggregatePkY);
+    }
+
     /**
      * create a new shuffle game (call by the game contract)
      */

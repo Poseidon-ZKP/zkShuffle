@@ -60,6 +60,11 @@ interface IBaseStateManager {
     //function gameStatus(uint gameId) external view returns(uint);
     function gameCardDecryptRecord(uint gameId, uint cardIdx) external view returns(BitMaps.BitMap256 memory);
 
+    // Returns the aggregated public key for all players.
+    function queryAggregatedPk(
+        uint256 gameId
+    ) external view returns (uint px, uint py);
+
     event Register(
         uint256 indexed gameId,
         uint256 playerId,
