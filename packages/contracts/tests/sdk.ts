@@ -1,6 +1,7 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethers } from "hardhat";
-import { ShuffleContext } from "../sdk/context";
+import { exit } from "process";
+import { BaseState, ShuffleContext, sleep } from "../sdk/context";
 import { Hilo, Hilo__factory, ShuffleManager, ShuffleManager__factory } from "../types";
 import { deploy_shuffle_manager } from "./deploy";
 
@@ -13,33 +14,38 @@ async function player_run(
     const player = new ShuffleContext(SM, owner)
     await player.init()
 
-    let playerId = await player.joinGame(gameId)
-    console.log("Player ", owner.address.slice(0, 6).concat("...")  ,"Join Game ", gameId, " asigned playerId ", playerId)
-    return
+    // join Game
+    let playerIdx = await player.joinGame(gameId)
+    console.log("Player ", owner.address.slice(0, 6).concat("...")  ,"Join Game ", gameId, " asigned playerId ", playerIdx)
 
-    // shuffle card
-    await player.shuffle(gameId, playerId)
-
-    // play game : whether should current player decrypt cards, in the deal/open trun
+    // play game
     let nextBlock = 0
-    while (1) {
-	    let events = await game.queryFilter({}, nextBlock)
-        for (let i = 0; i < events.length; i++) {
-            const e = events[i];
-            nextBlock = e.blockNumber - 1;
-            if (e.event == "Deal" && e.args.playerId != playerId) {
-                console.log("e : ", e)
-                await player.draw(gameId, e.args.cardId[0])
-            } else if (e.event == "Open" && e.args.playerId == playerId) {
-                console.log("e : ", e)
-                await player.open(gameId, e.args.cardId[0])
-            } else if (e.event == "GameEnd") {
-                // game end
-                console.log("Game End!!!")
-                break
+    let state
+    while (state != BaseState.Complete) {
+        [state, nextBlock] = await player.checkPlayerTurn(gameId, playerIdx, nextBlock)
+
+        if (state != undefined) {
+            switch(state) {
+                case BaseState.Shuffle :
+                    console.log("Player ", playerIdx, " 's Shuffle turn!")
+                    break
+                case BaseState.Deal :
+                    console.log("Player ", playerIdx, " 's Deal Decrypt turn!")
+                    break
+                case BaseState.Open :
+                    console.log("Player ", playerIdx, " 's Open Decrypt turn!")
+                    break
+                case BaseState.Complete :
+                    console.log("Player ", playerIdx, " 's Game End!")
+                    break
+                default :
+                    console.log("err state ", state)
+                    exit(-1)
             }
         }
-        await sleep(10000)
+
+
+        await sleep(1000)
     }
 }
 

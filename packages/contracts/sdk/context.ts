@@ -4,6 +4,7 @@ import { dealCompressedCard, dealUncompressedCard, generateShuffleEncryptV2Proof
 import { prepareShuffleDeck, sampleFieldElements, samplePermutation} from "@poseidon-zkp/poseidon-zk-proof/src/shuffle/utilities";
 import { Game__factory, IGame, IShuffle, Shuffle, ShuffleManager, ShuffleManager__factory, Shuffle__factory} from "../types";
 import { resolve } from 'path';
+import { exit } from "process";
 
 const buildBabyjub = require('circomlibjs').buildBabyjub;
 const fs = require('fs');
@@ -40,6 +41,17 @@ export async function sleep(ms : number) {
 export type BabyJub = any;
 export type EC = any;
 export type Deck = any;
+
+
+export enum BaseState {
+    Created,
+    Registration,
+    Shuffle,
+    Deal,
+    Open,
+    GameError,
+    Complete
+}
 
 // Wrap cryptography details(pk/sk, proof generate)
 // TODO : let user decide all contract call ? or anything wrapper in the ctx?
@@ -118,7 +130,28 @@ export class ShuffleContext {
             }
             await sleep(5000)
         }
+        return -1
+    }
 
+    async checkPlayerTurn(
+        gameId : number,
+        playerIndex : number,
+        nextBlock : number
+    ) {
+        let filter = this.smc.filters.PlayerTurn(null, null, null)
+        let events = await this.smc.queryFilter(filter, nextBlock)
+        for (let i = 0; i < events.length; i++) {
+            const e = events[i];
+            nextBlock = e.blockNumber - 1;
+            if (e.args.gameId.toNumber() != gameId ||
+                e.args.playerIndex.toNumber() != playerIndex)
+            {
+                continue
+            }
+            return [e.args.state, nextBlock]
+        }
+        
+        return [undefined, nextBlock]
     }
 
     // Generates a secret key between 0 ~ min(2**numBits-1, Fr size).
