@@ -6,6 +6,7 @@ import "./BitMaps.sol";
 
 // currently, we support 30 card deck and 52 card deck
 enum DeckConfig {
+    Deck5Card,
     Deck30Card,
     Deck52Card
 }
@@ -89,7 +90,9 @@ interface IDecryptVerifier {
 
 library zkShuffleCrypto {
     function deckSize(DeckConfig config) internal pure returns (uint256 size) {
-        if (config == DeckConfig.Deck30Card) {
+        if (config == DeckConfig.Deck5Card) {
+            size = 5;
+        } else if (config == DeckConfig.Deck30Card) {
             size = 30;
         } else {
             size = 52;
@@ -215,6 +218,8 @@ library zkShuffleCrypto {
             16257260290674454725761605597495173678803471245971702030005143987297548407836,
             3673082978401597800140653084819666873666278094336864183112751111018951461681
         ];
+        deck.X0 = new uint256[](deckSize(deck.config));
+        deck.X1 = new uint256[](deckSize(deck.config));
         for(uint256 i = 0; i < deckSize(deck.config); i++) {
             deck.X0[i] = 0;
             deck.X1[i] = INIT_X1[i];

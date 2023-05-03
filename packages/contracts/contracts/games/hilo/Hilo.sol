@@ -32,10 +32,11 @@ contract Hilo is IBaseGame {
     }
 
     // create a new game by a player 
-    function newGame() external {
+    function newGame() external returns(uint) {
         uint256 gameId = ishuffle.createShuffleGame(2);
         shuffleGameId[++largestGameId] = gameId;
         gameOwners[largestGameId] = msg.sender;
+        return gameId;
     }
 
     function allowJoinGame(

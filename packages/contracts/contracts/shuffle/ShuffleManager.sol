@@ -8,6 +8,7 @@ import "./ECC.sol";
 import "./Deck.sol";
 import "./IBaseGame.sol";
 import "./BitMaps.sol";
+import "hardhat/console.sol";
 
 // mutable state of each game
 struct ShuffleGameState {
@@ -35,6 +36,9 @@ contract ShuffleManager is IBaseStateManager, Ownable {
 
     // currently, all the decks shares the same decrypt circuits
     IDecryptVerifier public decryptVerifier;
+
+    // Encryption verifier for 5 cards deck
+    address _deck5EncVerifier;
 
     // Encryption verifier for 30 cards deck
     address _deck30EncVerifier;
@@ -90,6 +94,18 @@ contract ShuffleManager is IBaseStateManager, Ownable {
         _;
     }
 
+    constructor(
+        address decryptVerifier_,
+        address deck52EncVerifier,
+        address deck30EncVerifier,
+        address deck5EncVerifier
+    ) {
+        _deck52EncVerifier = deck52EncVerifier;
+        _deck30EncVerifier = deck30EncVerifier;
+        _deck5EncVerifier = deck5EncVerifier;
+        decryptVerifier = IDecryptVerifier(decryptVerifier_);
+    }
+
     // get number of card of a gameId
     function gameCardNum(uint256 gameId) public view override returns(uint256) {
         require(gameId <= largestGameId, "Invalid gameId");
@@ -124,7 +140,12 @@ contract ShuffleManager is IBaseStateManager, Ownable {
         ShuffleGameState storage state = gameStates[newGameId];
 
         // set up verifier contract according to deck type
-        if (IBaseGame(msg.sender).cardConfig() == DeckConfig.Deck30Card) {
+        if (IBaseGame(msg.sender).cardConfig() == DeckConfig.Deck5Card) {
+            gameInfos[newGameId].encryptVerifier = IShuffleEncryptVerifier(
+                _deck5EncVerifier
+            );
+            gameInfos[newGameId].numCards = 5;
+        } else if (IBaseGame(msg.sender).cardConfig() == DeckConfig.Deck30Card) {
             gameInfos[newGameId].encryptVerifier = IShuffleEncryptVerifier(
                 _deck30EncVerifier
             );
