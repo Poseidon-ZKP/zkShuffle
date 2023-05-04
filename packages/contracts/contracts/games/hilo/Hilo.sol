@@ -4,6 +4,7 @@ pragma solidity >=0.8.2 <0.9.0;
 
 import "../../shuffle/IBaseGame.sol";
 import "../../shuffle/IBaseStateManager.sol";
+import "hardhat/console.sol";
 
 // State-less Pure game logic contract
 // 1. state-less game contract don't care about shuffle-state,

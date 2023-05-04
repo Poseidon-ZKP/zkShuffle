@@ -142,7 +142,7 @@ export class ShuffleContext {
         let events = await this.smc.queryFilter(filter, nextBlock)
         for (let i = 0; i < events.length; i++) {
             const e = events[i];
-            nextBlock = e.blockNumber - 1;
+            nextBlock = e.blockNumber + 1;      // TODO : probably missing event in same block
             if (e.args.gameId.toNumber() != gameId ||
                 e.args.playerIndex.toNumber() != playerIndex)
             {
@@ -171,10 +171,7 @@ export class ShuffleContext {
         const aggrPKEC = [this.babyjub.F.e(aggrPK[0]), this.babyjub.F.e(aggrPK[1])];
 
         let deck = await this.smc.queryDeck(gameId);
-        console.log("deck : ", deck)
         let preprocessedDeck = prepareShuffleDeck(this.babyjub, deck, numCards);
-        console.log("preprocessedDeck : ", preprocessedDeck)
-        exit(0)
         let A = samplePermutation(Number(numCards));
         let R = sampleFieldElements(this.babyjub, numBits, BigInt(numCards));
         let plaintext_output = shuffleEncryptV2Plaintext(
@@ -195,7 +192,7 @@ export class ShuffleContext {
         );
         let solidityProof: SolidityProof = packToSolidityProof(shuffleEncryptV2Output.proof);
         await this.smc.playerShuffle(
-            this.owner.address,
+            gameId,
             solidityProof,
             {
                 config : await this.smc.cardConfig(gameId) ,

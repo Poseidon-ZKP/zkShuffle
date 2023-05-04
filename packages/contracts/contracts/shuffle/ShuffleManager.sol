@@ -79,6 +79,9 @@ contract ShuffleManager is IBaseStateManager, Ownable {
 
     // check state
     modifier checkState(uint256 gameId, BaseState state) {
+        // console.log("check state ", uint(state));
+        // console.log("game ", gameId);
+        // console.log("game state ", uint(gameStates[gameId].state));
         require(state == gameStates[gameId].state, "Check state failed");
         _;
     }

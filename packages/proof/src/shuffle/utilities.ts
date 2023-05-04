@@ -341,7 +341,6 @@ export function prepareShuffleDeck(
 ): { X0: bigint[], X1: bigint[], Selector: bigint[], Delta: bigint[][] } {
     let deckX0: bigint[] = [];
     let deckX1: bigint[] = [];
-    console.log("deck.X0 : ", deck.X0)
     for (let i = 0; i < numCards; i++) {
         deckX0.push(deck.X0[i].toBigInt());
     }
