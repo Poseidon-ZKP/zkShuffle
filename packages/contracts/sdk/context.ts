@@ -245,22 +245,26 @@ export class ShuffleContext {
                 this.decrypt_zkey,
             );
         }
-        console.log("decrypting card", cardIdx, " DONE!")
+        //console.log("decrypting card", cardIdx, " DONE!")
         return res
     }
 
     async draw(
         gameId: number
     ): Promise<bigint[]> {
+        const start = Date.now()
         let cardsToDeal = (await this.smc.queryDeck(gameId)).cardsToDeal._data.toNumber();
-        console.log("cardsToDeal ", cardsToDeal)
-        return this.decrypt(gameId, Math.log2(cardsToDeal))    // TODO : multi card compatible
+        //console.log("cardsToDeal ", cardsToDeal)
+        const res = await this.decrypt(gameId, Math.log2(cardsToDeal))    // TODO : multi card compatible
+        console.log("Drawed in ", Date.now() - start, "s")
+        return res
     }
 
     async open(
-        gameId: number,
-        cardIdx: number
+        gameId: number
     ): Promise<bigint[]> {
-        return this.decrypt(gameId, cardIdx)
+        let cardsToDeal = (await this.smc.queryDeck(gameId)).cardsToDeal._data.toNumber();
+        //console.log("cardsToDeal ", cardsToDeal)
+        return this.decrypt(gameId, Math.log2(cardsToDeal))
     }
 }

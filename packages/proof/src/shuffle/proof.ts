@@ -192,7 +192,7 @@ export async function dealCompressedCard(
     let decryptProof = await generateDecryptProof(Y, sk, pk, decryptWasmFile, decryptZkeyFile);
     let solidityProof: SolidityProof = packToSolidityProof(decryptProof.proof)
     //console.log("deal solidityProof ", solidityProof)
-    await stateMachineContract.playerDealCards(
+    const res = await (await stateMachineContract.playerDealCards(
         gameId,
         [solidityProof],
         [
@@ -207,8 +207,8 @@ export async function dealCompressedCard(
                 ecX2Delta(babyjub, Y[2])
             ]
         ]
+    )).wait();
 
-    );
 }
 
 // Queries uncompressed card from contract, generate zkp, and verify on contract.

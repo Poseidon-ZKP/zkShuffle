@@ -378,6 +378,7 @@ contract ShuffleManager is IBaseStateManager, Ownable {
         if (state.curPlayerIndex == state.deck.playerToDeal) {
             state.curPlayerIndex++;
         }
+
         if (state.curPlayerIndex == info.numPlayers) {
             state.curPlayerIndex = 0;
             state.playerHand[state.deck.playerToDeal] ++;
@@ -398,9 +399,6 @@ contract ShuffleManager is IBaseStateManager, Ownable {
         uint256[2] memory initDelta
     ) internal {
         ShuffleGameState storage state = gameStates[gameId];
-        // console.log("cardIndex : ", cardIndex);
-        // console.log("state.deck.decryptRecord[cardIndex] : ", uint(state.deck.decryptRecord[cardIndex]._data));
-        // console.log("state.curPlayerIndex : ", state.curPlayerIndex);
         require(
             !BitMaps.get(state.deck.decryptRecord[cardIndex], state.curPlayerIndex),
             "This player has decrypted this card already"
@@ -444,7 +442,7 @@ contract ShuffleManager is IBaseStateManager, Ownable {
         uint256 playerId,
         uint8 openningNum,
         bytes calldata next
-    ) external override gameOwner(gameId) checkState(gameId, BaseState.Open) {
+    ) external override gameOwner(gameId) {
         ShuffleGameState storage state = gameStates[gameId];
         require(openningNum <= state.playerHand[playerId], "don't have enough card to open");
         state.openning = openningNum;
@@ -514,6 +512,8 @@ contract ShuffleManager is IBaseStateManager, Ownable {
             nextToCall[gameId]
         );
         if (!success) {
+            console.log("success ", success);
+            console.logBytes(data);
             emit GameContractCallError(_activeGames[gameId], data);
             gameStates[gameId].state = BaseState.GameError;
         }
