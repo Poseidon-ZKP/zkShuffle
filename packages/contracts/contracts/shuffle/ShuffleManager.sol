@@ -403,17 +403,20 @@ contract ShuffleManager is IBaseStateManager, Ownable {
             !BitMaps.get(state.deck.decryptRecord[cardIndex], state.curPlayerIndex),
             "This player has decrypted this card already"
         );
+
         // recover Y0 and Y1 from the current X0 and X1
-        state.deck.Y0[cardIndex] = CurveBabyJubJub.recoverY(
-            state.deck.X0[cardIndex],
-            initDelta[0],
-            BitMaps.get(state.deck.selector0, cardIndex)
-        );
-        state.deck.Y1[cardIndex] = CurveBabyJubJub.recoverY(
-            state.deck.X1[cardIndex],
-            initDelta[1],
-            BitMaps.get(state.deck.selector1, cardIndex)
-        );
+        if (state.deck.decryptRecord[cardIndex]._data == 0) {
+            state.deck.Y0[cardIndex] = CurveBabyJubJub.recoverY(
+                state.deck.X0[cardIndex],
+                initDelta[0],
+                BitMaps.get(state.deck.selector0, cardIndex)
+            );
+            state.deck.Y1[cardIndex] = CurveBabyJubJub.recoverY(
+                state.deck.X1[cardIndex],
+                initDelta[1],
+                BitMaps.get(state.deck.selector1, cardIndex)
+            );
+        }
 
         decryptVerifier.verifyProof(
             [proof[0], proof[1]],

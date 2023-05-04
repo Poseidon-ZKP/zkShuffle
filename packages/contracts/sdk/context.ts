@@ -217,7 +217,6 @@ export class ShuffleContext {
         gameId: number,
         cardIdx: number
     ): Promise<bigint[]> {
-        console.log("cardIdx : ", cardIdx)
         const numCards = (await this.smc.gameCardNum(gameId)).toNumber()
         const isFirstDecryption = ((await this.smc.gameCardDecryptRecord(gameId, cardIdx))._data.toNumber() == 0)
         console.log("decrypting card", cardIdx, " isFirstDecryption ", isFirstDecryption)
