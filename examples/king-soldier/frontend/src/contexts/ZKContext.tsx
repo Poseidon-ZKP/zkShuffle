@@ -100,7 +100,7 @@ export const ZKContextProvider = ({ children }: { children: ReactNode }) => {
   const genShuffleProof = useCallback(
     async (babyjub: any, aggregatedPk: any, deck: any) => {
       setGeneratingProof(true);
-      debugger;
+
       let A = samplePermutation(Number(numCards));
       let R = sampleFieldElements(babyjub, numBits, numCards);
 
@@ -108,13 +108,13 @@ export const ZKContextProvider = ({ children }: { children: ReactNode }) => {
         babyjub.F.e(aggregatedPk[0]),
         babyjub.F.e(aggregatedPk[1]),
       ];
-      debugger;
+
       let preprocessedDeck = prepareShuffleDeck(
         babyjub,
         deck,
         Number(numCards)
       );
-      debugger;
+
       let plaintext_output = shuffleEncryptV2Plaintext(
         babyjub,
         Number(numCards),

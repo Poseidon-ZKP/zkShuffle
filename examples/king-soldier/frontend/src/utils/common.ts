@@ -8,3 +8,11 @@ export const formatAddress = (address?: string) => {
 export const sleep = (ms: number) => {
   return new Promise((resolve) => setTimeout(resolve, ms));
 };
+
+export const genArrayFromNum = (num: number) => {
+  const arr = [];
+  for (let i = 0; i < num; i++) {
+    arr.push(i);
+  }
+  return arr;
+};

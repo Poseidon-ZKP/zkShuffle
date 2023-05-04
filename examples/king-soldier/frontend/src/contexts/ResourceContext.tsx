@@ -22,7 +22,7 @@ export type PublicKey = string[]; // should be 2 Uint8Arrays in 32 length
 export type Keys = { g: PublicKey; sk: string | string[]; pk: PublicKey };
 
 export function getResourcePath(resType: RESOURCE_TYPE, fileType: FILE_TYPE) {
-  return `https://p0x-labs.s3.amazonaws.com/${fileType}/${resType}`;
+  return `https://p0x-labs.s3.amazonaws.com/refactor/${fileType}/${resType}`;
 }
 
 const shuffleEncryptZkeyFile = getResourcePath('encrypt.zkey.5', 'zkey');

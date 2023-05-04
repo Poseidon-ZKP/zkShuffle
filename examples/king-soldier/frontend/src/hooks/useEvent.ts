@@ -10,19 +10,24 @@ export interface UseEventProps {
   filter?: ethers.EventFilter;
   isStop?: boolean;
   addressIndex: number;
-  creator: string;
-  joiner: string;
+  others: {
+    creator: string;
+    joiner: string;
+    gameId?: number;
+    [key: string]: any;
+  };
+  // creator: string;
+  // joiner: string;
 }
 
-export const PULL_DATA_TIME = 2000;
+export const PULL_DATA_TIME = 5000;
 
 function useEvent({
   contract,
   filter,
   isStop = true,
   addressIndex,
-  creator,
-  joiner,
+  others: { creator, joiner, gameId },
 }: UseEventProps) {
   const provider = useProvider();
   const [creatorValue, setCreatorValue] = useState<any>();
@@ -30,13 +35,12 @@ function useEvent({
 
   const listener = async (...args: any[]) => {
     try {
-      // console.log(`listen ${fnName}`);
-      console.log('args', args);
-      if (args[addressIndex] === creator) {
-        setCreatorValue(args);
-      }
-      if (args[addressIndex] === joiner) {
-        setJoinerValue(args);
+      if (!gameId || gameId == args[0].toString()) {
+        if (args[1] === creator) {
+          setCreatorValue(args);
+        } else if (args[1] === joiner) {
+          setJoinerValue(args);
+        }
       }
     } catch (error) {
       console.log(error, error);

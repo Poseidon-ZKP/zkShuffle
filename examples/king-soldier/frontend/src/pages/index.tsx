@@ -11,6 +11,7 @@ import { formatAddress } from '../utils/common';
 import Card from '../components/Card';
 import useGame, { CardType, GameStatus } from '../hooks/useGame';
 import Button from '../components/Button';
+import Load from '../components/Load';
 
 const CARD_VALUES: Record<string, number> = {
   A: 1,
@@ -72,6 +73,8 @@ export default function Home() {
     joinGameStatus,
     shuffleStatus,
     createGameStatus,
+    creatorCards,
+    joinerCards,
     handleGetBabyPk,
     handleGetContracts,
     handleShuffle,
@@ -87,11 +90,18 @@ export default function Home() {
   //   };
   // }, [creatorStatus.createGame, isCreator]);
 
-  const joinerUIState = useMemo(() => {
-    return {
-      showJoinGame: !isCreator && !joinerStatus.joinGame,
-    };
-  }, [isCreator, joinerStatus.joinGame]);
+  // const joinerUIState = useMemo(() => {
+  //   return {
+  //     showJoinGame: !isCreator && !joinerStatus.joinGame,
+  //   };
+  // }, [isCreator, joinerStatus.joinGame]);
+
+  const isNotShowPokerArea =
+    gameStatus === GameStatus.WAITING_FOR_START ||
+    gameStatus === GameStatus.WAITING_FOR_JOIN ||
+    gameStatus === GameStatus.WAITING_FOR_CREATOR_SHUFFLE ||
+    gameStatus === GameStatus.WAITING_FOR_JOINER_SHUFFLE ||
+    gameStatus === GameStatus.WAITING_FOR_DEAL;
 
   useEffect(() => {
     if (hasSetup || settingUp) {
@@ -143,7 +153,7 @@ export default function Home() {
             </div>
           </div>
         )}
-        {creatorStatus.createGame && (
+        {creatorStatus.createGame && !creatorStatus.creatorShuffled && (
           <div className="flex flex-col justify-center items-center gap-20">
             {joinerStatus.joinGame ? (
               <div className="flex  gap-6">
@@ -162,6 +172,22 @@ export default function Home() {
             ) : (
               'Waiting'
             )}
+          </div>
+        )}
+        {creatorStatus.createGame && creatorStatus.creatorShuffled && (
+          <div className="flex flex-col justify-center items-center gap-20">
+            <div className="flex  gap-6">
+              <Button
+                isSuccess={shuffleStatus.isSuccess}
+                isError={shuffleStatus.isError}
+                isLoading={shuffleStatus.isLoading}
+                onClick={() => {
+                  handleShuffle();
+                }}
+              >
+                deal
+              </Button>{' '}
+            </div>
           </div>
         )}
       </>
@@ -192,7 +218,7 @@ export default function Home() {
             )}
           </div>
         )}
-        {joinerStatus.joinGame && (
+        {joinerStatus.joinGame && !joinerStatus.joinerShuffled && (
           <div className="flex flex-col justify-center items-center gap-20">
             {creatorStatus.creatorShuffled ? (
               <div className="flex  gap-6">
@@ -212,11 +238,42 @@ export default function Home() {
             )}
           </div>
         )}
+        {joinerStatus.joinGame && joinerStatus.joinerShuffled && (
+          <div className="flex flex-col justify-center items-center gap-20">
+            <Button
+              isSuccess={shuffleStatus.isSuccess}
+              isError={shuffleStatus.isError}
+              isLoading={shuffleStatus.isLoading}
+              onClick={() => {
+                // handleDeal();
+              }}
+            >
+              deal
+            </Button>
+          </div>
+        )}
       </>
     );
   };
 
-  console.log('joinerUIState', joinerUIState);
+  const PokerAreaUI = () => {
+    return (
+      <>
+        <div className="w-full flex justify-between">
+          {creatorCards.map((item) => (
+            <Card key={item.index} isFlipped={item.isFlipped} />
+          ))}
+        </div>
+
+        <div className="w-full flex justify-between">
+          {joinerCards.map((item) => (
+            <Card key={item.index} isFlipped={item.isFlipped} />
+          ))}
+        </div>
+      </>
+    );
+  };
+
   if (!router.isReady) {
     return (
       <div className=" flex flex-col gap-10  h-screen items-center justify-center  text-2xl font-medium bg-slate-900 ">
@@ -300,44 +357,31 @@ export default function Home() {
         </nav>
         <div className="flex flex-col  w-[82rem] h-[48rem]  bg-slate-800 shadow group rounded-2xl">
           {/* Creator */}
-          <ul className="p-8">
+          <ul className="flex gap-10 p-4">
             <li> Address:{formatAddress(creator)} </li>
-            <li>
+            <li className={`${gameId ? 'text-red-400' : ''} `}>
               Current Status:{gameId ? `gameId ${gameId}` : 'Not Created'}
             </li>
           </ul>
-
+          {/* <Load /> */}
           {/* GameArea */}
           <div className="p-4 flex flex-col justify-center items-center gap-10 flex-1 border-t border-b border-slate-700  ">
-            {isCreator ? <CreatorGameAreaUI /> : <JoinerGameAreaUI />}
-            {/* <>
-              <div className="w-full flex justify-between">
-                <Card
-                  onClickFrond={() => {
-                    setIsFlid(true);
-                  }}
-                  isFlipped={isFlid}
-                  cardValue={deck[2]}
-                />
-                <Card isFlipped={false} />
-                <Card isFlipped={false} />
-                <Card isFlipped={false} />
-                <Card isFlipped={false} />
-              </div>
-
-              <div className="w-full flex justify-between">
-                <Card isFlipped={false} />
-                <Card isFlipped={false} />
-                <Card isFlipped={false} />
-                <Card isFlipped={false} />
-                <Card isFlipped={false} />
-              </div>
-            </> */}
+            {isNotShowPokerArea ? (
+              isCreator ? (
+                <CreatorGameAreaUI />
+              ) : (
+                <JoinerGameAreaUI />
+              )
+            ) : (
+              <PokerAreaUI />
+            )}
           </div>
           {/* Joiner */}
-          <ul className="p-8">
+          <ul className="flex gap-10 p-4">
             <li>Joiner Address:{formatAddress(joiner)}</li>
-            <li>Current Status:Not Created</li>
+            <li className={`${joinerStatus.joinGame ? 'text-orange-300' : ''}`}>
+              Current Status:{joinerStatus.joinGame ? 'Joined' : 'Not joined'}
+            </li>
           </ul>
         </div>
       </div>

@@ -10,11 +10,18 @@ import useEvent, { PULL_DATA_TIME } from './useEvent';
 import { useZKContext } from './useZKContext';
 import { useProvider } from 'wagmi';
 import { getLogPrams } from '../utils/contracts';
+import { genArrayFromNum } from '../utils/common';
 
 export interface UseGameProps {
   creator: string;
   joiner: string;
   address?: `0x${string}`;
+}
+export interface CardInfo {
+  isFlipped: boolean;
+  value: number;
+  isCurrent: boolean;
+  index: number;
 }
 
 export enum CardType {
@@ -28,7 +35,12 @@ export enum GameStatus {
   WAITING_FOR_JOIN = 'waiting for join',
   WAITING_FOR_CREATOR_SHUFFLE = 'waiting for creator shuffle',
   WAITING_FOR_JOINER_SHUFFLE = 'waiting for joiner shuffle',
+  WAITING_FOR_DEAL = 'waiting for deal',
+  WAITING_FOR_CHOOSE = 'waiting for choose',
+  WAITING_FOR_CREATOR_SHOW_HAND = 'waiting for creator show hand',
 }
+
+export const CARD_NUM = 5;
 
 function useGame({ creator, joiner, address }: UseGameProps) {
   const [contract, setContract] = useState<Contract>();
@@ -37,6 +49,8 @@ function useGame({ creator, joiner, address }: UseGameProps) {
   const [gameStatus, setGameStatus] = useState(GameStatus.WAITING_FOR_START);
   const [babyjub, setBabyjub] = useState<any>();
   const [cardType, setCardType] = useState<CardType>();
+  const [creatorCards, setCreatorCards] = useState<CardInfo[]>([]);
+  const [joinerCards, setJoinerCards] = useState<CardInfo[]>([]);
   const [creatorStatus, setCreatorStatus] = useState({
     createGame: false,
     creatorShuffled: false,
@@ -52,9 +66,8 @@ function useGame({ creator, joiner, address }: UseGameProps) {
   });
 
   const zkContext = useZKContext();
-  const provider = useProvider();
   const isCreator = creator === address;
-  const creatorCardType = cardType;
+  const creatorCardType = cardType as CardType;
   const joinerCardType =
     cardType === CardType.KING ? CardType.SOLDIER : CardType.KING;
   const userCardType = isCreator ? creatorCardType : joinerCardType;
@@ -88,13 +101,25 @@ function useGame({ creator, joiner, address }: UseGameProps) {
     wait: true,
   });
 
+  const dealStatus = useWriteContract(contract?.['dealHandCard'], {
+    args: [],
+    wait: true,
+  });
+
+  const chooseStatus = useWriteContract(contract?.['chooseCard'], {});
+
+  const showHandStatus = useWriteContract(contract?.['showHand'], {});
+
   const createGameListenerValues = useEvent({
     contract,
     filter: contract?.filters?.GameCreated(),
     isStop: gameStatus !== GameStatus.WAITING_FOR_START,
     addressIndex: 1,
-    creator: creator,
-    joiner: joiner,
+
+    others: {
+      creator: creator,
+      joiner: joiner,
+    },
   });
 
   const joinGameListenerValues = useEvent({
@@ -102,40 +127,62 @@ function useGame({ creator, joiner, address }: UseGameProps) {
     isStop: gameStatus !== GameStatus.WAITING_FOR_JOIN,
     filter: contract?.filters?.GameJoined(),
     addressIndex: 1,
-    creator: creator,
-    joiner: joiner,
+
+    others: {
+      creator: creator,
+      joiner: joiner,
+      gameId,
+    },
   });
 
   const shuffleDeckListenerValues = useEvent({
     contract,
     filter: contract?.filters?.ShuffleDeck(),
     addressIndex: 1,
-    creator: creator,
-    joiner: joiner,
+    isStop:
+      gameStatus !== GameStatus.WAITING_FOR_CREATOR_SHUFFLE &&
+      gameStatus !== GameStatus.WAITING_FOR_JOINER_SHUFFLE,
+    others: {
+      creator: creator,
+      joiner: joiner,
+      gameId,
+    },
   });
 
   const dealCardListenerValues = useEvent({
     contract,
     filter: contract?.filters?.DealCard(),
     addressIndex: 2,
-    creator: creator,
-    joiner: joiner,
+    isStop: gameStatus !== GameStatus.WAITING_FOR_DEAL,
+    others: {
+      creator: creator,
+      joiner: joiner,
+      gameId,
+    },
   });
 
   const chooseCardListenerValues = useEvent({
     contract,
     filter: contract?.filters?.ChooseCard(),
     addressIndex: 2,
-    creator: creator,
-    joiner: joiner,
+
+    others: {
+      creator: creator,
+      joiner: joiner,
+      gameId,
+    },
   });
 
   const gameEndedListenerValues = useEvent({
     contract,
     filter: contract?.filters?.GameEnded(),
+    isStop: true,
     addressIndex: 1,
-    creator: creator,
-    joiner: joiner,
+    others: {
+      creator: creator,
+      joiner: joiner,
+      gameId,
+    },
   });
 
   const handleGetBabyPk = async () => {
@@ -154,7 +201,7 @@ function useGame({ creator, joiner, address }: UseGameProps) {
 
   const handleShuffle = async () => {
     try {
-      debugger;
+      shuffleStatus.setIsLoading(true);
       const key = await contract?.queryAggregatedPk(gameId, userCardType);
       const aggregatedPk = [key[0].toBigInt(), key[1].toBigInt()];
       const deck1 = await contract?.queryDeck(gameId, creatorCardType);
@@ -179,6 +226,10 @@ function useGame({ creator, joiner, address }: UseGameProps) {
       );
     } catch (error) {
       console.log('error', error);
+      shuffleStatus.setIsSuccess(false);
+      shuffleStatus.setIsError(true);
+    } finally {
+      shuffleStatus.setIsLoading(false);
     }
   };
 
@@ -194,6 +245,29 @@ function useGame({ creator, joiner, address }: UseGameProps) {
       signerOrProvider: signer,
     });
     setContract(contract);
+  };
+
+  const getCardInfos = async (cardType: CardType) => {
+    const arr = genArrayFromNum(CARD_NUM);
+    const cardInfos = Promise.all(
+      arr.map(async (item) => {
+        const res = await contract?.queryCardFromDeck(gameId, item, cardType);
+        return {
+          index: item,
+          value: res,
+          isFlipped: false,
+          isCurrent: false,
+        };
+      })
+    );
+    return cardInfos;
+  };
+
+  const handleDeal = async () => {
+    try {
+    } catch (error) {
+    } finally {
+    }
   };
 
   //finished creating game
@@ -226,11 +300,81 @@ function useGame({ creator, joiner, address }: UseGameProps) {
     return () => {};
   }, [joinGameListenerValues.joiner]);
   useEffect(() => {
+    const handleCards = async () => {
+      const creatorValues = await getCardInfos(creatorCardType);
+      const joinerValues = await getCardInfos(joinerCardType);
+      console.log('creatorValues', creatorValues);
+      console.log('joinerValues', joinerValues);
+      setCreatorCards(creatorValues);
+      setJoinerCards(joinerValues);
+    };
+
+    if (shuffleDeckListenerValues.creator) {
+      setGameStatus(GameStatus.WAITING_FOR_JOINER_SHUFFLE);
+      setCreatorStatus((prev) => {
+        return { ...prev, creatorShuffled: true };
+      });
+    }
+
+    if (shuffleDeckListenerValues.joiner) {
+      setJoinerStatus((prev) => {
+        return { ...prev, joinerShuffled: true };
+      });
+    }
+
     if (shuffleDeckListenerValues.creator && shuffleDeckListenerValues.joiner) {
+      setGameStatus(GameStatus.WAITING_FOR_DEAL);
+      handleCards();
       // TODO
     }
-  }, [shuffleDeckListenerValues.creator, shuffleDeckListenerValues.joiner]);
+  }, [
+    creatorCardType,
+    joinerCardType,
+    shuffleDeckListenerValues.creator,
+    shuffleDeckListenerValues.joiner,
+  ]);
 
+  useEffect(() => {
+    if (dealCardListenerValues.creator) {
+      setCreatorStatus((prev) => {
+        return {
+          ...prev,
+          creatorDealt: true,
+        };
+      });
+      // const findCardIndex = creatorCards.findIndex(
+      //   (item) => item.index === dealCardListenerValues.creator[1]
+      // );
+      // if (findCardIndex > -1) {
+      //   creatorCards[findCardIndex].isFlipped = true;
+      //   creatorCards[findCardIndex].isCurrent = true;
+      // }
+      // setCreatorCards(creatorCards);
+    }
+    if (dealCardListenerValues.joiner) {
+      setJoinerStatus((prev) => {
+        return { ...prev, joinerDealt: true };
+      });
+      // const findCardIndex = joinerCards.findIndex(
+      //   (item) => item.index === dealCardListenerValues.joiner[1]
+      // );
+      // if (findCardIndex > -1) {
+      //   joinerCards[findCardIndex].isFlipped = true;
+      //   joinerCards[findCardIndex].isCurrent = true;
+      // }
+      // setJoinerCards(joinerCards);
+    }
+    if (dealCardListenerValues.creator && dealCardListenerValues.joiner) {
+      setGameStatus(GameStatus.WAITING_FOR_CHOOSE);
+    }
+  }, [
+    creatorCards,
+    dealCardListenerValues.creator,
+    dealCardListenerValues.joiner,
+    joinerCards,
+  ]);
+
+  console.log('GameStatus', gameStatus);
   return {
     isCreator,
     gameStatus,
@@ -244,6 +388,9 @@ function useGame({ creator, joiner, address }: UseGameProps) {
     userCardType,
     joinerStatus,
     createGameStatus,
+    creatorCards,
+    joinerCards,
+    chooseStatus,
     handleShuffle,
     handleGetBabyPk,
     handleGetContracts,
