@@ -191,7 +191,7 @@ export async function dealCompressedCard(
     );
     let decryptProof = await generateDecryptProof(Y, sk, pk, decryptWasmFile, decryptZkeyFile);
     let solidityProof: SolidityProof = packToSolidityProof(decryptProof.proof)
-    console.log("deal solidityProof ", solidityProof)
+    //console.log("deal solidityProof ", solidityProof)
     await stateMachineContract.playerDealCards(
         gameId,
         [solidityProof],

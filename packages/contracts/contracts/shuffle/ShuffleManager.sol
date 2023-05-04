@@ -398,8 +398,11 @@ contract ShuffleManager is IBaseStateManager, Ownable {
         uint256[2] memory initDelta
     ) internal {
         ShuffleGameState storage state = gameStates[gameId];
+        // console.log("cardIndex : ", cardIndex);
+        // console.log("state.deck.decryptRecord[cardIndex] : ", uint(state.deck.decryptRecord[cardIndex]._data));
+        // console.log("state.curPlayerIndex : ", state.curPlayerIndex);
         require(
-            BitMaps.get(state.deck.decryptRecord[cardIndex], state.curPlayerIndex),
+            !BitMaps.get(state.deck.decryptRecord[cardIndex], state.curPlayerIndex),
             "This player has decrypted this card already"
         );
         // recover Y0 and Y1 from the current X0 and X1
@@ -425,14 +428,14 @@ contract ShuffleManager is IBaseStateManager, Ownable {
                 state.deck.Y0[cardIndex],
                 state.deck.X1[cardIndex],
                 state.deck.Y1[cardIndex],
-                state.playerPkX[cardIndex],
-                state.playerPKY[cardIndex]
+                state.playerPkX[state.curPlayerIndex],
+                state.playerPKY[state.curPlayerIndex]
             ]
         );
         // update X1 and Y1 in the deck
         state.deck.X1[cardIndex] = decryptedCard.X;
         state.deck.Y1[cardIndex] = decryptedCard.Y;
-        BitMaps.set(state.deck.decryptRecord[state.curPlayerIndex], cardIndex);
+        BitMaps.set(state.deck.decryptRecord[cardIndex], state.curPlayerIndex);
     }
 
     // [Game Contract]: specify a player to open a number of cards

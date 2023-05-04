@@ -212,7 +212,9 @@ library zkShuffleCrypto {
             3673082978401597800140653084819666873666278094336864183112751111018951461681
         ];
         deck.X0 = new uint256[](deckSize(deck.config));
+        deck.Y0 = new uint256[](deckSize(deck.config));
         deck.X1 = new uint256[](deckSize(deck.config));
+        deck.Y1 = new uint256[](deckSize(deck.config));
         for(uint256 i = 0; i < deckSize(deck.config); i++) {
             deck.X0[i] = 0;
             deck.X1[i] = INIT_X1[i];
