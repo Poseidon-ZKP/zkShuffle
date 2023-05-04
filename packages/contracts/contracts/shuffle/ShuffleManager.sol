@@ -134,12 +134,16 @@ contract ShuffleManager is IBaseStateManager, Ownable {
     ) external view returns (
         uint[] memory X0,
         uint[] memory X1,
+        uint[] memory Y0,
+        uint[] memory Y1,
         BitMaps.BitMap256 memory selector0,
         BitMaps.BitMap256 memory selector1,
         BitMaps.BitMap256 memory cardsToDeal
     ) {
         X0 = gameStates[gameId].deck.X0;
+        Y0 = gameStates[gameId].deck.Y0;
         X1 = gameStates[gameId].deck.X1;
+        Y1 = gameStates[gameId].deck.Y1;
         selector0 = gameStates[gameId].deck.selector0;
         selector1 = gameStates[gameId].deck.selector1;
         cardsToDeal = gameStates[gameId].deck.cardsToDeal;

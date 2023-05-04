@@ -37,7 +37,6 @@ async function player_run(
                     break
                 case BaseState.Open :
                     console.log("Player ", playerIdx, " 's Open Decrypt turn!")
-                    // TODO : which card to open?
                     await player.open(gameId, playerIdx)
                     break
                 case BaseState.Complete :
@@ -81,8 +80,8 @@ async function fullporcess() {
     );
 }
 
-describe('SDK test', function () {
-    it('SDK Full Process', async () => {
+describe('E2E test', function () {
+    it('ShuffleManager E2E', async () => {
         await fullporcess()
     });
 });

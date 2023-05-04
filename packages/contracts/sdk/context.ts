@@ -219,7 +219,7 @@ export class ShuffleContext {
     ): Promise<bigint[]> {
         const numCards = (await this.smc.gameCardNum(gameId)).toNumber()
         const isFirstDecryption = ((await this.smc.gameCardDecryptRecord(gameId, cardIdx))._data.toNumber() == 0)
-        console.log("decrypting card", cardIdx, " isFirstDecryption ", isFirstDecryption)
+        //console.log("decrypting card", cardIdx, " isFirstDecryption ", isFirstDecryption)
         let res : bigint[] = []
         if (isFirstDecryption) {
             await dealCompressedCard(
@@ -263,14 +263,15 @@ export class ShuffleContext {
         gameId: number,
         cardIdx : number
     ) {
+        const start = Date.now()
         //let cardsToDeal = (await this.smc.queryDeck(gameId)).cardsToDeal
         let deck = await this.smc.queryDeck(gameId);
         let decryptProof = await generateDecryptProof(
             [
                 deck.X0[cardIdx].toBigInt(),
+                deck.Y0[cardIdx].toBigInt(),
                 deck.X1[cardIdx].toBigInt(),
-                deck.selector0._data.toBigInt(),
-                deck.selector1._data.toBigInt()
+                deck.Y1[cardIdx].toBigInt()
             ],
             this.sk, this.pk, this.decrypt_wasm, this.decrypt_zkey
         );
@@ -290,5 +291,6 @@ export class ShuffleContext {
                 }
             ]
         );
+        console.log("Opened in ", Date.now() - start, "s")
     }
 }
