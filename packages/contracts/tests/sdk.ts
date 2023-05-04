@@ -33,7 +33,7 @@ async function player_run(
                     break
                 case BaseState.Deal :
                     console.log("Player ", playerIdx, " 's Deal Decrypt turn!")
-                    //await player.draw(gameId, state.deck.cardsToDeal)
+                    await player.draw(gameId)
                     break
                 case BaseState.Open :
                     console.log("Player ", playerIdx, " 's Open Decrypt turn!")

@@ -217,9 +217,9 @@ export class ShuffleContext {
         gameId: number,
         cardIdx: number
     ): Promise<bigint[]> {
+        console.log("cardIdx : ", cardIdx)
         const numCards = (await this.smc.gameCardNum(gameId)).toNumber()
-        let curPlayerIdx = (await this.smc.gamePlayerIdx(gameId)).toNumber()
-        const isFirstDecryption = await this.smc.gameCardDealRecord(gameId, cardIdx)
+        const isFirstDecryption = await this.smc.gameCardDecryptRecord(gameId, cardIdx)
         console.log("decrypting card", cardIdx, " isFirstDecryption ", isFirstDecryption)
         let res : bigint[] = []
         if (isFirstDecryption) {
@@ -228,40 +228,38 @@ export class ShuffleContext {
                 numCards,
                 gameId,
                 cardIdx,
-                curPlayerIdx,
                 this.sk,
                 this.pk,
-                this.owner.address,
-                //this.game,
-                this.owner,
                 this.smc,
                 this.decrypt_wasm,
                 this.decrypt_zkey,
             );
         } else {
-            res = await dealUncompressedCard(
-                gameId,
-                cardIdx,
-                curPlayerIdx,
-                this.sk,
-                this.pk,
-                this.owner.address,
-                //this.game,
-                this.owner,
-                this.smc,
-                this.decrypt_wasm,
-                this.decrypt_zkey,
-            );
+            exit(0)
+            // res = await dealUncompressedCard(
+            //     gameId,
+            //     cardIdx,
+            //     curPlayerIdx,
+            //     this.sk,
+            //     this.pk,
+            //     this.owner.address,
+            //     //this.game,
+            //     this.owner,
+            //     this.smc,
+            //     this.decrypt_wasm,
+            //     this.decrypt_zkey,
+            // );
         }
         console.log("decrypting card", cardIdx, " DONE!")
         return res
     }
 
     async draw(
-        gameId: number,
-        cardIdx: number
+        gameId: number
     ): Promise<bigint[]> {
-        return this.decrypt(gameId, cardIdx)
+        let cardsToDeal = (await this.smc.queryDeck(gameId)).cardsToDeal._data.toNumber();
+        console.log("cardsToDeal ", cardsToDeal)
+        return this.decrypt(gameId, Math.log2(cardsToDeal))    // TODO : multi card compatible
     }
 
     async open(

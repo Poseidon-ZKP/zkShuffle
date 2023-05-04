@@ -173,36 +173,41 @@ export async function dealCompressedCard(
     numCards: number,
     gameId: number,
     cardIdx: number,
-    curPlayerIdx: number,
     sk: bigint,
     pk: bigint[],
-    playerAddr: string,
-    gameContract: SignerWithAddress,
     stateMachineContract: Contract,
     decryptWasmFile: string,
     decryptZkeyFile: string,
 ) {
-    let card = await stateMachineContract.queryCardFromDeck(cardIdx, gameId);
+    let deck = await stateMachineContract.queryDeck(gameId);
     let Y = prepareDecryptData(
         babyjub,
-        card[0],
-        card[1],
-        card[2],
-        card[3],
+        deck.X0[cardIdx],
+        deck.X1[cardIdx],
+        deck.selector0._data,
+        deck.selector1._data,
         Number(numCards),
         cardIdx,
     );
     let decryptProof = await generateDecryptProof(Y, sk, pk, decryptWasmFile, decryptZkeyFile);
     let solidityProof: SolidityProof = packToSolidityProof(decryptProof.proof)
-    //await stateMachineContract.connect(gameContract).deal(
-    await stateMachineContract.draw(
-        playerAddr,
-        cardIdx,
-        curPlayerIdx,
-        solidityProof,
-        [decryptProof.publicSignals[0], decryptProof.publicSignals[1]],
-        [ecX2Delta(babyjub, Y[0]), ecX2Delta(babyjub, Y[2])],
+    console.log("deal solidityProof ", solidityProof)
+    await stateMachineContract.playerDealCards(
         gameId,
+        [solidityProof],
+        [
+            {
+                X : decryptProof.publicSignals[0],
+                Y : decryptProof.publicSignals[1]
+            }
+        ],
+        [
+            [
+                ecX2Delta(babyjub, Y[0]),
+                ecX2Delta(babyjub, Y[2])
+            ]
+        ]
+
     );
 }
 

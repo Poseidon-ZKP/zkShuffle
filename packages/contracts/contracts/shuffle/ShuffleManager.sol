@@ -5,26 +5,9 @@ pragma solidity >=0.8.2 <0.9.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./IBaseStateManager.sol";
 import "./ECC.sol";
-import "./Deck.sol";
 import "./IBaseGame.sol";
 import "./BitMaps.sol";
 import "hardhat/console.sol";
-
-// mutable state of each game
-struct ShuffleGameState {
-    BaseState state;
-    uint8 openning;
-    uint256 curPlayerIndex;
-    uint256 aggregatePkX;
-    uint256 aggregatePkY;
-    uint256 nonce;
-    mapping (uint256 => uint256) playerHand;
-    address[] playerAddrs;
-    address[] signingAddrs;
-    uint256[] playerPkX;
-    uint256[] playerPKY;
-    Deck deck;
-}
 
 /**
  * @title Shuffle Manager
@@ -152,12 +135,14 @@ contract ShuffleManager is IBaseStateManager, Ownable {
         uint[] memory X0,
         uint[] memory X1,
         BitMaps.BitMap256 memory selector0,
-        BitMaps.BitMap256 memory selector1
+        BitMaps.BitMap256 memory selector1,
+        BitMaps.BitMap256 memory cardsToDeal
     ) {
         X0 = gameStates[gameId].deck.X0;
         X1 = gameStates[gameId].deck.X1;
         selector0 = gameStates[gameId].deck.selector0;
         selector1 = gameStates[gameId].deck.selector1;
+        cardsToDeal = gameStates[gameId].deck.cardsToDeal;
     }
 
     /**
@@ -353,7 +338,7 @@ contract ShuffleManager is IBaseStateManager, Ownable {
      */
     function playerDealCards(
         uint256 gameId,
-        DecryptProof[] memory proofs,
+        uint[8][] memory proofs,
         Card[] memory decryptedCards,
         uint256[2][] memory initDeltas
     ) external checkState(gameId, BaseState.Deal) checkTurn(gameId) {
@@ -372,8 +357,7 @@ contract ShuffleManager is IBaseStateManager, Ownable {
             "number of decrypted cards is wrong!"
         );
         require(
-            initDeltas[0].length == numberCardsToDeal &&
-                initDeltas[0].length == numberCardsToDeal,
+            initDeltas.length == numberCardsToDeal,
             "init delta's shape is invalid!"
         );
         uint256 counter = 0;
@@ -409,7 +393,7 @@ contract ShuffleManager is IBaseStateManager, Ownable {
     function _updateDecryptedCard(
         uint256 gameId,
         uint256 cardIndex,
-        DecryptProof memory proof,
+        uint[8] memory proof,
         Card memory decryptedCard,
         uint256[2] memory initDelta
     ) internal {
@@ -430,7 +414,21 @@ contract ShuffleManager is IBaseStateManager, Ownable {
             BitMaps.get(state.deck.selector1, cardIndex)
         );
 
-        decryptVerifier.verifyProof(proof.A, proof.B, proof.C, proof.PI);
+        decryptVerifier.verifyProof(
+            [proof[0], proof[1]],
+            [[proof[2], proof[3]], [proof[4], proof[5]]],
+            [proof[6], proof[7]],
+            [
+                decryptedCard.X,
+                decryptedCard.Y,
+                state.deck.X0[cardIndex],
+                state.deck.Y0[cardIndex],
+                state.deck.X1[cardIndex],
+                state.deck.Y1[cardIndex],
+                state.playerPkX[cardIndex],
+                state.playerPKY[cardIndex]
+            ]
+        );
         // update X1 and Y1 in the deck
         state.deck.X1[cardIndex] = decryptedCard.X;
         state.deck.Y1[cardIndex] = decryptedCard.Y;
@@ -456,7 +454,7 @@ contract ShuffleManager is IBaseStateManager, Ownable {
     function playerOpenCards(
         uint256 gameId,
         BitMaps.BitMap256 memory cards,
-        DecryptProof[] memory proofs,
+        uint[8][] memory proofs,
         Card[] memory decryptedCards
     ) external checkState(gameId, BaseState.Open) checkTurn(gameId) {
         ShuffleGameInfo memory info = gameInfos[gameId];

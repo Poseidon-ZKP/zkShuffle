@@ -3,6 +3,7 @@
 pragma solidity >=0.8.2 <0.9.0;
 
 import "./BitMaps.sol";
+import "./Deck.sol";
 
 /** All games share these 6 base state
  * Created: game is created
@@ -20,6 +21,22 @@ enum BaseState {
     Open,
     GameError,
     Complete
+}
+
+// mutable state of each game
+struct ShuffleGameState {
+    BaseState state;
+    uint8 openning;
+    uint256 curPlayerIndex;
+    uint256 aggregatePkX;
+    uint256 aggregatePkY;
+    uint256 nonce;
+    mapping (uint256 => uint256) playerHand;
+    address[] playerAddrs;
+    address[] signingAddrs;
+    uint256[] playerPkX;
+    uint256[] playerPKY;
+    Deck deck;
 }
 
 /**

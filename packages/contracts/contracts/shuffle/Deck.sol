@@ -63,13 +63,6 @@ struct Card {
     uint256 Y;
 }
 
-struct DecryptProof {
-    uint256[2] A;
-    uint256[2][2] B;
-    uint256[2] C;
-    uint256[8] PI;
-}
-
 interface IShuffleEncryptVerifier {
     function verifyProof(
         uint256[2] memory a,
