@@ -170,8 +170,11 @@ export class ShuffleContext {
         const aggrPK = [key[0].toBigInt(), key[1].toBigInt()];
         const aggrPKEC = [this.babyjub.F.e(aggrPK[0]), this.babyjub.F.e(aggrPK[1])];
 
-        let deck: Deck = await this.smc.queryDeck(gameId);
+        let deck = await this.smc.queryDeck(gameId);
+        console.log("deck : ", deck)
         let preprocessedDeck = prepareShuffleDeck(this.babyjub, deck, numCards);
+        console.log("preprocessedDeck : ", preprocessedDeck)
+        exit(0)
         let A = samplePermutation(Number(numCards));
         let R = sampleFieldElements(this.babyjub, numBits, BigInt(numCards));
         let plaintext_output = shuffleEncryptV2Plaintext(
@@ -191,15 +194,16 @@ export class ShuffleContext {
             this.encrypt_wasm, this.encrypt_zkey,
         );
         let solidityProof: SolidityProof = packToSolidityProof(shuffleEncryptV2Output.proof);
-        await this.game.shuffle(
+        await this.smc.playerShuffle(
             this.owner.address,
             solidityProof,
             {
+                config : await this.smc.cardConfig(gameId) ,
                 X0 : shuffleEncryptV2Output.publicSignals.slice(3 + numCards * 2, 3 + numCards * 3),
                 X1 : shuffleEncryptV2Output.publicSignals.slice(3 + numCards * 3, 3 + numCards * 4),
-                Selector : [shuffleEncryptV2Output.publicSignals[5 + numCards * 4], shuffleEncryptV2Output.publicSignals[6 + numCards * 4]],
-            },
-            gameId
+                selector0 : { _data : shuffleEncryptV2Output.publicSignals[5 + numCards * 4]},
+                selector1 : { _data : shuffleEncryptV2Output.publicSignals[6 + numCards * 4]}
+            }
         );
     }
 
