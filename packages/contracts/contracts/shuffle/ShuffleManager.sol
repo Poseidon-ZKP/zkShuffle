@@ -18,7 +18,7 @@ struct ShuffleGameState {
     uint256 aggregatePkX;
     uint256 aggregatePkY;
     uint256 nonce;
-    mapping (uint256 => uint256) playerHand;
+    uint256[] playerHand;
     address[] playerAddrs;
     address[] signingAddrs;
     uint256[] playerPkX;
@@ -51,10 +51,10 @@ contract ShuffleManager is IBaseStateManager, Ownable {
 
     // mapping between gameId and game info
     //  (game info is immutable once a game is created)
-    mapping(uint256 => ShuffleGameInfo) gameInfos;
+    mapping(uint256 => ShuffleGameInfo) public gameInfos;
 
     // mapping between gameId and game state
-    mapping(uint256 => ShuffleGameState) gameStates;
+    mapping(uint256 => ShuffleGameState) public gameStates;
 
     // mapping between gameId and next game contract function to call
     mapping(uint256 => bytes) nextToCall;
@@ -149,6 +149,7 @@ contract ShuffleManager is IBaseStateManager, Ownable {
         _activeGames[newGameId] = msg.sender;
 
         ShuffleGameState storage state = gameStates[newGameId];
+        state.playerHand = new uint[](numPlayers);
 
         // set up verifier contract according to deck type
         if (IBaseGame(msg.sender).cardConfig() == DeckConfig.Deck5Card) {
