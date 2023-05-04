@@ -219,7 +219,7 @@ export class ShuffleContext {
     ): Promise<bigint[]> {
         console.log("cardIdx : ", cardIdx)
         const numCards = (await this.smc.gameCardNum(gameId)).toNumber()
-        const isFirstDecryption = await this.smc.gameCardDecryptRecord(gameId, cardIdx)
+        const isFirstDecryption = ((await this.smc.gameCardDecryptRecord(gameId, cardIdx))._data.toNumber() == 0)
         console.log("decrypting card", cardIdx, " isFirstDecryption ", isFirstDecryption)
         let res : bigint[] = []
         if (isFirstDecryption) {
@@ -235,20 +235,15 @@ export class ShuffleContext {
                 this.decrypt_zkey,
             );
         } else {
-            exit(0)
-            // res = await dealUncompressedCard(
-            //     gameId,
-            //     cardIdx,
-            //     curPlayerIdx,
-            //     this.sk,
-            //     this.pk,
-            //     this.owner.address,
-            //     //this.game,
-            //     this.owner,
-            //     this.smc,
-            //     this.decrypt_wasm,
-            //     this.decrypt_zkey,
-            // );
+            res = await dealUncompressedCard(
+                gameId,
+                cardIdx,
+                this.sk,
+                this.pk,
+                this.smc,
+                this.decrypt_wasm,
+                this.decrypt_zkey,
+            );
         }
         console.log("decrypting card", cardIdx, " DONE!")
         return res
