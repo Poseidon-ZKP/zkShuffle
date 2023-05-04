@@ -1,6 +1,6 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { shuffleEncryptV2Plaintext } from "@poseidon-zkp/poseidon-zk-proof/src/shuffle/plaintext";
-import { dealCompressedCard, dealUncompressedCard, generateShuffleEncryptV2Proof, packToSolidityProof, SolidityProof } from "@poseidon-zkp/poseidon-zk-proof/src/shuffle/proof";
+import { dealCompressedCard, dealUncompressedCard, generateDecryptProof, generateShuffleEncryptV2Proof, packToSolidityProof, SolidityProof } from "@poseidon-zkp/poseidon-zk-proof/src/shuffle/proof";
 import { prepareShuffleDeck, sampleFieldElements, samplePermutation} from "@poseidon-zkp/poseidon-zk-proof/src/shuffle/utilities";
 import { Game__factory, IGame, IShuffle, Shuffle, ShuffleManager, ShuffleManager__factory, Shuffle__factory} from "../types";
 import { resolve } from 'path';
@@ -261,10 +261,35 @@ export class ShuffleContext {
     }
 
     async open(
-        gameId: number
-    ): Promise<bigint[]> {
-        let cardsToDeal = (await this.smc.queryDeck(gameId)).cardsToDeal._data.toNumber();
-        //console.log("cardsToDeal ", cardsToDeal)
-        return this.decrypt(gameId, Math.log2(cardsToDeal))
+        gameId: number,
+        cardIdx : number
+    ) {
+        //let cardsToDeal = (await this.smc.queryDeck(gameId)).cardsToDeal
+        let deck = await this.smc.queryDeck(gameId);
+        let decryptProof = await generateDecryptProof(
+            [
+                deck.X0[cardIdx].toBigInt(),
+                deck.X1[cardIdx].toBigInt(),
+                deck.selector0._data.toBigInt(),
+                deck.selector1._data.toBigInt()
+            ],
+            this.sk, this.pk, this.decrypt_wasm, this.decrypt_zkey
+        );
+        let solidityProof: SolidityProof = packToSolidityProof(decryptProof.proof)
+        await this.smc.playerOpenCards(
+            gameId,
+            {
+                _data : 1 << cardIdx
+            },
+            [
+                solidityProof
+            ],
+            [
+                {
+                    X : decryptProof.publicSignals[0],
+                    Y : decryptProof.publicSignals[1]
+                }
+            ]
+        );
     }
 }

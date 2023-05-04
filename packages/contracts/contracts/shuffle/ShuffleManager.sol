@@ -448,13 +448,14 @@ contract ShuffleManager is IBaseStateManager, Ownable {
         state.openning = openningNum;
         state.curPlayerIndex = playerId;
         nextToCall[gameId] = next;
+        state.state = BaseState.Open;
         emit PlayerTurn(gameId, playerId, BaseState.Open);
     }
 
     // [SDK]: player open one or more cards
     function playerOpenCards(
         uint256 gameId,
-        BitMaps.BitMap256 memory cards,
+        BitMaps.BitMap256 memory cards,     // TODO : should be inner shuffleManager
         uint[8][] memory proofs,
         Card[] memory decryptedCards
     ) external checkState(gameId, BaseState.Open) checkTurn(gameId) {
@@ -512,8 +513,6 @@ contract ShuffleManager is IBaseStateManager, Ownable {
             nextToCall[gameId]
         );
         if (!success) {
-            console.log("success ", success);
-            console.logBytes(data);
             emit GameContractCallError(_activeGames[gameId], data);
             gameStates[gameId].state = BaseState.GameError;
         }

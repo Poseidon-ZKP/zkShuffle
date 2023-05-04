@@ -37,7 +37,8 @@ async function player_run(
                     break
                 case BaseState.Open :
                     console.log("Player ", playerIdx, " 's Open Decrypt turn!")
-                    //await player.open(gameId, state.deck.cardsToDeal)
+                    // TODO : which card to open?
+                    await player.open(gameId, playerIdx)
                     break
                 case BaseState.Complete :
                     console.log("Player ", playerIdx, " 's Game End!")
