@@ -10,7 +10,7 @@ import useEvent, { PULL_DATA_TIME } from './useEvent';
 import { useZKContext } from './useZKContext';
 import { useProvider } from 'wagmi';
 import { getLogPrams } from '../utils/contracts';
-import { genArrayFromNum } from '../utils/common';
+import { genArrayFromNum, sleep } from '../utils/common';
 
 export interface UseGameProps {
   creator: string;
@@ -19,6 +19,7 @@ export interface UseGameProps {
 }
 export interface CardInfo {
   isFlipped: boolean;
+  isChoose: boolean;
   value: number;
   isCurrent: boolean;
   index: number;
@@ -55,6 +56,7 @@ function useGame({ creator, joiner, address }: UseGameProps) {
     createGame: false,
     creatorShuffled: false,
     creatorDealt: false,
+    creatorChoose: false,
     creatorShowHand: -1,
   });
 
@@ -62,6 +64,7 @@ function useGame({ creator, joiner, address }: UseGameProps) {
     joinGame: false,
     joinerShuffled: false,
     joinerDealt: false,
+    joinerChoose: false,
     joinerShowHand: -1,
   });
 
@@ -165,7 +168,19 @@ function useGame({ creator, joiner, address }: UseGameProps) {
     contract,
     filter: contract?.filters?.ChooseCard(),
     addressIndex: 2,
+    isStop: gameStatus !== GameStatus.WAITING_FOR_CHOOSE,
+    others: {
+      creator: creator,
+      joiner: joiner,
+      gameId,
+    },
+  });
 
+  const showHandListenerValues = useEvent({
+    contract,
+    filter: contract?.filters?.ShowHand(),
+    addressIndex: 2,
+    isStop: gameStatus !== GameStatus.WAITING_FOR_CREATOR_SHOW_HAND,
     others: {
       creator: creator,
       joiner: joiner,
@@ -217,12 +232,16 @@ function useGame({ creator, joiner, address }: UseGameProps) {
         aggregatedPk,
         deck2
       );
+      debugger;
       await shuffleStatus.run(
         proof1,
         proof2,
         shuffleData1,
         shuffleData2,
-        gameId
+        gameId,
+        {
+          gasLimit: 100000000000,
+        }
       );
     } catch (error) {
       console.log('error', error);
@@ -257,16 +276,42 @@ function useGame({ creator, joiner, address }: UseGameProps) {
           value: res,
           isFlipped: false,
           isCurrent: false,
+          isChoose: false,
         };
       })
     );
     return cardInfos;
   };
 
-  const handleDeal = async () => {
+  const handleDeal = async (cards: CardInfo[]) => {
     try {
+      dealStatus.setIsLoading(true);
+      await sleep(2000);
+      const proofs: any[] = [];
+      const decryptedDatas: any[][] = [];
+      const initDeltas = [];
+      cards.forEach(async (item) => {
+        const [proof, decryptedData, initDelta] =
+          await zkContext?.generateDealData(
+            item.index,
+            userPksAndsk?.sk as string,
+            userPksAndsk?.pk as string[],
+            item.value
+          );
+        proofs.push(proof);
+        decryptedDatas.push([decryptedData[0], decryptedData[1]]);
+        initDeltas.push([initDelta[0], initDelta[1]]);
+      });
+
+      dealStatus.setIsLoading(true);
+
+      await dealStatus.run(proofs, decryptedDatas, gameId);
     } catch (error) {
+      dealStatus.setIsSuccess(false);
+      dealStatus.setIsError(true);
+      console.log('error', error);
     } finally {
+      dealStatus.setIsLoading(false);
     }
   };
 
@@ -374,6 +419,74 @@ function useGame({ creator, joiner, address }: UseGameProps) {
     joinerCards,
   ]);
 
+  useEffect(() => {
+    if (chooseCardListenerValues.creator) {
+      setCreatorStatus((prev) => {
+        return {
+          ...prev,
+          creatorChoose: true,
+        };
+      });
+      const findCardIndex = creatorCards.findIndex(
+        (item) => item.index === chooseCardListenerValues.creator[1]
+      );
+      if (findCardIndex > -1) {
+        creatorCards[findCardIndex].isChoose = true;
+      }
+      setCreatorCards(creatorCards);
+    }
+    if (chooseCardListenerValues.joiner) {
+      setJoinerStatus((prev) => {
+        return { ...prev, joinerChpose: true };
+      });
+      const findCardIndex = joinerCards.findIndex(
+        (item) => item.index === chooseCardListenerValues.joiner[1]
+      );
+      if (findCardIndex > -1) {
+        joinerCards[findCardIndex].isChoose = true;
+      }
+      setJoinerCards(joinerCards);
+    }
+    if (chooseCardListenerValues.creator && chooseCardListenerValues.joiner) {
+      setGameStatus(GameStatus.WAITING_FOR_CREATOR_SHOW_HAND);
+    }
+  });
+
+  useEffect(() => {
+    if (showHandListenerValues.creator) {
+      setCreatorStatus((prev) => {
+        return {
+          ...prev,
+          creatorShowHand: showHandListenerValues.creator[1],
+        };
+      });
+      const findCardIndex = creatorCards.findIndex(
+        (item) => item.index === showHandListenerValues.creator[1]
+      );
+      if (findCardIndex > -1) {
+        creatorCards[findCardIndex].isFlipped = true;
+        creatorCards[findCardIndex].isCurrent = true;
+      }
+      setCreatorCards(creatorCards);
+    }
+    if (showHandListenerValues.joiner) {
+      setJoinerStatus((prev) => {
+        return { ...prev, joinerShowHand: showHandListenerValues.joiner[1] };
+      });
+      const findCardIndex = joinerCards.findIndex(
+        (item) => item.index === showHandListenerValues.joiner[1]
+      );
+      if (findCardIndex > -1) {
+        joinerCards[findCardIndex].isFlipped = true;
+        joinerCards[findCardIndex].isCurrent = true;
+      }
+      setJoinerCards(joinerCards);
+    }
+    if (showHandListenerValues.creator && showHandListenerValues.joiner) {
+    }
+    return () => {};
+  }, [showHandListenerValues.creator, showHandListenerValues.joiner]);
+
   console.log('GameStatus', gameStatus);
   return {
     isCreator,
@@ -394,6 +507,7 @@ function useGame({ creator, joiner, address }: UseGameProps) {
     handleShuffle,
     handleGetBabyPk,
     handleGetContracts,
+    handleDeal,
   };
 }
 

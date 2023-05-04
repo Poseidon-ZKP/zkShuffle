@@ -78,6 +78,7 @@ export default function Home() {
     handleGetBabyPk,
     handleGetContracts,
     handleShuffle,
+    handleDeal,
   } = useGame({
     address: address,
     creator: creator,
@@ -182,7 +183,7 @@ export default function Home() {
                 isError={shuffleStatus.isError}
                 isLoading={shuffleStatus.isLoading}
                 onClick={() => {
-                  handleShuffle();
+                  handleDeal(creatorCards);
                 }}
               >
                 deal
@@ -245,7 +246,7 @@ export default function Home() {
               isError={shuffleStatus.isError}
               isLoading={shuffleStatus.isLoading}
               onClick={() => {
-                // handleDeal();
+                handleDeal(joinerCards);
               }}
             >
               deal
