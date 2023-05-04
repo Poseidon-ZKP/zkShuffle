@@ -35,8 +35,14 @@ contract KS is Initializable {
     event GameCreated(uint256 gameId, address player, CharactorType ct);
     event GameJoined(uint256 gameId, address player, CharactorType ct);
     event ShuffleDeck(uint256 gameId, address player);
-    event DealCard(uint256 gameId, uint256 cardIdx, address player);
+    event DealCard(uint256 gameId, address player);
     event ChooseCard(
+        uint256 gameId,
+        uint256 cardIdx,
+        address player,
+        uint256 round
+    );
+    event ShowHand(
         uint256 gameId,
         uint256 cardIdx,
         address player,
@@ -151,10 +157,9 @@ contract KS is Initializable {
     // Deal cardIdx-th card to opponent
     function dealHandCard(
         uint256 gameId,
-        uint256 cardIdx,
-        uint256[8] memory proof,
-        uint256[2] memory decryptedCard,
-        uint256[2] memory initDelta
+        uint256[8][5] memory proof,
+        uint256[2][5] memory decryptedCard,
+        uint256[2][5] memory initDelta
     ) external {
         uint256 playerIdx = getPlayerIndex(gameId, msg.sender);
         require(playerIdx != INVALID_CARD_INDEX, "invalid player");
@@ -162,17 +167,18 @@ contract KS is Initializable {
         // player1 deal shuffle2 and player2 deal shuffle1
         IShuffle s = playerIdx == 0 ? shuffle2 : shuffle1;
 
-        s.deal(
-            msg.sender,
-            cardIdx,
-            playerIdx,
-            proof,
-            decryptedCard,
-            initDelta,
-            gameId
-        );
-
-        emit DealCard(gameId, cardIdx, msg.sender);
+        for (uint256 i = 0; i < 5; i++) {
+            s.deal(
+                msg.sender,
+                i,
+                playerIdx,
+                proof[i],
+                decryptedCard[i],
+                initDelta[i],
+                gameId
+            );
+        }
+        emit DealCard(gameId, msg.sender);
     }
 
     function chooseCard(
@@ -225,6 +231,8 @@ contract KS is Initializable {
 
         // prevent 0
         games[gameId].roundCardValue[round][playerIdx] = cardValue + 1;
+
+        emit ShowHand(gameId, cardIdx, msg.sender, round);
 
         // both players showed card, start to battle
         if (games[gameId].roundCardValue[round][1 - playerIdx] != 0) {
