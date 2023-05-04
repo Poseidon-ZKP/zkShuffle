@@ -29,7 +29,7 @@ async function player_run(
             switch(state) {
                 case BaseState.Shuffle :
                     console.log("Player ", playerIdx, " 's Shuffle turn!")
-                    //await player.shuffle(gameId, playerIdx)
+                    await player.shuffle(gameId, playerIdx)
                     break
                 case BaseState.Deal :
                     console.log("Player ", playerIdx, " 's Deal Decrypt turn!")

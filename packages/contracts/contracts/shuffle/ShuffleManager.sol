@@ -136,6 +136,27 @@ contract ShuffleManager is IBaseStateManager, Ownable {
         return (gameStates[gameId].aggregatePkX, gameStates[gameId].aggregatePkY);
     }
 
+    // Returns Deck Config.
+    function cardConfig(
+        uint gameId
+    ) external view returns (DeckConfig) {
+        return IBaseGame(_activeGames[gameId]).cardConfig();
+    }
+
+    function queryDeck(
+        uint gameId
+    ) external view returns (
+        uint[] memory X0,
+        uint[] memory X1,
+        BitMaps.BitMap256 memory selector0,
+        BitMaps.BitMap256 memory selector1
+    ) {
+        X0 = gameStates[gameId].deck.X0;
+        X1 = gameStates[gameId].deck.X1;
+        selector0 = gameStates[gameId].deck.selector0;
+        selector1 = gameStates[gameId].deck.selector1;
+    }
+
     /**
      * create a new shuffle game (call by the game contract)
      */

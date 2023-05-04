@@ -24,7 +24,7 @@ contract Hilo is IBaseGame {
     }
 
     function cardConfig() external override pure returns (DeckConfig) {
-        return DeckConfig.Deck52Card;
+        return DeckConfig.Deck5Card;
     }
 
     uint256 public largestGameId;
