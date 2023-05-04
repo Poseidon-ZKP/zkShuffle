@@ -75,6 +75,7 @@ export default function Home() {
     createGameStatus,
     creatorCards,
     joinerCards,
+    dealStatus,
     handleGetBabyPk,
     handleGetContracts,
     handleShuffle,
@@ -179,9 +180,9 @@ export default function Home() {
           <div className="flex flex-col justify-center items-center gap-20">
             <div className="flex  gap-6">
               <Button
-                isSuccess={shuffleStatus.isSuccess}
-                isError={shuffleStatus.isError}
-                isLoading={shuffleStatus.isLoading}
+                isSuccess={dealStatus.isSuccess}
+                isError={dealStatus.isError}
+                isLoading={dealStatus.isLoading}
                 onClick={() => {
                   handleDeal(creatorCards);
                 }}
@@ -242,9 +243,9 @@ export default function Home() {
         {joinerStatus.joinGame && joinerStatus.joinerShuffled && (
           <div className="flex flex-col justify-center items-center gap-20">
             <Button
-              isSuccess={shuffleStatus.isSuccess}
-              isError={shuffleStatus.isError}
-              isLoading={shuffleStatus.isLoading}
+              isSuccess={dealStatus.isSuccess}
+              isError={dealStatus.isError}
+              isLoading={dealStatus.isLoading}
               onClick={() => {
                 handleDeal(joinerCards);
               }}

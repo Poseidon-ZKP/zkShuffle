@@ -6,12 +6,10 @@ import { contracts as contractInfos } from '../const/contracts';
 
 import { PlayerInfos, getBabyjub, getPlayerPksAndSks } from '../utils/newUtils';
 import useWriteContract from './useWriteContract';
-import useEvent, { PULL_DATA_TIME } from './useEvent';
+import useEvent from './useEvent';
 import { useZKContext } from './useZKContext';
-import { useProvider } from 'wagmi';
-import { getLogPrams } from '../utils/contracts';
 import { genArrayFromNum, sleep } from '../utils/common';
-
+import { sortBy } from 'lodash';
 export interface UseGameProps {
   creator: string;
   joiner: string;
@@ -217,6 +215,7 @@ function useGame({ creator, joiner, address }: UseGameProps) {
   const handleShuffle = async () => {
     try {
       shuffleStatus.setIsLoading(true);
+      await sleep(4000);
       const key = await contract?.queryAggregatedPk(gameId, userCardType);
       const aggregatedPk = [key[0].toBigInt(), key[1].toBigInt()];
       const deck1 = await contract?.queryDeck(gameId, creatorCardType);
@@ -226,22 +225,20 @@ function useGame({ creator, joiner, address }: UseGameProps) {
         deck1
       );
       const deck2 = await contract?.queryDeck(gameId, joinerCardType);
-
+      console.log('deck1', deck1);
+      console.log('deck2', deck2);
       const [proof2, shuffleData2] = await zkContext?.genShuffleProof(
         babyjub,
         aggregatedPk,
         deck2
       );
-      debugger;
+      // debugger;
       await shuffleStatus.run(
         proof1,
         proof2,
         shuffleData1,
         shuffleData2,
-        gameId,
-        {
-          gasLimit: 100000000000,
-        }
+        gameId
       );
     } catch (error) {
       console.log('error', error);
@@ -289,23 +286,32 @@ function useGame({ creator, joiner, address }: UseGameProps) {
       await sleep(2000);
       const proofs: any[] = [];
       const decryptedDatas: any[][] = [];
-      const initDeltas = [];
-      cards.forEach(async (item) => {
-        const [proof, decryptedData, initDelta] =
-          await zkContext?.generateDealData(
-            item.index,
-            userPksAndsk?.sk as string,
-            userPksAndsk?.pk as string[],
-            item.value
-          );
-        proofs.push(proof);
-        decryptedDatas.push([decryptedData[0], decryptedData[1]]);
-        initDeltas.push([initDelta[0], initDelta[1]]);
+      const initDeltas: any[][] = [];
+
+      const results = await Promise.all(
+        cards.map(async (item) => {
+          const [proof, decryptedData, initDelta] =
+            await zkContext?.generateDealData(
+              item.index,
+              userPksAndsk?.sk as string,
+              userPksAndsk?.pk as string[],
+              item.value
+            );
+          return {
+            index: item.index,
+            proof: proof,
+            decryptedData,
+            initDelta,
+          };
+        })
+      );
+      sortBy(results, 'index').forEach((item) => {
+        proofs.push(item.proof);
+        decryptedDatas.push([item.decryptedData[0], item.decryptedData[1]]);
+        initDeltas.push([item.initDelta[0], item.initDelta[1]]);
       });
 
-      dealStatus.setIsLoading(true);
-
-      await dealStatus.run(proofs, decryptedDatas, gameId);
+      await dealStatus.run(gameId, proofs, decryptedDatas, initDeltas);
     } catch (error) {
       dealStatus.setIsSuccess(false);
       dealStatus.setIsError(true);
@@ -369,6 +375,12 @@ function useGame({ creator, joiner, address }: UseGameProps) {
 
     if (shuffleDeckListenerValues.creator && shuffleDeckListenerValues.joiner) {
       setGameStatus(GameStatus.WAITING_FOR_DEAL);
+      // setJoinerStatus((prev) => {
+      //   return { ...prev, joinerShuffled: true };
+      // });
+      // setCreatorStatus((prev) => {
+      //   return { ...prev, creatorShuffled: true };
+      // });
       handleCards();
       // TODO
     }
@@ -503,6 +515,7 @@ function useGame({ creator, joiner, address }: UseGameProps) {
     createGameStatus,
     creatorCards,
     joinerCards,
+    dealStatus,
     chooseStatus,
     handleShuffle,
     handleGetBabyPk,
