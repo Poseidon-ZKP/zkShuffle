@@ -6,6 +6,7 @@ import { config as dotenvConfig } from 'dotenv';
 import { resolve } from 'path';
 import 'hardhat-contract-sizer';
 import 'solidity-docgen';
+import 'solidity-coverage'
 
 // setup the environment variables
 dotenvConfig({ path: resolve(__dirname, "./.env") });

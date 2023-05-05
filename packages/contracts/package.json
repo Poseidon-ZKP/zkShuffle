@@ -30,12 +30,13 @@
     "circomlibjs": "^0.1.7",
     "node-pandoc": "^0.3.0",
     "snarkjs": "^0.5.0",
+    "solidity-coverage": "^0.8.2",
     "solidity-docgen": "^0.6.0-beta.32"
   },
   "scripts": {
     "compile": "hardhat compile --verbose",
     "lint:sol": "solhint --config ./.solhint.json  \"contracts/**/*.sol\"",
-    "test": "hardhat test",
+    "test": "hardhat coverage --testfiles \"tests/*.ts\"",
     "deploy": "hardhat deploy",
     "contract-size": "hardhat size-contracts",
     "doc": "hardhat docgen"

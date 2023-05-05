@@ -37,3 +37,4 @@ scripts/types/
 .gitattributes
 *zkey*
 *.wasm
+coverage*
