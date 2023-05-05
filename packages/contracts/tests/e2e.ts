@@ -80,8 +80,8 @@ async function fullporcess() {
     );
 }
 
-describe('E2E test', function () {
-    it('ShuffleManager E2E', async () => {
+describe('zkShuffle E2E test', function () {
+    it('Hilo E2E', async () => {
         await fullporcess()
     });
 });

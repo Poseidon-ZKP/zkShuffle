@@ -156,7 +156,6 @@ contract ShuffleManager is IBaseStateManager, Ownable {
         uint256 newGameId = ++largestGameId;
         gameInfos[newGameId].numPlayers = numPlayers;
 
-
         // TODO: do we need to explicit start
         // an intialization logic of gameStates[newGameId]?
         _activeGames[newGameId] = msg.sender;
