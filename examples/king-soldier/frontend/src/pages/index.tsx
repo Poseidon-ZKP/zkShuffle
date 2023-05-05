@@ -95,7 +95,6 @@ export default function Home() {
         : CardNameType.SOLDIER
       : CardNameType.CITIZEN;
   };
-  console.log('userCardType', userCardType);
   const CreatorGameAreaUI = () => {
     return (
       <>
@@ -257,7 +256,8 @@ export default function Home() {
                 chooseStatus.isLoading ||
                 !isCreator ||
                 item.isChoose ||
-                gameStatus === GameStatus.GAME_END
+                gameStatus === GameStatus.GAME_END ||
+                gameStatus === GameStatus.WAITING_FOR_SHOW_HAND
               }
               isLoading={
                 item.index === chooseCardIndex &&
@@ -275,16 +275,22 @@ export default function Home() {
           ))}
         </div>
         {gameStatus === GameStatus.WAITING_FOR_SHOW_HAND && (
-          <Button
-            isSuccess={showHandStatus.isSuccess}
-            isError={showHandStatus.isError}
-            isLoading={showHandStatus.isLoading}
-            onClick={() => {
-              handleShowHand(chooseCardIndex as number);
-            }}
-          >
-            show hand
-          </Button>
+          <>
+            {showHandStatus.isSuccess ? (
+              'Waiting for other'
+            ) : (
+              <Button
+                isSuccess={showHandStatus.isSuccess}
+                isError={showHandStatus.isError}
+                isLoading={showHandStatus.isLoading}
+                onClick={() => {
+                  handleShowHand(chooseCardIndex as number);
+                }}
+              >
+                show hand
+              </Button>
+            )}
+          </>
         )}
         {gameStatus === GameStatus.GAME_END && (
           <div className="text-3xl font-mono font-medium text-sky-500">
@@ -302,7 +308,8 @@ export default function Home() {
                 chooseStatus.isLoading ||
                 isCreator ||
                 item.isChoose ||
-                gameStatus === GameStatus.GAME_END
+                gameStatus === GameStatus.GAME_END ||
+                gameStatus === GameStatus.WAITING_FOR_SHOW_HAND
               }
               isLoading={
                 item.index === chooseCardIndex &&
