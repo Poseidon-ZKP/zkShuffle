@@ -10,7 +10,7 @@ export const contracts = {
   //   abi: ShuffleContract.abi,
   // },
   KS: {
-    address: '0xf83C08603494Ae427484A69bD2AD61CC07973382',
+    address: '0xa7ac2ca7c0fa2073759eed3e0a995ad5aa829ab1',
     abi: KS.abi,
   },
 };

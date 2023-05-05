@@ -331,7 +331,6 @@ function useGame({ creator, joiner, address }: UseGameProps) {
   const handleShowHand = async (cardIndex: number) => {
     try {
       showHandStatus.setIsLoading(true);
-      debugger;
       const card = await contract?.queryCardInDeal(
         gameId,
         cardIndex,
@@ -342,7 +341,6 @@ function useGame({ creator, joiner, address }: UseGameProps) {
         userPksAndsk?.pk as string[],
         card
       );
-      debugger;
       await showHandStatus.run(gameId, round, proof, [
         decryptedData[0],
         decryptedData[1],
@@ -409,8 +407,7 @@ function useGame({ creator, joiner, address }: UseGameProps) {
       await sleep(1000);
       const creatorValues = await getCardInfos(joinerCardType);
       const joinerValues = await getCardInfos(creatorCardType);
-      console.log('creatorValues', creatorValues);
-      console.log('joinerValues', joinerValues);
+
       setCreatorCards(creatorValues);
       setJoinerCards(joinerValues);
     };
@@ -493,31 +490,20 @@ function useGame({ creator, joiner, address }: UseGameProps) {
           };
         });
       }
-      console.log('joinerCards', joinerCards);
     }
   }, [chooseCardListenerValues.joiner?.[1], joinerCards, round]);
 
   useEffect(() => {
-    if (
-      chooseCardListenerValues.creator?.[1] &&
-      chooseCardListenerValues.joiner?.[1]
-    ) {
+    if (joinerStatus.joinerChoose && creatorStatus.creatorChoose) {
+      showHandStatus.reset();
       setGameStatus(GameStatus.WAITING_FOR_SHOW_HAND);
     }
-  }, [
-    chooseCardListenerValues.creator?.[1],
-    chooseCardListenerValues.joiner?.[1],
-  ]);
+  }, [creatorStatus.creatorChoose, joinerStatus.joinerChoose]);
 
   useEffect(() => {
     const getHandValue = async () => {
       if (showHandListenerValues.creator?.[1]) {
-        await sleep(5000);
-        const creatorCardValue = await contract?.getCardValue(
-          gameId,
-          showHandListenerValues.creator?.[1],
-          PlayerType.CREATOR
-        );
+        const creatorCardValue = Number(showHandListenerValues.creator?.[4]);
         const findCardIndex = creatorCards.findIndex(
           (item) => item.index === Number(showHandListenerValues.creator?.[1])
         );
@@ -543,12 +529,7 @@ function useGame({ creator, joiner, address }: UseGameProps) {
   useEffect(() => {
     const getHandValue = async () => {
       if (showHandListenerValues.joiner?.[1]) {
-        await sleep(5000);
-        const joinerCardValue = await contract?.getCardValue(
-          gameId,
-          showHandListenerValues.joiner?.[1],
-          PlayerType.JOINER
-        );
+        const joinerCardValue = Number(showHandListenerValues.joiner?.[4]);
         const findCardIndex = joinerCards.findIndex(
           (item) => item.index === Number(showHandListenerValues.joiner?.[1])
         );
@@ -581,7 +562,8 @@ function useGame({ creator, joiner, address }: UseGameProps) {
             return prev + 1;
           });
           setGameStatus(GameStatus.WAITING_FOR_CHOOSE);
-
+          chooseStatus.reset();
+          showHandStatus.reset();
           setJoinerStatus((prev) => {
             return {
               ...prev,
@@ -602,13 +584,12 @@ function useGame({ creator, joiner, address }: UseGameProps) {
       }
     };
     getHandValue();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     gameStatus,
     creatorStatus.creatorShowHand,
     joinerStatus.joinerShowHand,
     round,
-    showHandListenerValues.creator?.[1],
-    showHandListenerValues.joiner?.[1],
   ]);
 
   useEffect(() => {
@@ -622,6 +603,9 @@ function useGame({ creator, joiner, address }: UseGameProps) {
       setGameStatus(GameStatus.GAME_END);
     }
   }, [gameEndedListenerValues.creator, gameEndedListenerValues.joiner]);
+
+  console.log('joinerStatus', joinerStatus);
+  console.log('creatorStatus', creatorStatus);
 
   return {
     winner,

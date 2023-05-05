@@ -242,6 +242,8 @@ export default function Home() {
     );
   };
   console.log('creatorCards', creatorCards);
+  console.log('chooseStats', chooseStatus);
+  console.log('showHandStauts', showHandStatus);
   const PokerAreaUI = () => {
     return (
       <>
@@ -256,8 +258,7 @@ export default function Home() {
                 chooseStatus.isLoading ||
                 !isCreator ||
                 item.isChoose ||
-                gameStatus === GameStatus.GAME_END ||
-                gameStatus === GameStatus.WAITING_FOR_SHOW_HAND
+                gameStatus === GameStatus.GAME_END
               }
               isLoading={
                 item.index === chooseCardIndex &&
@@ -308,8 +309,7 @@ export default function Home() {
                 chooseStatus.isLoading ||
                 isCreator ||
                 item.isChoose ||
-                gameStatus === GameStatus.GAME_END ||
-                gameStatus === GameStatus.WAITING_FOR_SHOW_HAND
+                gameStatus === GameStatus.GAME_END
               }
               isLoading={
                 item.index === chooseCardIndex &&
