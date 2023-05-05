@@ -2,7 +2,6 @@
 pragma solidity >=0.8.4;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "../shuffle/IShuffle.sol";
 
 enum CharactorType {
@@ -20,7 +19,7 @@ struct Game {
     address winner;
 }
 
-contract KS is Initializable {
+contract KS {
     uint256 public largestgameId;
 
     IShuffle public shuffle1;
@@ -46,14 +45,12 @@ contract KS is Initializable {
         uint256 gameId,
         uint256 cardIdx,
         address player,
-        uint256 round
+        uint256 round,
+        uint256 cardValue
     );
     event GameEnded(uint256 gameId, address winner);
 
-    function initialize(
-        address shuffle1_,
-        address shuffle2_
-    ) public initializer {
+    constructor(address shuffle1_, address shuffle2_) {
         require(shuffle1_ != address(0), "shuffle1 empty address");
         require(shuffle2_ != address(0), "shuffle2 empty address");
 
@@ -232,7 +229,7 @@ contract KS is Initializable {
         // prevent 0
         games[gameId].roundCardValue[round][playerIdx] = cardValue + 1;
 
-        emit ShowHand(gameId, cardIdx, msg.sender, round);
+        emit ShowHand(gameId, cardIdx, msg.sender, round, cardValue);
 
         // both players showed card, start to battle
         if (games[gameId].roundCardValue[round][1 - playerIdx] != 0) {
@@ -308,6 +305,8 @@ contract KS is Initializable {
         return s.queryCardInDeal(cardIdx, gameId);
     }
 
+    // For King, 0: King Card, 1-4: Citizen Card
+    // For Soldier, 0: Soldier Card, 1-4: Citizen Card
     function getCardValue(
         uint256 gameId,
         uint256 cardIdx,
