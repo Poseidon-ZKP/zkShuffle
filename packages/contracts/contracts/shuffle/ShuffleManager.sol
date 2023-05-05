@@ -98,6 +98,11 @@ contract ShuffleManager is IBaseStateManager, Ownable {
         return gameInfos[gameId].numCards;
     }
 
+    function gameState(uint256 gameId) public view returns(uint256) {
+        require(gameId <= largestGameId, "Invalid gameId");
+        return uint(gameStates[gameId].state);
+    }
+
     // get the current player index (who need to take action)
     function curPlayerIndex(uint256 gameId) public view override returns(uint256) {
         require(gameId <= largestGameId, "Invalid gameId");

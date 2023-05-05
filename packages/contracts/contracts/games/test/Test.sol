@@ -9,7 +9,7 @@ contract ShuffleTest is IBaseGame {
     IBaseStateManager public ishuffle;
 
     function cardConfig() external override pure returns (DeckConfig) {
-        return DeckConfig.Deck52Card;
+        return DeckConfig.Deck5Card;
     }
 
     constructor(
@@ -24,6 +24,10 @@ contract ShuffleTest is IBaseGame {
         if (!success) {
             console.logBytes(data);
         }
+    }
+
+    function dummy() external {
+        console.log("ShuffleTest dummy");
     }
 
 }

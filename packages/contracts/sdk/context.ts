@@ -160,8 +160,7 @@ export class ShuffleContext {
         return { g: this.babyjub.Base8, sk: sk, pk: this.babyjub.mulPointEscalar(this.babyjub.Base8, sk) }
     }
 
-    // Queries the current deck from contract, shuffles & generates ZK proof locally, and updates the deck on contract.
-    async _shuffle(
+    async generate_shuffle_proof(
         gameId: number
     ) {
         const numBits = BigInt(251);
@@ -180,7 +179,8 @@ export class ShuffleContext {
             preprocessedDeck.Delta[0], preprocessedDeck.Delta[1],
             preprocessedDeck.Selector,
         );
-        let shuffleEncryptV2Output = await generateShuffleEncryptV2Proof(
+
+        return await generateShuffleEncryptV2Proof(
             aggrPK, A, R,
             preprocessedDeck.X0, preprocessedDeck.X1,
             preprocessedDeck.Delta[0], preprocessedDeck.Delta[1],
@@ -190,16 +190,24 @@ export class ShuffleContext {
             plaintext_output.selector,
             this.encrypt_wasm, this.encrypt_zkey,
         );
-        let solidityProof: SolidityProof = packToSolidityProof(shuffleEncryptV2Output.proof);
+    }
+
+    // Queries the current deck from contract, shuffles & generates ZK proof locally, and updates the deck on contract.
+    async _shuffle(
+        gameId: number
+    ) {
+        const numCards = (await this.smc.gameCardNum(gameId)).toNumber()
+        let shuffleFullProof = await this.generate_shuffle_proof(gameId)
+        let solidityProof: SolidityProof = packToSolidityProof(shuffleFullProof.proof);
         await this.smc.playerShuffle(
             gameId,
             solidityProof,
             {
                 config : await this.smc.cardConfig(gameId) ,
-                X0 : shuffleEncryptV2Output.publicSignals.slice(3 + numCards * 2, 3 + numCards * 3),
-                X1 : shuffleEncryptV2Output.publicSignals.slice(3 + numCards * 3, 3 + numCards * 4),
-                selector0 : { _data : shuffleEncryptV2Output.publicSignals[5 + numCards * 4]},
-                selector1 : { _data : shuffleEncryptV2Output.publicSignals[6 + numCards * 4]}
+                X0 : shuffleFullProof.publicSignals.slice(3 + numCards * 2, 3 + numCards * 3),
+                X1 : shuffleFullProof.publicSignals.slice(3 + numCards * 3, 3 + numCards * 4),
+                selector0 : { _data : shuffleFullProof.publicSignals[5 + numCards * 4]},
+                selector1 : { _data : shuffleFullProof.publicSignals[6 + numCards * 4]}
             }
         );
     }

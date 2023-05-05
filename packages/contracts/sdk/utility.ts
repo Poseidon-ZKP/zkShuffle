@@ -11,5 +11,5 @@ export async function tx_to_contract(
        data : calldata
      }
      let resp = await owner.sendTransaction(tx)
-     await resp.wait()
+     return await resp.wait()
 }
