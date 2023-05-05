@@ -117,5 +117,6 @@ contract Hilo is IBaseGame {
         uint gameId
     ) external onlyShuffleManager {
         // game-specific cleanup
+        ishuffle.endGame(gameId);
     }
 }

@@ -3,7 +3,7 @@ import { ethers } from "hardhat";
 import { exit } from "process";
 import { BaseState, NOT_TRUN, ShuffleContext, sleep } from "../sdk/context";
 import { Hilo, Hilo__factory, ShuffleManager, ShuffleManager__factory } from "../types";
-import { deploy_shuffle_manager } from "./deploy";
+import { deploy_shuffle_manager } from "../sdk/deploy";
 
 async function player_run(
     SM : ShuffleManager,

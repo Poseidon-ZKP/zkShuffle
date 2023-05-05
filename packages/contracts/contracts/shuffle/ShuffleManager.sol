@@ -504,6 +504,17 @@ contract ShuffleManager is IBaseStateManager, Ownable {
         _callGameContract(gameId);
     }
 
+    // [Game Contract]: end game
+    function endGame(
+        uint256 gameId
+    ) external override gameOwner(gameId) {
+        ShuffleGameState storage state = gameStates[gameId];
+        state.state = BaseState.Complete;
+        for (uint256 playerId = 0; playerId < gameInfos[gameId].numCards; playerId++) {
+            emit PlayerTurn(gameId, playerId, BaseState.Complete);
+        }
+    }
+
     // goes into error state
     function error(uint256 gameId, bytes calldata next)
         external override
