@@ -2,6 +2,8 @@ import { Contract, ethers } from 'ethers';
 import { useEffect, useState } from 'react';
 import { buildBabyjub } from 'circomlibjs';
 import { getContract } from '@wagmi/core';
+import { sortBy, cloneDeep } from 'lodash';
+
 import { contracts as contractInfos } from '../const/contracts';
 
 import { PlayerInfos, getBabyjub, getPlayerPksAndSks } from '../utils/newUtils';
@@ -9,7 +11,8 @@ import useWriteContract from './useWriteContract';
 import useEvent from './useEvent';
 import { useZKContext } from './useZKContext';
 import { genArrayFromNum, sleep } from '../utils/common';
-import { sortBy } from 'lodash';
+import useTransactions from './useTransactions';
+
 export interface UseGameProps {
   creator: string;
   joiner: string;
@@ -21,11 +24,23 @@ export interface CardInfo {
   value: number;
   isCurrent: boolean;
   index: number;
+  round?: number;
 }
 
 export enum CardType {
   KING = 0,
   SOLDIER = 1,
+}
+
+export enum CardNameType {
+  KING = 'King',
+  SOLDIER = 'Soldier',
+  CITIZEN = 'Citizen',
+}
+
+export enum PlayerType {
+  CREATOR = 0,
+  JOINER = 1,
 }
 
 export enum GameStatus {
@@ -36,7 +51,9 @@ export enum GameStatus {
   WAITING_FOR_JOINER_SHUFFLE = 'waiting for joiner shuffle',
   WAITING_FOR_DEAL = 'waiting for deal',
   WAITING_FOR_CHOOSE = 'waiting for choose',
-  WAITING_FOR_CREATOR_SHOW_HAND = 'waiting for creator show hand',
+  WAITING_FOR_SHOW_HAND = 'waiting for show hand',
+  WAITING_FOR_END = 'waiting for end',
+  GAME_END = 'game end',
 }
 
 export const CARD_NUM = 5;
@@ -50,12 +67,14 @@ function useGame({ creator, joiner, address }: UseGameProps) {
   const [cardType, setCardType] = useState<CardType>();
   const [creatorCards, setCreatorCards] = useState<CardInfo[]>([]);
   const [joinerCards, setJoinerCards] = useState<CardInfo[]>([]);
+  const [winner, setWinner] = useState();
+  const [round, setRound] = useState(0);
   const [creatorStatus, setCreatorStatus] = useState({
     createGame: false,
     creatorShuffled: false,
     creatorDealt: false,
     creatorChoose: false,
-    creatorShowHand: -1,
+    creatorShowHand: false,
   });
 
   const [joinerStatus, setJoinerStatus] = useState({
@@ -63,25 +82,30 @@ function useGame({ creator, joiner, address }: UseGameProps) {
     joinerShuffled: false,
     joinerDealt: false,
     joinerChoose: false,
-    joinerShowHand: -1,
+    joinerShowHand: false,
   });
 
   const zkContext = useZKContext();
+
   const isCreator = creator === address;
   const creatorCardType = cardType as CardType;
   const joinerCardType =
     cardType === CardType.KING ? CardType.SOLDIER : CardType.KING;
   const userCardType = isCreator ? creatorCardType : joinerCardType;
+  const playerType = isCreator ? PlayerType.CREATOR : PlayerType.JOINER;
   const playerAddresses = [creator, joiner];
   const userPksAndsk = playerPksAndSks?.[address as string];
 
-  const createGameKingStatus = useWriteContract(contract?.['createGame'], {
-    args: [],
-    wait: true,
-  });
-  const createGameSoldierStatus = useWriteContract(contract?.['createGame'], {
-    args: [],
-    wait: true,
+  const {
+    joinGameStatus,
+    shuffleStatus,
+    dealStatus,
+    chooseStatus,
+    showHandStatus,
+    createGameSoldierStatus,
+    createGameKingStatus,
+  } = useTransactions({
+    contract,
   });
 
   const createGameStatus = {
@@ -91,25 +115,6 @@ function useGame({ creator, joiner, address }: UseGameProps) {
     isLoading:
       createGameKingStatus.isLoading || createGameSoldierStatus.isLoading,
   };
-
-  const joinGameStatus = useWriteContract(contract?.['joinGame'], {
-    args: [],
-    wait: true,
-  });
-
-  const shuffleStatus = useWriteContract(contract?.['shuffle'], {
-    args: [],
-    wait: true,
-  });
-
-  const dealStatus = useWriteContract(contract?.['dealHandCard'], {
-    args: [],
-    wait: true,
-  });
-
-  const chooseStatus = useWriteContract(contract?.['chooseCard'], {});
-
-  const showHandStatus = useWriteContract(contract?.['showHand'], {});
 
   const createGameListenerValues = useEvent({
     contract,
@@ -153,8 +158,9 @@ function useGame({ creator, joiner, address }: UseGameProps) {
   const dealCardListenerValues = useEvent({
     contract,
     filter: contract?.filters?.DealCard(),
-    addressIndex: 2,
+    addressIndex: 1,
     isStop: gameStatus !== GameStatus.WAITING_FOR_DEAL,
+
     others: {
       creator: creator,
       joiner: joiner,
@@ -178,7 +184,7 @@ function useGame({ creator, joiner, address }: UseGameProps) {
     contract,
     filter: contract?.filters?.ShowHand(),
     addressIndex: 2,
-    isStop: gameStatus !== GameStatus.WAITING_FOR_CREATOR_SHOW_HAND,
+    isStop: gameStatus !== GameStatus.WAITING_FOR_SHOW_HAND,
     others: {
       creator: creator,
       joiner: joiner,
@@ -189,7 +195,10 @@ function useGame({ creator, joiner, address }: UseGameProps) {
   const gameEndedListenerValues = useEvent({
     contract,
     filter: contract?.filters?.GameEnded(),
-    isStop: true,
+    isStop:
+      gameStatus !== GameStatus.WAITING_FOR_CHOOSE &&
+      gameStatus !== GameStatus.WAITING_FOR_SHOW_HAND &&
+      gameStatus !== GameStatus.WAITING_FOR_END,
     addressIndex: 1,
     others: {
       creator: creator,
@@ -215,24 +224,21 @@ function useGame({ creator, joiner, address }: UseGameProps) {
   const handleShuffle = async () => {
     try {
       shuffleStatus.setIsLoading(true);
-      await sleep(4000);
+      await sleep(2000);
       const key = await contract?.queryAggregatedPk(gameId, userCardType);
       const aggregatedPk = [key[0].toBigInt(), key[1].toBigInt()];
-      const deck1 = await contract?.queryDeck(gameId, creatorCardType);
+      const deck1 = await contract?.queryDeck(gameId, 0);
       const [proof1, shuffleData1] = await zkContext?.genShuffleProof(
         babyjub,
         aggregatedPk,
         deck1
       );
-      const deck2 = await contract?.queryDeck(gameId, joinerCardType);
-      console.log('deck1', deck1);
-      console.log('deck2', deck2);
+      const deck2 = await contract?.queryDeck(gameId, 1);
       const [proof2, shuffleData2] = await zkContext?.genShuffleProof(
         babyjub,
         aggregatedPk,
         deck2
       );
-      // debugger;
       await shuffleStatus.run(
         proof1,
         proof2,
@@ -264,6 +270,7 @@ function useGame({ creator, joiner, address }: UseGameProps) {
   };
 
   const getCardInfos = async (cardType: CardType) => {
+    await sleep(3000);
     const arr = genArrayFromNum(CARD_NUM);
     const cardInfos = Promise.all(
       arr.map(async (item) => {
@@ -321,6 +328,43 @@ function useGame({ creator, joiner, address }: UseGameProps) {
     }
   };
 
+  const handleShowHand = async (cardIndex: number) => {
+    try {
+      showHandStatus.setIsLoading(true);
+      debugger;
+      const card = await contract?.queryCardInDeal(
+        gameId,
+        cardIndex,
+        playerType
+      );
+      const [proof, decryptedData] = await zkContext?.generateShowHandData(
+        userPksAndsk?.sk as string,
+        userPksAndsk?.pk as string[],
+        card
+      );
+      debugger;
+      await showHandStatus.run(gameId, round, proof, [
+        decryptedData[0],
+        decryptedData[1],
+      ]);
+    } catch (error) {
+      showHandStatus.setIsError(true);
+      showHandStatus.setIsLoading(false);
+      console.log('error', error);
+    } finally {
+      showHandStatus.setIsLoading(false);
+    }
+  };
+
+  // const getWinner =async (creatorCard:CardType,joinerCard:CardType) => {
+  //   try {
+  //     const winner = await contract?.queryWinner(gameId);
+  //     setWinner(winner);
+  //   } catch (error) {
+  //     console.log('error', error);
+  //   }
+  // }
+
   //finished creating game
   useEffect(() => {
     if (createGameListenerValues.creator) {
@@ -339,7 +383,7 @@ function useGame({ creator, joiner, address }: UseGameProps) {
   //finished joining game
 
   useEffect(() => {
-    if (joinGameListenerValues.joiner) {
+    if (joinGameListenerValues.joiner?.[1]) {
       setGameStatus(GameStatus.WAITING_FOR_CREATOR_SHUFFLE);
       setJoinerStatus((prev) => {
         return {
@@ -348,159 +392,239 @@ function useGame({ creator, joiner, address }: UseGameProps) {
         };
       });
     }
-    return () => {};
-  }, [joinGameListenerValues.joiner]);
+  }, [joinGameListenerValues.joiner?.[1]]);
+
+  useEffect(() => {
+    if (shuffleDeckListenerValues.creator?.[1]) {
+      if (gameStatus === GameStatus.WAITING_FOR_DEAL) return;
+      setGameStatus(GameStatus.WAITING_FOR_JOINER_SHUFFLE);
+      setCreatorStatus((prev) => {
+        return { ...prev, creatorShuffled: true };
+      });
+    }
+  }, [shuffleDeckListenerValues.creator?.[1]]);
+
   useEffect(() => {
     const handleCards = async () => {
-      const creatorValues = await getCardInfos(creatorCardType);
-      const joinerValues = await getCardInfos(joinerCardType);
+      await sleep(1000);
+      const creatorValues = await getCardInfos(joinerCardType);
+      const joinerValues = await getCardInfos(creatorCardType);
       console.log('creatorValues', creatorValues);
       console.log('joinerValues', joinerValues);
       setCreatorCards(creatorValues);
       setJoinerCards(joinerValues);
     };
 
-    if (shuffleDeckListenerValues.creator) {
-      setGameStatus(GameStatus.WAITING_FOR_JOINER_SHUFFLE);
-      setCreatorStatus((prev) => {
-        return { ...prev, creatorShuffled: true };
-      });
-    }
-
-    if (shuffleDeckListenerValues.joiner) {
+    if (shuffleDeckListenerValues.joiner?.[1]) {
+      handleCards();
       setJoinerStatus((prev) => {
         return { ...prev, joinerShuffled: true };
       });
-    }
-
-    if (shuffleDeckListenerValues.creator && shuffleDeckListenerValues.joiner) {
       setGameStatus(GameStatus.WAITING_FOR_DEAL);
-      // setJoinerStatus((prev) => {
-      //   return { ...prev, joinerShuffled: true };
-      // });
-      // setCreatorStatus((prev) => {
-      //   return { ...prev, creatorShuffled: true };
-      // });
-      handleCards();
-      // TODO
     }
-  }, [
-    creatorCardType,
-    joinerCardType,
-    shuffleDeckListenerValues.creator,
-    shuffleDeckListenerValues.joiner,
-  ]);
+  }, [creatorCardType, joinerCardType, shuffleDeckListenerValues.joiner?.[1]]);
 
   useEffect(() => {
-    if (dealCardListenerValues.creator) {
+    if (dealCardListenerValues.creator?.[1]) {
       setCreatorStatus((prev) => {
         return {
           ...prev,
           creatorDealt: true,
         };
       });
-      // const findCardIndex = creatorCards.findIndex(
-      //   (item) => item.index === dealCardListenerValues.creator[1]
-      // );
-      // if (findCardIndex > -1) {
-      //   creatorCards[findCardIndex].isFlipped = true;
-      //   creatorCards[findCardIndex].isCurrent = true;
-      // }
-      // setCreatorCards(creatorCards);
     }
-    if (dealCardListenerValues.joiner) {
+  }, [dealCardListenerValues.creator?.[1]]);
+
+  useEffect(() => {
+    if (dealCardListenerValues.joiner?.[1]) {
       setJoinerStatus((prev) => {
         return { ...prev, joinerDealt: true };
       });
-      // const findCardIndex = joinerCards.findIndex(
-      //   (item) => item.index === dealCardListenerValues.joiner[1]
-      // );
-      // if (findCardIndex > -1) {
-      //   joinerCards[findCardIndex].isFlipped = true;
-      //   joinerCards[findCardIndex].isCurrent = true;
-      // }
-      // setJoinerCards(joinerCards);
     }
-    if (dealCardListenerValues.creator && dealCardListenerValues.joiner) {
+  }, [dealCardListenerValues.joiner?.[1]]);
+
+  useEffect(() => {
+    if (
+      dealCardListenerValues.creator?.[1] &&
+      dealCardListenerValues.joiner?.[1]
+    ) {
       setGameStatus(GameStatus.WAITING_FOR_CHOOSE);
     }
+  }, [dealCardListenerValues.creator?.[1], dealCardListenerValues.joiner?.[1]]);
+
+  useEffect(() => {
+    if (chooseCardListenerValues.creator?.[1]) {
+      const cardIndex = Number(chooseCardListenerValues.creator?.[1]);
+      const findCardIndex = creatorCards.findIndex(
+        (item) => item.index === cardIndex
+      );
+      if (findCardIndex > -1) {
+        if (creatorCards[findCardIndex].isChoose) return;
+        creatorCards[findCardIndex].isChoose = true;
+        creatorCards[findCardIndex].round = round;
+        setCreatorCards([...creatorCards]);
+        setCreatorStatus((prev) => {
+          return {
+            ...prev,
+            creatorChoose: true,
+          };
+        });
+      }
+      console.log('creatorCards', creatorCards);
+    }
+    return () => {};
+  }, [chooseCardListenerValues.creator?.[1], creatorCards, round]);
+
+  useEffect(() => {
+    if (chooseCardListenerValues.joiner?.[1]) {
+      const cardIndex = Number(chooseCardListenerValues.joiner?.[1]);
+      const findCardIndex = joinerCards.findIndex(
+        (item) => item.index === cardIndex
+      );
+      if (findCardIndex > -1) {
+        if (joinerCards[findCardIndex].isChoose) return;
+        joinerCards[findCardIndex].isChoose = true;
+        joinerCards[findCardIndex].round = round;
+        setJoinerCards([...joinerCards]);
+        setJoinerStatus((prev) => {
+          return {
+            ...prev,
+            joinerChoose: true,
+          };
+        });
+      }
+      console.log('joinerCards', joinerCards);
+    }
+  }, [chooseCardListenerValues.joiner?.[1], joinerCards, round]);
+
+  useEffect(() => {
+    if (
+      chooseCardListenerValues.creator?.[1] &&
+      chooseCardListenerValues.joiner?.[1]
+    ) {
+      setGameStatus(GameStatus.WAITING_FOR_SHOW_HAND);
+    }
   }, [
-    creatorCards,
-    dealCardListenerValues.creator,
-    dealCardListenerValues.joiner,
-    joinerCards,
+    chooseCardListenerValues.creator?.[1],
+    chooseCardListenerValues.joiner?.[1],
   ]);
 
   useEffect(() => {
-    if (chooseCardListenerValues.creator) {
-      setCreatorStatus((prev) => {
-        return {
-          ...prev,
-          creatorChoose: true,
-        };
-      });
-      const findCardIndex = creatorCards.findIndex(
-        (item) => item.index === chooseCardListenerValues.creator[1]
-      );
-      if (findCardIndex > -1) {
-        creatorCards[findCardIndex].isChoose = true;
+    const getHandValue = async () => {
+      if (showHandListenerValues.creator?.[1]) {
+        await sleep(5000);
+        const creatorCardValue = await contract?.getCardValue(
+          gameId,
+          showHandListenerValues.creator?.[1],
+          PlayerType.CREATOR
+        );
+        const findCardIndex = creatorCards.findIndex(
+          (item) => item.index === Number(showHandListenerValues.creator?.[1])
+        );
+        if (findCardIndex > -1) {
+          if (creatorCards[findCardIndex].isFlipped) return;
+          creatorCards[findCardIndex].isFlipped = true;
+          creatorCards[findCardIndex].value = Number(creatorCardValue);
+          setCreatorCards([...creatorCards]);
+          setCreatorStatus((prev) => {
+            return {
+              ...prev,
+              creatorShowHand: true,
+            };
+          });
+          // creatorCards[findCardIndex].isCurrent = true;
+        }
       }
-      setCreatorCards(creatorCards);
-    }
-    if (chooseCardListenerValues.joiner) {
-      setJoinerStatus((prev) => {
-        return { ...prev, joinerChpose: true };
-      });
-      const findCardIndex = joinerCards.findIndex(
-        (item) => item.index === chooseCardListenerValues.joiner[1]
-      );
-      if (findCardIndex > -1) {
-        joinerCards[findCardIndex].isChoose = true;
-      }
-      setJoinerCards(joinerCards);
-    }
-    if (chooseCardListenerValues.creator && chooseCardListenerValues.joiner) {
-      setGameStatus(GameStatus.WAITING_FOR_CREATOR_SHOW_HAND);
-    }
-  });
+    };
+    getHandValue();
+    return () => {};
+  }, [contract, creatorCards, gameId, showHandListenerValues.creator?.[1]]);
 
   useEffect(() => {
-    if (showHandListenerValues.creator) {
-      setCreatorStatus((prev) => {
-        return {
-          ...prev,
-          creatorShowHand: showHandListenerValues.creator[1],
-        };
-      });
-      const findCardIndex = creatorCards.findIndex(
-        (item) => item.index === showHandListenerValues.creator[1]
-      );
-      if (findCardIndex > -1) {
-        creatorCards[findCardIndex].isFlipped = true;
-        creatorCards[findCardIndex].isCurrent = true;
+    const getHandValue = async () => {
+      if (showHandListenerValues.joiner?.[1]) {
+        await sleep(5000);
+        const joinerCardValue = await contract?.getCardValue(
+          gameId,
+          showHandListenerValues.joiner?.[1],
+          PlayerType.JOINER
+        );
+        const findCardIndex = joinerCards.findIndex(
+          (item) => item.index === Number(showHandListenerValues.joiner?.[1])
+        );
+        if (findCardIndex > -1) {
+          if (joinerCards[findCardIndex].isFlipped) return;
+          joinerCards[findCardIndex].isFlipped = true;
+          joinerCards[findCardIndex].value = Number(joinerCardValue);
+          setJoinerCards([...joinerCards]);
+          setJoinerStatus((prev) => {
+            return {
+              ...prev,
+              joinerShowHand: true,
+            };
+          });
+        }
       }
-      setCreatorCards(creatorCards);
-    }
-    if (showHandListenerValues.joiner) {
-      setJoinerStatus((prev) => {
-        return { ...prev, joinerShowHand: showHandListenerValues.joiner[1] };
-      });
-      const findCardIndex = joinerCards.findIndex(
-        (item) => item.index === showHandListenerValues.joiner[1]
-      );
-      if (findCardIndex > -1) {
-        joinerCards[findCardIndex].isFlipped = true;
-        joinerCards[findCardIndex].isCurrent = true;
-      }
-      setJoinerCards(joinerCards);
-    }
-    if (showHandListenerValues.creator && showHandListenerValues.joiner) {
-    }
+    };
+    getHandValue();
     return () => {};
-  }, [showHandListenerValues.creator, showHandListenerValues.joiner]);
+  }, [contract, gameId, joinerCards, showHandListenerValues.joiner?.[1]]);
 
-  console.log('GameStatus', gameStatus);
+  useEffect(() => {
+    const getHandValue = async () => {
+      if (gameStatus === GameStatus.GAME_END) {
+        return;
+      }
+      if (creatorStatus.creatorShowHand && joinerStatus.joinerShowHand) {
+        if (round < 5) {
+          setRound((prev) => {
+            return prev + 1;
+          });
+          setGameStatus(GameStatus.WAITING_FOR_CHOOSE);
+
+          setJoinerStatus((prev) => {
+            return {
+              ...prev,
+              joinerChoose: false,
+              joinerShowHand: false,
+            };
+          });
+          setCreatorStatus((prev) => {
+            return {
+              ...prev,
+              creatorChoose: false,
+              creatorShowHand: false,
+            };
+          });
+        } else {
+          setGameStatus(GameStatus.WAITING_FOR_END);
+        }
+      }
+    };
+    getHandValue();
+  }, [
+    gameStatus,
+    creatorStatus.creatorShowHand,
+    joinerStatus.joinerShowHand,
+    round,
+    showHandListenerValues.creator?.[1],
+    showHandListenerValues.joiner?.[1],
+  ]);
+
+  useEffect(() => {
+    if (gameEndedListenerValues.creator) {
+      setWinner(gameEndedListenerValues.creator[1]);
+      setGameStatus(GameStatus.GAME_END);
+    }
+
+    if (gameEndedListenerValues.joiner) {
+      setWinner(gameEndedListenerValues.joiner[1]);
+      setGameStatus(GameStatus.GAME_END);
+    }
+  }, [gameEndedListenerValues.creator, gameEndedListenerValues.joiner]);
+
   return {
+    winner,
     isCreator,
     gameStatus,
     createGameKingStatus,
@@ -517,10 +641,15 @@ function useGame({ creator, joiner, address }: UseGameProps) {
     joinerCards,
     dealStatus,
     chooseStatus,
+    showHandStatus,
+    round,
+    joinerCardType,
+    creatorCardType,
     handleShuffle,
     handleGetBabyPk,
     handleGetContracts,
     handleDeal,
+    handleShowHand,
   };
 }
 

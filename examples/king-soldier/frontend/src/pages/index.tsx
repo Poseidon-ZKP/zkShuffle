@@ -9,37 +9,8 @@ import { useResourceContext } from '../hooks/useResourceContext';
 import { useRouter } from 'next/router';
 import { formatAddress } from '../utils/common';
 import Card from '../components/Card';
-import useGame, { CardType, GameStatus } from '../hooks/useGame';
+import useGame, { CardNameType, CardType, GameStatus } from '../hooks/useGame';
 import Button from '../components/Button';
-import Load from '../components/Load';
-
-const CARD_VALUES: Record<string, number> = {
-  A: 1,
-  2: 2,
-  3: 3,
-  4: 4,
-  5: 5,
-  6: 6,
-  7: 7,
-  8: 8,
-  9: 9,
-  10: 10,
-  J: 11,
-  Q: 12,
-  K: 13,
-};
-
-export const createDeck = () => {
-  const suits = ['♠', '♥', '♦', '♣'];
-  const values = Object.keys(CARD_VALUES);
-  const deck = suits.flatMap((suit) =>
-    values.map((value) => `${suit}${value}`)
-  );
-
-  return deck;
-};
-
-const deck = createDeck();
 
 export default function Home() {
   const router = useRouter();
@@ -64,6 +35,7 @@ export default function Home() {
     isCreator,
     gameStatus,
     gameId,
+    winner,
     createGameKingStatus,
     createGameSoldierStatus,
     creatorStatus,
@@ -72,13 +44,19 @@ export default function Home() {
     joinerStatus,
     joinGameStatus,
     shuffleStatus,
-    createGameStatus,
     creatorCards,
     joinerCards,
     dealStatus,
+    chooseStatus,
+    showHandStatus,
+    round,
+    creatorCardType,
+    joinerCardType,
+
     handleGetBabyPk,
     handleGetContracts,
     handleShuffle,
+    handleShowHand,
     handleDeal,
   } = useGame({
     address: address,
@@ -86,24 +64,15 @@ export default function Home() {
     joiner: joiner,
   });
 
-  // const creatorUIState = useMemo(() => {
-  //   return {
-  //     showStartGame: isCreator && !creatorStatus.createGame,
-  //   };
-  // }, [creatorStatus.createGame, isCreator]);
-
-  // const joinerUIState = useMemo(() => {
-  //   return {
-  //     showJoinGame: !isCreator && !joinerStatus.joinGame,
-  //   };
-  // }, [isCreator, joinerStatus.joinGame]);
-
+  const [chooseCardIndex, setChooseCardIndex] = useState<number>();
   const isNotShowPokerArea =
     gameStatus === GameStatus.WAITING_FOR_START ||
     gameStatus === GameStatus.WAITING_FOR_JOIN ||
     gameStatus === GameStatus.WAITING_FOR_CREATOR_SHUFFLE ||
     gameStatus === GameStatus.WAITING_FOR_JOINER_SHUFFLE ||
     gameStatus === GameStatus.WAITING_FOR_DEAL;
+
+  const isCanDeal = creatorCards.length > 0 && joinerCards.length > 0;
 
   useEffect(() => {
     if (hasSetup || settingUp) {
@@ -119,6 +88,14 @@ export default function Home() {
     handleGetBabyPk();
   }, [router.isReady]);
 
+  const getCardType = (cardType: CardType, value: number) => {
+    return value === 0
+      ? cardType === CardType.KING
+        ? CardNameType.KING
+        : CardNameType.SOLDIER
+      : CardNameType.CITIZEN;
+  };
+  console.log('userCardType', userCardType);
   const CreatorGameAreaUI = () => {
     return (
       <>
@@ -172,24 +149,28 @@ export default function Home() {
                 </Button>{' '}
               </div>
             ) : (
-              'Waiting'
+              'Waiting for joiner join'
             )}
           </div>
         )}
         {creatorStatus.createGame && creatorStatus.creatorShuffled && (
           <div className="flex flex-col justify-center items-center gap-20">
-            <div className="flex  gap-6">
-              <Button
-                isSuccess={dealStatus.isSuccess}
-                isError={dealStatus.isError}
-                isLoading={dealStatus.isLoading}
-                onClick={() => {
-                  handleDeal(creatorCards);
-                }}
-              >
-                deal
-              </Button>{' '}
-            </div>
+            {joinerStatus.joinerShuffled && isCanDeal ? (
+              <div className="flex  gap-6">
+                <Button
+                  isSuccess={dealStatus.isSuccess}
+                  isError={dealStatus.isError}
+                  isLoading={dealStatus.isLoading}
+                  onClick={() => {
+                    handleDeal(creatorCards);
+                  }}
+                >
+                  deal
+                </Button>{' '}
+              </div>
+            ) : (
+              'Waiting for joiner shuffle'
+            )}
           </div>
         )}
       </>
@@ -242,34 +223,97 @@ export default function Home() {
         )}
         {joinerStatus.joinGame && joinerStatus.joinerShuffled && (
           <div className="flex flex-col justify-center items-center gap-20">
-            <Button
-              isSuccess={dealStatus.isSuccess}
-              isError={dealStatus.isError}
-              isLoading={dealStatus.isLoading}
-              onClick={() => {
-                handleDeal(joinerCards);
-              }}
-            >
-              deal
-            </Button>
+            {!joinerStatus.joinerDealt && isCanDeal ? (
+              <Button
+                isSuccess={dealStatus.isSuccess}
+                isError={dealStatus.isError}
+                isLoading={dealStatus.isLoading}
+                onClick={() => {
+                  handleDeal(joinerCards);
+                }}
+              >
+                deal
+              </Button>
+            ) : (
+              'Waiting.... '
+            )}
           </div>
         )}
       </>
     );
   };
-
+  console.log('creatorCards', creatorCards);
   const PokerAreaUI = () => {
     return (
       <>
-        <div className="w-full flex justify-between">
-          {creatorCards.map((item) => (
-            <Card key={item.index} isFlipped={item.isFlipped} />
+        <div className="w-full flex justify-between ">
+          {creatorCards.map((item, index) => (
+            <Card
+              key={item.index}
+              cardValue={getCardType(creatorCardType, item.value)}
+              isFlipped={item.isFlipped}
+              isChoose={item.isChoose}
+              isDisabled={
+                chooseStatus.isLoading ||
+                !isCreator ||
+                item.isChoose ||
+                gameStatus === GameStatus.GAME_END
+              }
+              isLoading={
+                item.index === chooseCardIndex &&
+                chooseStatus.isLoading &&
+                isCreator
+              }
+              onClickFrond={async () => {
+                if (isCreator) {
+                  setChooseCardIndex(item.index);
+                  console.log('round', round);
+                  await chooseStatus.run(gameId, item.index, round);
+                }
+              }}
+            />
           ))}
         </div>
-
+        {gameStatus === GameStatus.WAITING_FOR_SHOW_HAND && (
+          <Button
+            isSuccess={showHandStatus.isSuccess}
+            isError={showHandStatus.isError}
+            isLoading={showHandStatus.isLoading}
+            onClick={() => {
+              handleShowHand(chooseCardIndex as number);
+            }}
+          >
+            show hand
+          </Button>
+        )}
+        {gameStatus === GameStatus.GAME_END && (
+          <div className="text-3xl font-mono font-medium text-sky-500">
+            winner is {winner}
+          </div>
+        )}
         <div className="w-full flex justify-between">
           {joinerCards.map((item) => (
-            <Card key={item.index} isFlipped={item.isFlipped} />
+            <Card
+              key={item.index}
+              cardValue={getCardType(joinerCardType, item.value)}
+              isFlipped={item.isFlipped}
+              isChoose={item.isChoose}
+              isDisabled={
+                chooseStatus.isLoading ||
+                isCreator ||
+                item.isChoose ||
+                gameStatus === GameStatus.GAME_END
+              }
+              isLoading={
+                item.index === chooseCardIndex &&
+                chooseStatus.isLoading &&
+                !isCreator
+              }
+              onClickFrond={async () => {
+                setChooseCardIndex(item.index);
+                await chooseStatus.run(gameId, item.index, round);
+              }}
+            />
           ))}
         </div>
       </>

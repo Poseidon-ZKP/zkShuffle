@@ -4,7 +4,8 @@ import ReactCardFlip, { ReactFlipCardProps } from 'react-card-flip';
 export interface CardProps extends Omit<ReactFlipCardProps, 'children'> {
   cardValue?: string;
   isLoading?: boolean;
-  isDisabled: boolean;
+  isDisabled?: boolean;
+  isChoose?: boolean;
   onClickFrond?: () => void;
   onClickBack?: () => void;
 }
@@ -13,6 +14,7 @@ function Index({
   isFlipped,
   isDisabled,
   isLoading,
+  isChoose,
   flipDirection = 'horizontal',
   onClickFrond,
   onClickBack,
@@ -28,11 +30,31 @@ function Index({
         onClick={() => {
           !isDisabled && onClickFrond?.();
         }}
-        className={`flex items-center justify-center w-[12rem] h-[15rem] bg-gradient-to-br from-slate-700 via-slate-800 to-slate-700 rounded-md hover:cursor-pointer  shadow-lg hover:shadow-slate-700/70   ${
-          isDisabled ? 'hover:opacity-25' : 'hover:opacity-75'
+        className={`flex items-center justify-center w-[12rem] h-[15rem] bg-gradient-to-br from-slate-700 via-slate-800 to-slate-700 rounded-md   shadow-lg    ${
+          isDisabled
+            ? isChoose
+              ? 'opacity-100'
+              : 'opacity-50'
+            : 'hover:cursor-pointer hover:shadow-slate-700/70  hover:opacity-75'
         }  `}
       >
-        {isLoading && (
+        {isChoose && (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="w-8 h-8"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M4.5 12.75l6 6 9-13.5"
+            />
+          </svg>
+        )}
+        {isLoading && !isChoose && (
           <svg
             className={`animate-spin -ml-1 mr-3  w-12 h-12 text-white`}
             xmlns="http://www.w3.org/2000/svg"
@@ -58,7 +80,7 @@ function Index({
 
       <div
         onClick={onClickBack}
-        className="flex justify-center items-center w-[12rem] h-[15rem] bg-slate-700 rounded-md hover:cursor-pointer hover:opacity-75 "
+        className="flex justify-center items-center w-[12rem] h-[15rem] bg-slate-700 rounded-md  "
       >
         <div className="text-sky-500 text-2xl hover:subpixel-antialiased">
           {cardValue}

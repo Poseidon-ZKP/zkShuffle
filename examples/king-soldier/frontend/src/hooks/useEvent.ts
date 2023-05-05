@@ -20,7 +20,7 @@ export interface UseEventProps {
   // joiner: string;
 }
 
-export const PULL_DATA_TIME = 5000;
+export const PULL_DATA_TIME = 2000;
 
 function useEvent({
   contract,
@@ -35,10 +35,11 @@ function useEvent({
 
   const listener = async (...args: any[]) => {
     try {
+      console.log('args', args);
       if (!gameId || gameId == args[0].toString()) {
-        if (args[1] === creator) {
+        if (args[addressIndex] === creator) {
           setCreatorValue(args);
-        } else if (args[1] === joiner) {
+        } else if (args[addressIndex] === joiner) {
           setJoinerValue(args);
         }
       }
@@ -60,9 +61,6 @@ function useEvent({
             provider: provider,
           })
         );
-
-        console.log('logs', logs);
-
         logs.forEach((log: any) => {
           const event = contract.interface.parseLog(log);
           listener(...event.args);
