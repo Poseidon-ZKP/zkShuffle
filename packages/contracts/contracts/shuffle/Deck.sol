@@ -37,7 +37,7 @@ struct Deck {
     BitMaps.BitMap256 selector1;
     // deal record
     // for example, decryptRecord[0] = 10000... means that
-    // the first card has been dealt to the player 0
+    // the first card has been dealt by the player 0
     mapping(uint256 => BitMaps.BitMap256) decryptRecord;
     // set of cards to be dealed
     BitMaps.BitMap256 cardsToDeal;
