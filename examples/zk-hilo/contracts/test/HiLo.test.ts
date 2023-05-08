@@ -6,7 +6,7 @@ import {
   generateShuffleEncryptV2Proof,
   packToSolidityProof,
   SolidityProof,
-} from "@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/proof";
+} from "@poseidon-zkp/poseidon-zk-proof/src/shuffle/proof";
 import {
   convertPk,
   keyGen,
@@ -16,8 +16,8 @@ import {
   prepareDecryptData,
   ecX2Delta,
   prepareShuffleDeck,
-} from "@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/utilities";
-import { shuffleEncryptV2Plaintext } from "@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/plaintext";
+} from "@poseidon-zkp/poseidon-zk-proof/src/shuffle/utilities";
+import { shuffleEncryptV2Plaintext } from "@poseidon-zkp/poseidon-zk-proof/src/shuffle/plaintext";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 const fs = require("fs");
@@ -353,8 +353,15 @@ describe("HiLo", () => {
     );
     console.log("Bob deal first card to Alice");
 
-    // Alice show her card
+    // guess
+    // Alice and Bob guess that their cardValue is smaller than opponent's
+    await Alice.guess(gameId, 1);
+    console.log("Alice guessed");
 
+    await Bob.guess(gameId, 1);
+    console.log("Bob guessed");
+
+    //Alice show her card
     cardIdx = 1;
     card = await hiLo.queryCardInDeal(gameId, cardIdx);
     let [showProof, showData] = await generateShowHandData(
@@ -384,7 +391,13 @@ describe("HiLo", () => {
     cardValue = await Alice.getCardValue(gameId, cardIdx); // 0-51
     console.log(`Alice shows her card, and the card is ${cardValue}`);
 
-    const winner = await hiLo.getWinner(gameId);
-    console.log("winner is", winner);
+    console.log(
+      "Alice guess result is",
+      await hiLo.isGuessRight(gameId, accounts[1].address)
+    );
+    console.log(
+      "Bob guess result is",
+      await hiLo.isGuessRight(gameId, accounts[2].address)
+    );
   });
 });
