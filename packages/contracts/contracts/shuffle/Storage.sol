@@ -7,7 +7,7 @@ import "./ECC.sol";
 import "./IBaseGame.sol";
 import "./BitMaps.sol";
 
-// #if SOL_DEBUG
+// #if SHUFFLE_UNIT_TEST
 import "hardhat/console.sol";
 // #endif
 
