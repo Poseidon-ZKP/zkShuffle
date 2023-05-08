@@ -14,7 +14,13 @@ import "hardhat/console.sol";
  * @title Shuffle Manager
  * @dev manage all ZK Games
  */
-contract ShuffleManager is IBaseStateManager, Storage, Ownable {
+// // #if SHUFFLE_UNIT_TEST
+import "../debug/Debug.sol";
+contract ShuffleManager is IBaseStateManager, Debug, Ownable {
+// // #else
+// contract ShuffleManager is IBaseStateManager, Storage, Ownable {
+// // #endif
+
     // event
     event GameContractCallError(address caller, bytes data);
 
