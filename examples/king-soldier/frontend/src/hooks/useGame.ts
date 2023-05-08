@@ -604,9 +604,6 @@ function useGame({ creator, joiner, address }: UseGameProps) {
     }
   }, [gameEndedListenerValues.creator, gameEndedListenerValues.joiner]);
 
-  console.log('joinerStatus', joinerStatus);
-  console.log('creatorStatus', creatorStatus);
-
   return {
     winner,
     isCreator,

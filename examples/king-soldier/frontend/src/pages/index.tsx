@@ -241,9 +241,7 @@ export default function Home() {
       </>
     );
   };
-  console.log('creatorCards', creatorCards);
-  console.log('chooseStats', chooseStatus);
-  console.log('showHandStauts', showHandStatus);
+
   const PokerAreaUI = () => {
     return (
       <>
@@ -254,11 +252,18 @@ export default function Home() {
               cardValue={getCardType(creatorCardType, item.value)}
               isFlipped={item.isFlipped}
               isChoose={item.isChoose}
+              isError={
+                isCreator &&
+                item.index === chooseCardIndex &&
+                chooseStatus.isError
+              }
               isDisabled={
+                chooseStatus.isSuccess ||
                 chooseStatus.isLoading ||
                 !isCreator ||
                 item.isChoose ||
-                gameStatus === GameStatus.GAME_END
+                gameStatus === GameStatus.GAME_END ||
+                gameStatus === GameStatus.WAITING_FOR_SHOW_HAND
               }
               isLoading={
                 item.index === chooseCardIndex &&
@@ -305,11 +310,18 @@ export default function Home() {
               cardValue={getCardType(joinerCardType, item.value)}
               isFlipped={item.isFlipped}
               isChoose={item.isChoose}
+              isError={
+                !isCreator &&
+                item.index === chooseCardIndex &&
+                chooseStatus.isError
+              }
               isDisabled={
+                chooseStatus.isSuccess ||
                 chooseStatus.isLoading ||
                 isCreator ||
                 item.isChoose ||
-                gameStatus === GameStatus.GAME_END
+                gameStatus === GameStatus.GAME_END ||
+                gameStatus === GameStatus.WAITING_FOR_SHOW_HAND
               }
               isLoading={
                 item.index === chooseCardIndex &&

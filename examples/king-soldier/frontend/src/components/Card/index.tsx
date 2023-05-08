@@ -5,6 +5,7 @@ export interface CardProps extends Omit<ReactFlipCardProps, 'children'> {
   cardValue?: string;
   isLoading?: boolean;
   isDisabled?: boolean;
+  isError?: boolean;
   isChoose?: boolean;
   onClickFrond?: () => void;
   onClickBack?: () => void;
@@ -15,6 +16,7 @@ function Index({
   isDisabled,
   isLoading,
   isChoose,
+  isError = false,
   flipDirection = 'horizontal',
   onClickFrond,
   onClickBack,
@@ -30,12 +32,16 @@ function Index({
         onClick={() => {
           !isDisabled && onClickFrond?.();
         }}
-        className={`flex items-center justify-center w-[12rem] h-[15rem] bg-gradient-to-br from-slate-700 via-slate-800 to-slate-700 rounded-md   shadow-lg    ${
+        className={`flex items-center justify-center w-[12rem] h-[15rem]  rounded-md   shadow-lg    ${
           isDisabled
             ? isChoose
               ? 'opacity-100'
               : 'opacity-50'
             : 'hover:cursor-pointer hover:shadow-slate-700/70  hover:opacity-75'
+        } ${
+          isError
+            ? 'bg-red-500'
+            : 'bg-gradient-to-br from-slate-700 via-slate-800 to-slate-700'
         }  `}
       >
         {isChoose && (
