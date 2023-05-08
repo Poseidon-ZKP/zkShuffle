@@ -5,11 +5,18 @@ pragma experimental ABIEncoderV2;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "../shuffle/IShuffle.sol";
 
+enum Selection {
+    High,
+    Low
+}
+
 // Data for a specific game
 struct Game {
     // Player address
     address[2] players;
     uint256[2] cardValues;
+    bool[2] guessed;
+    Selection[2] guess;
 }
 
 // Game logic for zkHiLo
@@ -29,6 +36,7 @@ contract HiLo is Ownable {
     event GameJoined(uint256 gameId, address playerAddress);
     event ShuffleDeck(uint256 gameId, address player);
     event DealCard(uint256 gameId, uint256 cardIdx, address player);
+    event Guess(uint256 gameId, Selection selection, address player);
     event ShowCard(
         uint256 gameId,
         uint256 cardIdx,
@@ -136,6 +144,17 @@ contract HiLo is Ownable {
         emit DealCard(gameId, cardIdx, msg.sender);
     }
 
+    function guess(uint256 gameId, Selection selection) external {
+        uint256 playerIdx = getPlayerIndex(gameId, msg.sender);
+        require(playerIdx != INVALID_CARD_INDEX, "invalid player");
+        require(!games[gameId].guessed[playerIdx], "player already guessed");
+
+        games[gameId].guess[playerIdx] = selection;
+        games[gameId].guessed[playerIdx] = true;
+
+        emit Guess(gameId, selection, msg.sender);
+    }
+
     // player shows `cardIdx`-th card.
     function showHand(
         uint256 gameId,
@@ -145,6 +164,11 @@ contract HiLo is Ownable {
     ) external {
         uint256 playerIdx = getPlayerIndex(gameId, msg.sender);
         require(playerIdx != INVALID_CARD_INDEX, "invalid player");
+
+        require(
+            games[gameId].guessed[0] && games[gameId].guessed[1],
+            "not guess yet"
+        );
 
         shuffleStateMachine.deal(
             msg.sender,
@@ -201,13 +225,25 @@ contract HiLo is Ownable {
         return games[gameId];
     }
 
-    function getWinner(uint256 gameId) public view returns (address) {
+    function isGuessRight(
+        uint256 gameId,
+        address player
+    ) public view returns (bool) {
+        uint256 playerIdx = getPlayerIndex(gameId, player);
+        require(playerIdx != INVALID_CARD_INDEX, "invalid player");
+
         require(
             games[gameId].cardValues[0] != 0 && games[gameId].cardValues[1] != 0
         );
-        return
-            games[gameId].cardValues[0] > games[gameId].cardValues[1]
-                ? games[gameId].players[0]
-                : games[gameId].players[1];
+
+        if (games[gameId].guess[playerIdx] == Selection.High) {
+            return
+                games[gameId].cardValues[playerIdx] >
+                games[gameId].cardValues[1 - playerIdx];
+        } else {
+            return
+                games[gameId].cardValues[playerIdx] <
+                games[gameId].cardValues[1 - playerIdx];
+        }
     }
 }
