@@ -6,9 +6,18 @@ import "../../shuffle/IBaseGame.sol";
 import "../../shuffle/IBaseStateManager.sol";
 import "hardhat/console.sol";
 
-// State-less Pure game logic contract
-// 1. state-less game contract don't care about shuffle-state,
-//    so they only impl the game logic interface define in IBaseGame
+// An example game contract using zkShuffle
+// Hilo is a simple two-player game on 5 card deck 
+// 1. deal the first card to player 0
+// 2. deal the second card to player 1
+// 3. (Offchain) player guess who's card is bigger
+// 4. Open player 0's card
+// 5. Open player 1's card
+// So the game dev only need to specify the game state machine:
+// - create a new game by calling ShuffleManager store the `gameID` 
+//   from ShuffleManager 
+// - define the game state machine by specifying the next state in the `next` 
+//   calldata so that ShuffleManager will call back 
 contract Hilo is IBaseGame {
     IBaseStateManager public ishuffle;
 
@@ -29,7 +38,12 @@ contract Hilo is IBaseGame {
     }
 
     uint256 public largestGameId;
+
+    // a mapping between Hilo's gameId 
+    // to the "global" gameId returned by ShuffleManager
     mapping(uint => uint) shuffleGameId;
+
+    // a mapping between Hilo's gameId and game owners
     mapping(uint => address) gameOwners;
 
     constructor(
@@ -46,14 +60,17 @@ contract Hilo is IBaseGame {
         return gameId;
     }
 
+    // move the game into "Player Registering" State, 
+    // a.k.a. allow players to join the game
     function allowJoinGame(
         uint gameId
     ) external onlyGameOwner(gameId) {
-        // move the game into "Player Registering" State, 
         bytes memory next = abi.encodeWithSelector(this.moveToShuffleStage.selector, gameId);
         ishuffle.register(shuffleGameId[gameId], next);
     }
     
+    // Allow players to shuffle the deck, and specify the next state:
+    // dealCard0ToPlayer0
     function moveToShuffleStage(
         uint gameId
     ) external onlyShuffleManager {
@@ -61,6 +78,8 @@ contract Hilo is IBaseGame {
         ishuffle.shuffle(shuffleGameId[gameId], next);
     }
 
+    // Deal the 0th card to player 0 and specify the next state:
+    // dealCard1ToPlayer1
     function dealCard0ToPlayer0(
         uint gameId
     ) external onlyShuffleManager {
@@ -75,6 +94,8 @@ contract Hilo is IBaseGame {
         );
     }
 
+    // Deal the 1st card to player 1 and specify the next state:
+    // openCard0
     function dealCard1ToPlayer1(
         uint gameId
     ) external onlyShuffleManager {
@@ -89,6 +110,8 @@ contract Hilo is IBaseGame {
         );
     }
 
+    // Open Card 0 and specify the next state:
+    // openCard1
     function openCard0(
         uint gameId
     ) external onlyShuffleManager {
@@ -101,6 +124,8 @@ contract Hilo is IBaseGame {
         );
     }
 
+    // Open the Card 1 and specify the next state:
+    // openCard1
     function openCard1(
         uint gameId
     ) external onlyShuffleManager {
@@ -113,6 +138,7 @@ contract Hilo is IBaseGame {
         );
     }
 
+    // End the game, GG!
     function endGame(
         uint gameId
     ) external onlyShuffleManager {
