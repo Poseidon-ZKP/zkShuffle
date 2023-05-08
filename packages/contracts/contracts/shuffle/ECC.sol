@@ -244,7 +244,10 @@ library CurveBabyJubJub {
     }
 
     /**
-     * @dev recover Y from X, delta (TODO: boyuan please update the math here), and sign  
+     * @dev recover Y from X, delta, and sign such that
+     *    A*x^2 + delta^2 = 1 + D*x^2*delta^2
+     *    0 <= delta <= (Q-1)/2
+     *    y = sign*delta + (1-sign)*(Q-delta)
      */ 
     function recoverY(
         uint256 x,
