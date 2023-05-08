@@ -1,12 +1,13 @@
 import { useAccount, useConnect, useNetwork, useSwitchNetwork } from 'wagmi';
 import React, { useEffect, useMemo } from 'react';
-import { useGame } from '../hooks/useGame';
+import { SelectionEnum, useGame } from '../hooks/useGame';
 
 import { useResourceContext } from '../hooks/useResourceContext';
 import { formatAddress } from '../utils/common';
 import StatusItem from '../components/StatusItem';
 import { useRouter } from 'next/router';
 import { arbitrumGoerli } from 'wagmi/chains';
+import Button from '../components/Button';
 
 const CARD_VALUES: Record<string, number> = {
   A: 1,
@@ -70,6 +71,7 @@ export default function Home() {
     joinerStatus,
     currentStatus,
     shuffleStatus,
+    guessStatus,
     userPksAndsk,
     dealStatus,
     showHandStatus,
@@ -88,16 +90,22 @@ export default function Home() {
         isCreator &&
         joinerStatus.joinerShuffled &&
         creatorStatus.creatorShuffled,
+      showGuess:
+        isCreator && creatorStatus.creatorDealt && joinerStatus.joinerDealt,
       showHand:
-        isCreator && joinerStatus.joinerDealt && creatorStatus.creatorDealt,
+        isCreator &&
+        joinerStatus.joinerGuess !== SelectionEnum.NONE &&
+        creatorStatus.creatorGuess !== SelectionEnum.NONE,
     };
   }, [
     creatorStatus.createGame,
     creatorStatus.creatorDealt,
+    creatorStatus.creatorGuess,
     creatorStatus.creatorShuffled,
     isCreator,
     joinerStatus.joinGame,
     joinerStatus.joinerDealt,
+    joinerStatus.joinerGuess,
     joinerStatus.joinerShuffled,
   ]);
 
@@ -109,17 +117,44 @@ export default function Home() {
         !isCreator &&
         joinerStatus.joinerShuffled &&
         creatorStatus.creatorShuffled,
+      showGuess:
+        !isCreator && creatorStatus.creatorDealt && joinerStatus.joinerDealt,
       showHand:
-        !isCreator && joinerStatus.joinerDealt && creatorStatus.creatorDealt,
+        !isCreator &&
+        joinerStatus.joinerGuess !== SelectionEnum.NONE &&
+        creatorStatus.creatorGuess !== SelectionEnum.NONE,
     };
   }, [
     creatorStatus.createGame,
     creatorStatus.creatorDealt,
+    creatorStatus.creatorGuess,
     creatorStatus.creatorShuffled,
     isCreator,
     joinerStatus.joinerDealt,
+    joinerStatus.joinerGuess,
     joinerStatus.joinerShuffled,
   ]);
+
+  const renderGuessButtons = () => {
+    return (
+      <div className="flex gap-10">
+        <Button
+          onClick={() => {
+            guessStatus.run(gameId, SelectionEnum.HIGH);
+          }}
+        >
+          HIGH
+        </Button>
+        <Button
+          onClick={() => {
+            guessStatus.run(gameId, SelectionEnum.LOW);
+          }}
+        >
+          LOW
+        </Button>
+      </div>
+    );
+  };
 
   if (!router.isReady) {
     return (
@@ -224,7 +259,10 @@ export default function Home() {
                       buttonStatus={createGameStatus}
                       buttonProps={{
                         onClick: async () => {
-                          await createGameStatus?.run();
+                          await createGameStatus?.run([
+                            userPksAndsk?.pk[0],
+                            userPksAndsk?.pk[1],
+                          ]);
                         },
                         children: 'Start game',
                       }}
@@ -255,6 +293,15 @@ export default function Home() {
                         },
                         children: 'Deal',
                       }}
+                    />
+                    <StatusItem
+                      label={'Guess Status:'}
+                      statusLabel={'Guessed'}
+                      isShowText={
+                        creatorStatus.creatorGuess !== SelectionEnum.NONE
+                      }
+                      uiStatus={creatorUIStatus.showGuess}
+                      buttonRender={renderGuessButtons}
                     />
                     <StatusItem
                       label={'Show Hand:'}
@@ -329,6 +376,17 @@ export default function Home() {
                         children: 'Deal',
                       }}
                     />
+
+                    <StatusItem
+                      label={'Guess Status:'}
+                      statusLabel={'Guessed'}
+                      isShowText={
+                        joinerStatus.joinerGuess !== SelectionEnum.NONE
+                      }
+                      uiStatus={joinerUIStatus.showGuess}
+                      buttonRender={renderGuessButtons}
+                    />
+
                     <StatusItem
                       label={'Show Hand:'}
                       statusLabel={String(joinerStatus.joinerShowHand)}

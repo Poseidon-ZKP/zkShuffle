@@ -5,9 +5,10 @@ export interface StatusItem {
   label: string;
   statusLabel: string;
   isShowText: boolean;
-  buttonStatus: ReturnType<typeof useTransaction>;
+  buttonStatus?: ReturnType<typeof useTransaction>;
   uiStatus: boolean;
-  buttonProps: IButtonProps;
+  buttonProps?: IButtonProps;
+  buttonRender?: () => React.ReactNode;
 }
 
 function Index({
@@ -16,7 +17,7 @@ function Index({
   isShowText,
   buttonStatus,
   uiStatus,
-
+  buttonRender,
   buttonProps,
 }: StatusItem) {
   return (
@@ -28,14 +29,18 @@ function Index({
         {isShowText ? (
           <div className="text-slate-300">{statusLabel}</div>
         ) : uiStatus ? (
-          <Button
-            isSuccess={buttonStatus.isSuccess}
-            isLoading={buttonStatus.isLoading}
-            isError={buttonStatus.isError}
-            {...buttonProps}
-          >
-            {buttonProps?.children}
-          </Button>
+          buttonRender ? (
+            buttonRender()
+          ) : (
+            <Button
+              isSuccess={buttonStatus.isSuccess}
+              isLoading={buttonStatus.isLoading}
+              isError={buttonStatus.isError}
+              {...buttonProps}
+            >
+              {buttonProps?.children}
+            </Button>
+          )
         ) : (
           <div className="opacity-25">Waiting</div>
         )}

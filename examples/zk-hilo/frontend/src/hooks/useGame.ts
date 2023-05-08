@@ -13,6 +13,8 @@ import useShuffledListener from './useShuffledListener';
 import useWriteContract from './useWriteContract';
 import { sleep } from '../utils/common';
 import { getLogPrams } from '../utils/contracts';
+import useTransactions from './useTransactions';
+import useEvent from './useEvent';
 
 export enum CurrentStatusEnum {
   WAITING_FOR_START = 'waiting for start',
@@ -21,8 +23,15 @@ export enum CurrentStatusEnum {
   WAITING_FOR_CREATOR_SHUFFLE = 'waiting for creator shuffle',
   WAITING_FOR_JOINER_SHUFFLE = 'waiting for joiner shuffle',
   WAITING_FOR_DEAL = 'waiting for deal',
+  WAITING_FOR_GUESS = 'waiting for guess',
   WAITING_FOR_SHOW = 'waiting for show hand',
   WAITING_FOR_WINNER = 'waiting for winner',
+}
+
+export enum SelectionEnum {
+  HIGH,
+  LOW,
+  NONE = -1,
 }
 
 export const getContractWriteParams = (fucName: string, args?: any) => {
@@ -40,6 +49,7 @@ export const defaultJoinerStatus = {
   joinGame: false,
   joinerShuffled: false,
   joinerDealt: false,
+  joinerGuess: SelectionEnum.NONE,
   joinerShowHand: -1,
 };
 
@@ -47,6 +57,7 @@ export const defaultCreatorStatus = {
   createGame: false,
   creatorShuffled: false,
   creatorDealt: false,
+  creatorGuess: SelectionEnum.NONE,
   creatorShowHand: -1,
 };
 
@@ -69,7 +80,6 @@ export function useGame() {
   const [winner, setWinner] = useState<string>();
 
   const [creatorStatus, setCreatorStatus] = useState(defaultCreatorStatus);
-
   const [joinerStatus, setJoinerStatus] = useState(defaultJoinerStatus);
 
   // contracts functions
@@ -96,29 +106,15 @@ export function useGame() {
   const playerAddresses = [creator, joiner];
   const userPksAndsk = playerPksAndSks?.[address as string];
 
-  const createGameStatus = useWriteContract(contract?.['createGame'], {
-    args: [[userPksAndsk?.pk[0], userPksAndsk?.pk[1]]],
-    wait: true,
-  });
-
-  const joinGameStatus = useWriteContract(contract?.['joinGame'], {
-    args: [],
-    wait: true,
-  });
-
-  const shuffleStatus = useWriteContract(contract?.['shuffle'], {
-    args: [],
-    wait: true,
-  });
-
-  const dealStatus = useWriteContract(contract?.['dealHandCard'], {
-    args: [],
-    wait: true,
-  });
-
-  const showHandStatus = useWriteContract(contract?.['showHand'], {
-    args: [],
-    wait: true,
+  const {
+    createGameStatus,
+    showHandStatus,
+    dealStatus,
+    shuffleStatus,
+    joinGameStatus,
+    guessStatus,
+  } = useTransactions({
+    contract,
   });
 
   const handleShuffle = async (gameId: number) => {
@@ -138,8 +134,83 @@ export function useGame() {
   };
 
   //listeners
-  const { dealStatus: dealListenerStatus, reset: dealListenerReset } =
-    useDealtListener(contract, creator, joiner, provider, currentStatus);
+
+  const createGameListenerValues = useEvent({
+    contract,
+    filter: contract?.filters?.GameCreated(),
+    isStop: currentStatus !== CurrentStatusEnum.WAITING_FOR_START,
+    addressIndex: 1,
+
+    others: {
+      creator: creator,
+      joiner: joiner,
+    },
+  });
+
+  const joinGameListenerValues = useEvent({
+    contract,
+    filter: contract?.filters?.GameJoined(),
+    isStop: currentStatus !== CurrentStatusEnum.WAITING_FOR_JOIN,
+    addressIndex: 1,
+
+    others: {
+      creator: creator,
+      joiner: joiner,
+      gameId,
+    },
+  });
+
+  const shuffleDeckListenerValues = useEvent({
+    contract,
+    filter: contract?.filters?.ShuffleDeck(),
+    isStop:
+      currentStatus !== CurrentStatusEnum.WAITING_FOR_CREATOR_SHUFFLE &&
+      currentStatus !== CurrentStatusEnum.WAITING_FOR_JOINER_SHUFFLE,
+    addressIndex: 1,
+
+    others: {
+      creator: creator,
+      joiner: joiner,
+      gameId,
+    },
+  });
+
+  const dealListenerStatus = useEvent({
+    contract,
+    filter: contract?.filters?.DealCard(),
+    isStop: currentStatus !== CurrentStatusEnum.WAITING_FOR_DEAL,
+    addressIndex: 2,
+    others: {
+      creator: creator,
+      joiner: joiner,
+      gameId,
+    },
+  });
+
+  const guessListenerStatus = useEvent({
+    contract,
+    filter: contract?.filters?.Guess(),
+    isStop: currentStatus !== CurrentStatusEnum.WAITING_FOR_GUESS,
+    addressIndex: 2,
+    others: {
+      creator: creator,
+      joiner: joiner,
+      gameId,
+    },
+  });
+
+  const showHandListenerStatus = useEvent({
+    contract,
+    filter: contract?.filters?.ShowCard(),
+    isStop: currentStatus !== CurrentStatusEnum.WAITING_FOR_GUESS,
+    addressIndex: 3,
+    others: {
+      creator: creator,
+      joiner: joiner,
+      gameId,
+    },
+  });
+
   const { handValues, reset: handValuesReset } = useShowHandListener(
     contract,
     provider,
@@ -147,15 +218,6 @@ export function useGame() {
     creator,
     joiner
   );
-  const { shuffleStatus: shuffleListenerStatus, reset: shuffleReset } =
-    useShuffledListener(
-      contract,
-      creator,
-      joiner,
-      address as string,
-      provider,
-      currentStatus
-    );
 
   const handleGetWinner = (creatorValue: number, joinerValue: number) => {
     let winner = creatorValue > joinerValue ? creator : joiner;
@@ -206,15 +268,10 @@ export function useGame() {
         card
       );
 
-      await showHandStatus?.run(
-        gameId,
-        showIdx,
-        showProof,
-        [showData[0], showData[1]],
-        {
-          gasLimit: 20000000,
-        }
-      );
+      await showHandStatus?.run(gameId, showIdx, showProof, [
+        showData[0],
+        showData[1],
+      ]);
     } catch (error) {
       showHandStatus.setIsError(true);
       showHandStatus.setIsLoading(false);
@@ -239,10 +296,7 @@ export function useGame() {
         cardIdx,
         dealProof,
         [decryptedData[0], decryptedData[1]],
-        [initDelta[0], initDelta[1]],
-        {
-          gasLimit: 20000000,
-        }
+        [initDelta[0], initDelta[1]]
       );
     } catch (error) {
       dealStatus.setIsSuccess(false);
@@ -259,51 +313,13 @@ export function useGame() {
     setGameId(undefined);
     setCurrentStatus(CurrentStatusEnum.CREATED_GAME);
     setWinner(undefined);
-    dealListenerReset();
-    shuffleReset();
-    handValuesReset();
+    // dealListenerReset();
+    // handValuesReset();
     createGameStatus.reset();
     joinGameStatus.reset();
     shuffleStatus.reset();
     dealStatus.reset();
     showHandStatus.reset();
-  };
-
-  const GameCreatedListener = async (arg1: any, arg2: any) => {
-    try {
-      await sleep(3000);
-
-      const gameId = Number(arg1);
-      const creatorAddress = arg2;
-      setCreatorStatus((preStats) => {
-        return { ...preStats, createGame: true };
-      });
-      setCurrentStatus(CurrentStatusEnum.WAITING_FOR_JOIN);
-      setGameId(gameId);
-
-      if (creator === creatorAddress) {
-        if (joiner === address) {
-          // await joinGameStatus.run(gameId, [
-          //   userPksAndsk?.pk[0],
-          //   userPksAndsk?.pk[1],
-          // ]);
-        }
-      }
-    } catch (error) {
-      console.log('error', error);
-    }
-  };
-
-  const GameJoinedListener = async (arg1: any, joinerAddress: any) => {
-    try {
-      if (joiner === joinerAddress) {
-        setJoinerStatus((preStats) => {
-          return { ...preStats, joinGame: true };
-        });
-        setCurrentStatus(CurrentStatusEnum.WAITING_FOR_CREATOR_SHUFFLE);
-        // setIsJoined(true);
-      }
-    } catch (error) {}
   };
 
   useEffect(() => {
@@ -312,30 +328,86 @@ export function useGame() {
     handleGetBabyPk();
   }, [router.isReady]);
 
-  //if both are show hand then get winner
+  // create game handler
   useEffect(() => {
-    if (handValues.creator !== undefined) {
-      setCreatorStatus((prev) => ({
-        ...prev,
-        creatorShowHand: handValues.creator as number,
-      }));
+    const GameCreatedListener = async (arg1: any, arg2: any) => {
+      try {
+        const gameId = Number(arg1);
+        const creatorAddress = arg2;
+        setCreatorStatus((preStats) => {
+          return { ...preStats, createGame: true };
+        });
+        setCurrentStatus(CurrentStatusEnum.WAITING_FOR_JOIN);
+        setGameId(gameId);
+
+        if (creator === creatorAddress) {
+          if (joiner === address) {
+            // await joinGameStatus.run(gameId, [
+            //   userPksAndsk?.pk[0],
+            //   userPksAndsk?.pk[1],
+            // ]);
+          }
+        }
+      } catch (error) {
+        console.log('error', error);
+      }
+    };
+
+    if (createGameListenerValues.creator) {
+      GameCreatedListener(
+        createGameListenerValues.creator[0],
+        createGameListenerValues.creator[1]
+      );
     }
 
-    if (handValues.joiner !== undefined) {
-      setJoinerStatus((prev) => ({
-        ...prev,
-        joinerShowHand: handValues.joiner as number,
-      }));
-    }
+    return () => {};
+  }, [createGameListenerValues.creator]);
 
-    if (handValues.creator !== undefined && handValues.joiner !== undefined) {
-      setCurrentStatus(CurrentStatusEnum.WAITING_FOR_WINNER);
-      handleGetWinner(handValues.creator, handValues.joiner);
+  // join game handler
+  useEffect(() => {
+    const GameJoinedListener = async (arg1: any, joinerAddress: any) => {
+      try {
+        if (joiner === joinerAddress) {
+          setJoinerStatus((preStats) => {
+            return { ...preStats, joinGame: true };
+          });
+          setCurrentStatus(CurrentStatusEnum.WAITING_FOR_CREATOR_SHUFFLE);
+          // setIsJoined(true);
+        }
+      } catch (error) {}
+    };
+    if (joinGameListenerValues.joiner) {
+      GameJoinedListener(
+        joinGameListenerValues.joiner[0],
+        joinGameListenerValues.joiner[1]
+      );
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [handValues.creator, handValues.joiner]);
+  }, [joinGameListenerValues.joiner]);
 
-  //  if both are finished deal,then show hand
+  // shuffle handler
+  useEffect(() => {
+    const handleShuffleHandler = () => {
+      if (shuffleDeckListenerValues.creator) {
+        setCreatorStatus((prev) => ({
+          ...prev,
+          creatorShuffle: true,
+        }));
+        setCurrentStatus(CurrentStatusEnum.WAITING_FOR_JOINER_SHUFFLE);
+      }
+
+      if (shuffleDeckListenerValues.joiner) {
+        setJoinerStatus((prev) => ({
+          ...prev,
+          joinerShuffle: true,
+        }));
+        setCurrentStatus(CurrentStatusEnum.WAITING_FOR_DEAL);
+      }
+    };
+
+    handleShuffleHandler();
+  }, [shuffleDeckListenerValues.creator, shuffleDeckListenerValues.joiner]);
+
+  //  deal handler
   useEffect(() => {
     if (dealListenerStatus.creator) {
       setCreatorStatus((prev) => ({ ...prev, creatorDealt: true }));
@@ -344,127 +416,59 @@ export function useGame() {
       setJoinerStatus((prev) => ({ ...prev, joinerDealt: true }));
     }
     if (dealListenerStatus.creator && dealListenerStatus.joiner) {
-      setCurrentStatus(CurrentStatusEnum.WAITING_FOR_SHOW);
-      handleShowCard();
+      setCurrentStatus(CurrentStatusEnum.WAITING_FOR_GUESS);
+      // handleShowCard();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dealListenerStatus.creator, dealListenerStatus.joiner, showIdx]);
 
-  //if both are finished shuffling, then deal
+  // guess handler
   useEffect(() => {
-    let timer: NodeJS.Timeout | null = null;
-    if (shuffleListenerStatus.creator) {
-      setCreatorStatus((prev) => ({ ...prev, creatorShuffled: true }));
-      setCurrentStatus(CurrentStatusEnum.WAITING_FOR_JOINER_SHUFFLE);
+    if (guessListenerStatus.creator) {
+      setCreatorStatus((prev) => ({
+        ...prev,
+        creatorGuess: guessListenerStatus.creator[1],
+      }));
+    }
+    if (guessListenerStatus.joiner) {
+      setJoinerStatus((prev) => ({
+        ...prev,
+        joinerGuess: guessListenerStatus.joiner[1],
+      }));
+    }
+    if (dealListenerStatus.creator && dealListenerStatus.joiner) {
+      setCurrentStatus(CurrentStatusEnum.WAITING_FOR_SHOW);
+      // handleShowCard();
     }
 
-    if (shuffleListenerStatus.joiner) {
-      setJoinerStatus((prev) => ({ ...prev, joinerShuffled: true }));
-      setCurrentStatus(CurrentStatusEnum.WAITING_FOR_DEAL);
+    return () => {};
+  }, [guessListenerStatus.creator, guessListenerStatus.joiner]);
+
+  // show handler
+  useEffect(() => {
+    if (showHandListenerStatus.creator) {
+      setCreatorStatus((prev) => ({
+        ...prev,
+        creatorShowHand: showHandListenerStatus.creator?.[2] as number,
+      }));
     }
 
-    if (shuffleListenerStatus.creator && shuffleListenerStatus.joiner) {
-      handleDealHandCard();
+    if (showHandListenerStatus.joiner) {
+      setJoinerStatus((prev) => ({
+        ...prev,
+        joinerShowHand: showHandListenerStatus.joiner?.[2] as number,
+      }));
     }
-    return () => {
-      timer && clearTimeout(timer);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shuffleListenerStatus.creator, shuffleListenerStatus.joiner]);
 
-  //  creator goes to shuffle
-  useEffect(() => {
-    if (!gameId || !joinerStatus.joinGame) return;
-
-    const handleCreatorShuffle = async () => {
-      try {
-        if (isCreator) {
-          await handleShuffle(gameId);
-        }
-      } catch (error) {}
-    };
-
-    handleCreatorShuffle();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [joinerStatus.joinGame, gameId, isCreator]);
-
-  // joiner goes to shuffle
-  useEffect(() => {
-    if (!gameId || !shuffleListenerStatus.isShouldTriggerJoinerShuffle) return;
-    if (shuffleListenerStatus.isShouldTriggerJoinerShuffle) {
-      handleShuffle(gameId);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gameId, shuffleListenerStatus.isShouldTriggerJoinerShuffle]);
-
-  useEffect(() => {
-    if (!contract) return;
-    let interval: string | number | NodeJS.Timeout | null | undefined = null;
-    const filter = contract.filters.GameCreated();
-    if (currentStatus !== CurrentStatusEnum.WAITING_FOR_START) {
-      interval && clearInterval(interval);
-    } else {
-      interval = setInterval(
-        async () => {
-          // 获取最新的10个块的事件日志
-          const fromBlock = (await provider.getBlockNumber()) - 15;
-          const toBlock = 'latest';
-          const logs = await provider.getLogs({
-            address: contract?.address,
-            fromBlock,
-            toBlock,
-            topics: filter.topics,
-          });
-
-          const lastLog = logs[logs.length - 1];
-
-          if (
-            lastLog &&
-            currentStatus === CurrentStatusEnum.WAITING_FOR_START
-          ) {
-            const event = contract.interface.parseLog(lastLog);
-            console.log('Event name:', event.name);
-
-            await GameCreatedListener(event.args[0], event.args[1]);
-          }
-        },
-        PULL_DATA_TIME,
-        currentStatus
+    if (showHandListenerStatus.creator && showHandListenerStatus.joiner) {
+      setCurrentStatus(CurrentStatusEnum.WAITING_FOR_WINNER);
+      handleGetWinner(
+        showHandListenerStatus.creator?.[2],
+        showHandListenerStatus.joiner?.[2]
       );
     }
-
-    return () => {
-      interval && clearInterval(interval);
-    };
-  }, [contract, currentStatus, userPksAndsk]);
-
-  useEffect(() => {
-    if (!contract) return;
-    let interval: string | number | NodeJS.Timeout | null | undefined = null;
-    const filter = contract.filters.GameJoined();
-    if (currentStatus !== CurrentStatusEnum.WAITING_FOR_JOIN) {
-      interval && clearInterval(interval);
-    } else {
-      interval = setInterval(async () => {
-        const logs = await provider.getLogs(
-          getLogPrams({
-            filter: filter,
-            address: contract?.address,
-            provider: provider,
-          })
-        );
-        const lastLog = logs[logs.length - 1];
-        if (lastLog && currentStatus === CurrentStatusEnum.WAITING_FOR_JOIN) {
-          const event = contract.interface.parseLog(lastLog);
-          await GameJoinedListener(event.args[0], event.args[1]);
-        }
-      }, PULL_DATA_TIME);
-    }
-
-    return () => {
-      interval && clearInterval(interval);
-    };
-  }, [contract, currentStatus, provider, joiner]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showHandListenerStatus.creator, showHandListenerStatus.joiner]);
 
   return {
     playerAddresses,
@@ -475,7 +479,6 @@ export function useGame() {
     address,
     gameId,
     isCreator,
-    shuffleListenerStatus,
     // dealListenerStatus,
     dealStatus,
     handValues,
@@ -488,7 +491,7 @@ export function useGame() {
     userPksAndsk,
     shuffleStatus,
     showHandStatus,
-
+    guessStatus,
     handleShuffle,
     handleDealHandCard,
     handleShowCard,
