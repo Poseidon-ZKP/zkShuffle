@@ -60,6 +60,13 @@ describe('zkShuffle Unit Test', function () {
         expect((await SM.gameState(gameId)).toNumber()).equal(BaseState.Created)
     });
 
+    it('Setting State', async () => {
+        await SM.set_gameState(gameId, BaseState.Complete)
+        expect((await SM.gameState(gameId)).toNumber()).equal(BaseState.Complete)
+        await SM.set_gameState(gameId, BaseState.Created)
+        expect((await SM.gameState(gameId)).toNumber()).equal(BaseState.Created)
+    });
+
     it('Move to Register State', async () => {
         async function moveToRegister(
             gameId : number,
