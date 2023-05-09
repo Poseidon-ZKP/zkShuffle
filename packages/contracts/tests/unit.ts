@@ -6,13 +6,6 @@ import { BaseState, zkShuffle } from "../sdk/zkShuffle";
 import { deploy_shuffle_manager } from "../sdk/deploy";
 import { tx_to_contract } from "../sdk/utility";
 import { ShuffleManager, ShuffleManager__factory, ShuffleTest, ShuffleTest__factory } from "../types";
-import exp from "constants";
-
-// TODO :
-// Formal Verification : invariant
-// Debug interface : set_xxx
-// Storage Layout : upgradeable
-
 
 describe('zkShuffle Unit Test', function () {
 	this.timeout(6000000);
@@ -164,33 +157,22 @@ describe('zkShuffle State Less Unit Test', function () {
         expect((await SM.gameState(gameId)).toNumber()).equal(BaseState.Registration)
 
         // player 0 Register
-        async function playerRegister(player : zkShuffle) {
-            return await (await ShuffleManager__factory.connect(SM.address, player.owner).playerRegister(
+        async function playerRegister(pid : number) {
+            const player : zkShuffle = players[pid]
+            // check Register Event
+            return await ShuffleManager__factory.connect(SM.address, player.owner).playerRegister(
                 gameId,
                 player.owner.address,
                 player.pk[0],
                 player.pk[1]
-            )).wait()
+            )
         }
 
-        await playerRegister(players[0])
-        let reciept = await playerRegister(players[1])
-        // check Register Event
-        expect(reciept.events[0].event).equal("Register")
-
-        // check GameContractCallError emit
-        
-        // check CallGameContract
+        await expect(playerRegister(0)).to.emit(SM, "Register").withArgs(gameId, 0, players[0].owner.address)
+        await expect(playerRegister(1)).to.emit(SM, "Register").withArgs(gameId, 1, players[1].owner.address)
 
         // check Game Full
-		let REVERT_REASON_HEADER = "VM Exception while processing transaction: reverted with reason string "
-		let REVERT_REASON = REVERT_REASON_HEADER + "\'" + "Game full" + "\'"
-        try {
-            await playerRegister(players[2])
-        } catch(error) {
-		  	expect(error.toString().includes(REVERT_REASON)).equal(true)
-        }
-
+        await expect(playerRegister(2)).to.be.revertedWith("Game full");
     });
 
 });
