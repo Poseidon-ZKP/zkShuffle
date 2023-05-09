@@ -13,12 +13,12 @@ import "./BitMaps.sol";
  * @title Shuffle Manager
  * @dev manage all ZK Games
  */
-// // #if SHUFFLE_UNIT_TEST
+// #if SHUFFLE_UNIT_TEST
 import "../debug/Debug.sol";
 contract ShuffleManager is IBaseStateManager, Debug, Ownable {
-// // #else
-// contract ShuffleManager is IBaseStateManager, Storage, Ownable {
-// // #endif
+// #else
+contract ShuffleManager is IBaseStateManager, Storage, Ownable {
+// #endif
     // event
     event GameContractCallError(address caller, bytes data);
 
