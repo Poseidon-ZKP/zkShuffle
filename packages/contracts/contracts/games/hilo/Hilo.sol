@@ -19,7 +19,7 @@ import "hardhat/console.sol";
 // - define the game state machine by specifying the next state in the `next` 
 //   calldata so that ShuffleManager will call back 
 contract Hilo is IBaseGame {
-    IBaseStateManager public ishuffle;
+    IShuffleStateManager public ishuffle;
 
     // check whether the caller is the shuffle Manager
     modifier onlyShuffleManager() {
@@ -47,7 +47,7 @@ contract Hilo is IBaseGame {
     mapping(uint => address) gameOwners;
 
     constructor(
-        IBaseStateManager _ishuffle
+        IShuffleStateManager _ishuffle
     ) {
         ishuffle = _ishuffle;
     }

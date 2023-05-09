@@ -58,7 +58,7 @@ struct ShuffleGameState {
 /**
  * @title Base state manager
  */
-interface IBaseStateManager {
+interface IShuffleStateManager {
     function createShuffleGame(uint8 numPlayers) external returns (uint256);
 
     // transit to register player stage

@@ -6,14 +6,14 @@ import "../../shuffle/IShuffleStateManager.sol";
 import "hardhat/console.sol";
 
 contract ShuffleTest is IBaseGame {
-    IBaseStateManager public ishuffle;
+    IShuffleStateManager public ishuffle;
 
     function cardConfig() external override pure returns (DeckConfig) {
         return DeckConfig.Deck5Card;
     }
 
     constructor(
-        IBaseStateManager _ishuffle
+        IShuffleStateManager _ishuffle
     ) {
         ishuffle = _ishuffle;
     }
