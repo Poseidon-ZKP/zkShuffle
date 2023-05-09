@@ -57,7 +57,7 @@ export enum BaseState {
 // Wrap cryptography details(pk/sk, proof generate)
 // TODO : let user decide all contract call ? or anything wrapper in the ctx?
 // whether dapp devloper want control. maybe 2 kinds of interface.
-export class ShuffleContext {
+export class zkShuffle {
 
     babyjub : any
     smc : ShuffleManager
