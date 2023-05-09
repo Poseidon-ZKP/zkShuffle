@@ -3,7 +3,7 @@
 pragma solidity >=0.8.2 <0.9.0;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./IBaseStateManager.sol";
+import "./IShuffleStateManager.sol";
 import "./ECC.sol";
 import "./IBaseGame.sol";
 import "./BitMaps.sol";
@@ -98,6 +98,7 @@ contract ShuffleManager is IBaseStateManager, Ownable {
         return gameInfos[gameId].numCards;
     }
 
+    // get state of the game
     function gameState(uint256 gameId) public view returns(uint256) {
         require(gameId <= largestGameId, "Invalid gameId");
         return uint(gameStates[gameId].state);
@@ -134,6 +135,7 @@ contract ShuffleManager is IBaseStateManager, Ownable {
         return IBaseGame(_activeGames[gameId]).cardConfig();
     }
 
+    // Return the current Deck
     function queryDeck(
         uint gameId
     ) external view returns (

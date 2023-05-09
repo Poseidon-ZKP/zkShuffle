@@ -14,6 +14,7 @@ import "./Deck.sol";
  * Complete: the game has been completed
  */
 enum BaseState {
+    Uncreated,   // Important to keep this to avoid EVM default 0 value 
     Created,
     Registration,
     Shuffle,
@@ -25,17 +26,32 @@ enum BaseState {
 
 // mutable state of each game
 struct ShuffleGameState {
+    // game state
     BaseState state;
+    // the index of the card being openned now
     uint8 openning;
+    // the index of the player who needs to take action now
     uint256 curPlayerIndex;
+    // aggregated PK X coordinate
     uint256 aggregatePkX;
+    // aggregated PK Y coordinate
     uint256 aggregatePkY;
+    // nonce
     uint256 nonce;
+    // a mapping between playerId and number of cards
+    // in player's hand
     mapping (uint256 => uint256) playerHand;
+    // list of player's addresses
     address[] playerAddrs;
+    // list of signing addresses, could be different to 
+    // the player address in the case of delegate/ephermal account,
+    // must be the same order as playerAddrs
     address[] signingAddrs;
+    // player PK, X coordinate
     uint256[] playerPkX;
+    // player PK, Y coordinate
     uint256[] playerPKY;
+    // the current deck of the game
     Deck deck;
 }
 

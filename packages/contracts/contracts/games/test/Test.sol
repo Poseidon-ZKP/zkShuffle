@@ -2,7 +2,7 @@
 pragma solidity >=0.8.2 <0.9.0;
 
 import "../../shuffle/IBaseGame.sol";
-import "../../shuffle/IBaseStateManager.sol";
+import "../../shuffle/IShuffleStateManager.sol";
 import "hardhat/console.sol";
 
 contract ShuffleTest is IBaseGame {
