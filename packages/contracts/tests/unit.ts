@@ -2,10 +2,11 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { packToSolidityProof, SolidityProof } from "@poseidon-zkp/poseidon-zk-proof/src/shuffle/proof";
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { BaseState, ShuffleContext } from "../sdk/context";
+import { BaseState, zkShuffle } from "../sdk/zkShuffle";
 import { deploy_shuffle_manager } from "../sdk/deploy";
 import { tx_to_contract } from "../sdk/utility";
-import { ShuffleManager, ShuffleTest, ShuffleTest__factory } from "../types";
+import { ShuffleManager, ShuffleManager__factory, ShuffleTest, ShuffleTest__factory } from "../types";
+import exp from "constants";
 
 // TODO :
 // Formal Verification : invariant
@@ -16,7 +17,7 @@ import { ShuffleManager, ShuffleTest, ShuffleTest__factory } from "../types";
 describe('zkShuffle Unit Test', function () {
 	this.timeout(6000000);
 
-    let players : ShuffleContext[] = []
+    let players : zkShuffle[] = []
     let numPlayer : number
     let sm_owner : SignerWithAddress
     let game_owner : SignerWithAddress
@@ -36,7 +37,7 @@ describe('zkShuffle Unit Test', function () {
         const signers = await ethers.getSigners()
         SM = await deploy_shuffle_manager(sm_owner)
         for (let i = 0; i < numPlayer; i++) {
-            players.push(new ShuffleContext(SM, signers[i]))
+            players.push(new zkShuffle(SM, signers[i]))
             await players[i].init()
         }
     });
@@ -57,13 +58,6 @@ describe('zkShuffle Unit Test', function () {
 
         await createShuffleGame(numPlayer, players[0].owner)
         gameId = (await SM.largestGameId()).toNumber()
-        expect((await SM.gameState(gameId)).toNumber()).equal(BaseState.Created)
-    });
-
-    it('Setting State', async () => {
-        await SM.set_gameState(gameId, BaseState.Complete)
-        expect((await SM.gameState(gameId)).toNumber()).equal(BaseState.Complete)
-        await SM.set_gameState(gameId, BaseState.Created)
         expect((await SM.gameState(gameId)).toNumber()).equal(BaseState.Created)
     });
 
@@ -114,7 +108,7 @@ describe('zkShuffle Unit Test', function () {
     it('Player Shuffle', async () => {
         async function playerShuffle(
             gameId : number,
-            player : ShuffleContext
+            player : zkShuffle
         ) {
             const numCards = (await SM.gameCardNum(gameId)).toNumber()
             let shuffleFullProof = await player.generate_shuffle_proof(gameId)
@@ -140,3 +134,64 @@ describe('zkShuffle Unit Test', function () {
     });
 
 });
+
+describe('zkShuffle State Less Unit Test', function () {
+    let sm_owner : SignerWithAddress
+    let game_owner : SignerWithAddress
+    let signers : SignerWithAddress[]
+	before(async () => {
+        signers = await ethers.getSigners()
+        sm_owner = signers[10];
+        game_owner = signers[11];
+	});
+
+    it('Player Register StateLess', async () => {
+        const SM = await deploy_shuffle_manager(sm_owner)
+        const gameId = 1
+        const numCards = 5
+        const numPlayers = 2
+        let players : zkShuffle[] = []
+        for (let i = 0; i < 9; i++) {
+            players.push(new zkShuffle(SM, signers[i]))
+            await players[i].init()
+        }
+
+        //  prerequisite 1 : Init Game Info
+        await SM.set_gameInfo(gameId, numCards, numPlayers)
+
+        //  prerequisite 2 : Init Game State : Registration
+        await SM.set_gameState(gameId, BaseState.Registration)
+        expect((await SM.gameState(gameId)).toNumber()).equal(BaseState.Registration)
+
+        // player 0 Register
+        async function playerRegister(player : zkShuffle) {
+            return await (await ShuffleManager__factory.connect(SM.address, player.owner).playerRegister(
+                gameId,
+                player.owner.address,
+                player.pk[0],
+                player.pk[1]
+            )).wait()
+        }
+
+        await playerRegister(players[0])
+        let reciept = await playerRegister(players[1])
+        // check Register Event
+        expect(reciept.events[0].event).equal("Register")
+
+        // check GameContractCallError emit
+        
+        // check CallGameContract
+
+        // check Game Full
+		let REVERT_REASON_HEADER = "VM Exception while processing transaction: reverted with reason string "
+		let REVERT_REASON = REVERT_REASON_HEADER + "\'" + "Game full" + "\'"
+        try {
+            await playerRegister(players[2])
+        } catch(error) {
+		  	expect(error.toString().includes(REVERT_REASON)).equal(true)
+        }
+
+    });
+
+});
+
