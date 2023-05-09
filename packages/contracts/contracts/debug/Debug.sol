@@ -21,7 +21,6 @@ abstract contract Debug is Storage {
             console.log("Invalid numCards ", numCards);
             assert(false);
         }
-
     }
 
     function set_gameState(
@@ -29,22 +28,6 @@ abstract contract Debug is Storage {
         BaseState state
     ) external {
         gameStates[gameId].state = state;
-    }
-
-    function initDeck(
-        uint gameId
-    ) external {
-        ShuffleGameState storage state = gameStates[gameId];
-        zkShuffleCrypto.initDeck(state.deck);
-    }
-
-    function set_playerTurn(
-        uint gameId,
-        address player
-    ) external {
-        ShuffleGameState storage state = gameStates[gameId];
-        state.playerAddrs.push(player);
-        state.playerAddrs[state.curPlayerIndex] = player;
     }
 
 }
