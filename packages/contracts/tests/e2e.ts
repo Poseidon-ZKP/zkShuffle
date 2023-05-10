@@ -53,7 +53,7 @@ async function player_run(
     }
 }
 
-async function fullporcess() {
+async function fullprocess() {
     const signers = await ethers.getSigners()
     const sm_owner = signers[10];
     const hilo_owner = signers[11];
@@ -82,6 +82,6 @@ async function fullporcess() {
 
 describe('zkShuffle E2E test', function () {
     it('Hilo E2E', async () => {
-        await fullporcess()
+        await fullprocess()
     });
 });
