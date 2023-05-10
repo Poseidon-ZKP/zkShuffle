@@ -168,6 +168,7 @@ contract ShuffleManager is IShuffleStateManager, Ownable {
         _activeGames[newGameId] = msg.sender;
 
         ShuffleGameState storage state = gameStates[newGameId];
+        state.state = BaseState.Created;
 
         // set up verifier contract according to deck type
         if (IBaseGame(msg.sender).cardConfig() == DeckConfig.Deck5Card) {
@@ -193,7 +194,6 @@ contract ShuffleManager is IShuffleStateManager, Ownable {
 
         // init deck
         zkShuffleCrypto.initDeck(state.deck);
-
         return newGameId;
     }
 

@@ -44,6 +44,7 @@ export type Deck = any;
 
 export const NOT_TRUN = -1
 export enum BaseState {
+    Uncreated,   // Important to keep this to avoid EVM default 0 value 
     Created,
     Registration,
     Shuffle,
