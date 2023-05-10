@@ -336,7 +336,7 @@ export function prepareDecryptData(
 // Prepares deck queried from contract to the deck for generating ZK proof.
 export function prepareShuffleDeck(
     babyjub: BabyJub,
-    deck: Deck,
+    deck : Deck,
     numCards: Number,
 ): { X0: bigint[], X1: bigint[], Selector: bigint[], Delta: bigint[][] } {
     let deckX0: bigint[] = [];
@@ -351,7 +351,7 @@ export function prepareShuffleDeck(
     return {
         X0: deckX0,
         X1: deckX1,
-        Selector: [deck.Selector[0].toBigInt(), deck.Selector[1].toBigInt()],
+        Selector: [deck.selector0._data.toBigInt(), deck.selector1._data.toBigInt()],
         Delta: [deckDelta.Delta0, deckDelta.Delta1],
     }
 }
