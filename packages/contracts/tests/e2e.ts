@@ -1,7 +1,7 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethers } from "hardhat";
 import { exit } from "process";
-import { BaseState, NOT_TRUN, ShuffleContext, sleep } from "../sdk/context";
+import { BaseState, NOT_TURN, ShuffleContext, sleep } from "../sdk/context";
 import { Hilo, Hilo__factory, ShuffleManager, ShuffleManager__factory } from "../types";
 import { deploy_shuffle_manager } from "../sdk/deploy";
 
@@ -25,7 +25,7 @@ async function player_run(
         [state, nextBlock] = await player.checkPlayerTurn(gameId, playerIdx, nextBlock)
 
         //console.log("player ", playerIdx, " state : ", state, " nextBlock ", nextBlock)
-        if (state != NOT_TRUN) {
+        if (state != NOT_TURN) {
             switch(state) {
                 case BaseState.Shuffle :
                     console.log("Player ", playerIdx, " 's Shuffle turn!")
@@ -66,7 +66,7 @@ async function fullporcess() {
 
     // Hilo.newGame
     await (await game.connect(players[0]).newGame()).wait()
-    const gameId = (await game.largestGameId()).toNumber()
+    const gameId = (await game.largestGameId()).toNumber()  // TODO : get gameId from reciept.
     console.log("Player ", players[0].address.slice(0, 6).concat("..."),  "Create Game ", gameId)
 
     // allow Join Game

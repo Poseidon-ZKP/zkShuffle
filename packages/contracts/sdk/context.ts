@@ -42,7 +42,7 @@ export type BabyJub = any;
 export type EC = any;
 export type Deck = any;
 
-export const NOT_TRUN = -1
+export const NOT_TURN = -1
 export enum BaseState {
     Uncreated,   // Important to keep this to avoid EVM default 0 value 
     Created,
@@ -152,7 +152,7 @@ export class ShuffleContext {
             return [e.args.state, nextBlock]
         }
         
-        return [NOT_TRUN, nextBlock]
+        return [NOT_TURN, nextBlock]
     }
 
     // Generates a secret key between 0 ~ min(2**numBits-1, Fr size).
