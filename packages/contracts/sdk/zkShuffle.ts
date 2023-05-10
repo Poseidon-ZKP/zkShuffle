@@ -2,40 +2,11 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { shuffleEncryptV2Plaintext } from "@poseidon-zkp/poseidon-zk-proof/src/shuffle/plaintext";
 import { dealCompressedCard, dealUncompressedCard, generateDecryptProof, generateShuffleEncryptV2Proof, packToSolidityProof, SolidityProof } from "@poseidon-zkp/poseidon-zk-proof/src/shuffle/proof";
 import { prepareShuffleDeck, sampleFieldElements, samplePermutation} from "@poseidon-zkp/poseidon-zk-proof/src/shuffle/utilities";
-import { Game__factory, IGame, IShuffle, Shuffle, ShuffleManager, ShuffleManager__factory, Shuffle__factory} from "../types";
+import { ShuffleManager, ShuffleManager__factory } from "../types";
 import { resolve } from 'path';
-import { exit } from "process";
+import { dnld_aws, P0X_DIR, sleep } from "./utility";
 
 const buildBabyjub = require('circomlibjs').buildBabyjub;
-const fs = require('fs');
-const https = require('https')
-const HOME_DIR = require('os').homedir();
-const P0X_DIR = resolve(HOME_DIR, "./.poseidon-zkp")
-const P0X_AWS_URL = "https://p0x-labs.s3.amazonaws.com/refactor/"
-
-export async function dnld_aws(file_name : string) {
-    fs.mkdir(P0X_DIR, () => {})
-    fs.mkdir(resolve(P0X_DIR, './wasm'), () => {})
-    fs.mkdir(resolve(P0X_DIR, './zkey'), () => {})
-    return new Promise((reslv, reject) => {
-        if (!fs.existsSync(resolve(P0X_DIR, file_name))) {
-            const file = fs.createWriteStream(resolve(P0X_DIR, file_name))
-            https.get(P0X_AWS_URL + file_name, (resp) => {
-                file.on("finish", () => {
-                    file.close();
-                    reslv(0)
-                });
-                resp.pipe(file)
-            });
-        } else {
-            reslv(0)
-        }
-    });
-}
-
-export async function sleep(ms : number) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
 
 // todo
 export type BabyJub = any;
@@ -53,10 +24,22 @@ export enum BaseState {
     Complete
 }
 
+interface IZKShuffle {
+    joinGame : (gameId : number) => Promise<number>
+    checkPlayerTurn : (
+        gameId : number,
+        playerIndex : number,
+        nextBlock : number
+    ) => Promise<[number, number]>
+    shuffle : (gameId: number, playerIdx : number) => Promise<void>
+    draw : (gameId: number) => Promise<void>
+    open : (gameId: number, cardIdx : number) => Promise<void>
+}
+
 // Wrap cryptography details(pk/sk, proof generate)
 // TODO : let user decide all contract call ? or anything wrapper in the ctx?
 // whether dapp devloper want control. maybe 2 kinds of interface.
-export class zkShuffle {
+export class zkShuffle implements IZKShuffle {
 
     babyjub : any
     smc : ShuffleManager
@@ -107,13 +90,13 @@ export class zkShuffle {
         this.sk = keys.sk
 	}
 
-    async joinGame(gameId : number) {
+    async joinGame(gameId : number) : Promise<number> {
         await (await this.smc.playerRegister(gameId, this.owner.address, this.pk[0], this.pk[1])).wait()
         return await this.getPlayerId(gameId)
     }
 
     // pull player's Id for gameId
-    async getPlayerId(gameId : number) {
+    async getPlayerId(gameId : number) : Promise<number> {
         let nextBlock = 0
         while (1) {
             let filter = this.smc.filters.Register(null, null, null)
@@ -137,7 +120,7 @@ export class zkShuffle {
         gameId : number,
         playerIndex : number,
         nextBlock : number
-    ) {
+    ) : Promise<[number, number]> {
         let filter = this.smc.filters.PlayerTurn(null, null, null)
         let events = await this.smc.queryFilter(filter, nextBlock)
         for (let i = 0; i < events.length; i++) {
@@ -258,13 +241,12 @@ export class zkShuffle {
 
     async draw(
         gameId: number
-    ): Promise<bigint[]> {
+    ) {
         const start = Date.now()
         let cardsToDeal = (await this.smc.queryDeck(gameId)).cardsToDeal._data.toNumber();
         //console.log("cardsToDeal ", cardsToDeal)
-        const res = await this.decrypt(gameId, Math.log2(cardsToDeal))    // TODO : multi card compatible
+        await this.decrypt(gameId, Math.log2(cardsToDeal))    // TODO : multi card compatible
         console.log("Drawed in ", Date.now() - start, "s")
-        return res
     }
 
     async open(
