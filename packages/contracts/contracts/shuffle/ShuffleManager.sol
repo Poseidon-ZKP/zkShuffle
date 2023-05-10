@@ -7,7 +7,6 @@ import "./IShuffleStateManager.sol";
 import "./ECC.sol";
 import "./IBaseGame.sol";
 import "./BitMaps.sol";
-import "hardhat/console.sol";
 
 /**
  * @title Shuffle Manager
@@ -189,7 +188,7 @@ contract ShuffleManager is IShuffleStateManager, Ownable {
             );
             gameInfos[newGameId].numCards = 52;
         } else {
-            state.state = BaseState.GameError;
+            revert("Unsupported size of deck.");
         }
 
         // init deck
@@ -516,9 +515,11 @@ contract ShuffleManager is IShuffleStateManager, Ownable {
     ) external override gameOwner(gameId) {
         ShuffleGameState storage state = gameStates[gameId];
         state.state = BaseState.Complete;
-        for (uint256 playerId = 0; playerId < gameInfos[gameId].numCards; playerId++) {
+        delete _activeGames[gameId];
+        for (uint256 playerId = 0; playerId < state.playerAddrs.length; playerId++) {
             emit PlayerTurn(gameId, playerId, BaseState.Complete);
         }
+        //TODO: clean game state
     }
 
     // goes into error state
@@ -533,13 +534,10 @@ contract ShuffleManager is IShuffleStateManager, Ownable {
 
     // switch control to game contract, set the game to error state if the contract call failed
     function _callGameContract(uint256 gameId) internal {
-        (bool success, bytes memory data) = _activeGames[gameId].call(
+        (bool success, ) = _activeGames[gameId].call(
             nextToCall[gameId]
         );
-        if (!success) {
-            emit GameContractCallError(_activeGames[gameId], data);
-            gameStates[gameId].state = BaseState.GameError;
-        }
+        require(success, "Error calling game contract");
     }
 
 }

@@ -127,7 +127,7 @@ describe('zkShuffle Unit Test', function () {
             console.log("Player ", i, " Shuffling")
             const start = Date.now()
             await playerShuffle(gameId, players[i])
-            console.log("Player ", i, " Shuffled in ", Date.now() - start, "s")
+            console.log("Player ", i, " Shuffled in ", Date.now() - start, "ms")
             // check PlayerTurn and dummy call
         }
     });

@@ -219,7 +219,7 @@ export class ShuffleContext {
     ) {
         const start = Date.now()
         await this._shuffle(gameId)
-        console.log("Player ", playerIdx, " Shuffled in ", Date.now() - start, "s")
+        console.log("Player ", playerIdx, " Shuffled in ", Date.now() - start, "ms")
     }
 
     async decrypt(
@@ -264,7 +264,7 @@ export class ShuffleContext {
         let cardsToDeal = (await this.smc.queryDeck(gameId)).cardsToDeal._data.toNumber();
         //console.log("cardsToDeal ", cardsToDeal)
         const res = await this.decrypt(gameId, Math.log2(cardsToDeal))    // TODO : multi card compatible
-        console.log("Drawed in ", Date.now() - start, "s")
+        console.log("Drawed in ", Date.now() - start, "ms")
         return res
     }
 
@@ -300,6 +300,6 @@ export class ShuffleContext {
                 }
             ]
         );
-        console.log("Opened in ", Date.now() - start, "s")
+        console.log("Opened in ", Date.now() - start, "ms")
     }
 }
