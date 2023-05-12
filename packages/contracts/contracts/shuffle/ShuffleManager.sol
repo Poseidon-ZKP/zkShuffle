@@ -7,7 +7,6 @@ import "./IShuffleStateManager.sol";
 import "./ECC.sol";
 import "./IBaseGame.sol";
 import "./BitMaps.sol";
-import "hardhat/console.sol";
 
 /**
  * @title Shuffle Manager
