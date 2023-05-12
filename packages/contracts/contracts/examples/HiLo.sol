@@ -26,7 +26,7 @@ enum Selection {
 
 struct Game {
     Selection[2] selections;
-    uint256 shuffleGameId;
+    uint256 shuffleId;
 }
 
 contract HiloGame is IBaseGame {
@@ -54,7 +54,7 @@ contract HiloGame is IBaseGame {
 
     event CreateGame(
         uint256 indexed hiloId,
-        uint256 shuffleGameId,
+        uint256 shuffleId,
         address creator
     );
     event Guess(
@@ -87,16 +87,16 @@ contract HiloGame is IBaseGame {
     function createGame() external {
         ++largestHiloId;
 
-        uint256 shuffleGameId = shuffle.createShuffleGame(2);
-        gameInfos[largestHiloId].shuffleGameId = shuffleGameId;
+        uint256 shuffleId = shuffle.createShuffleGame(2);
+        gameInfos[largestHiloId].shuffleId = shuffleId;
 
         bytes memory next = abi.encodeWithSelector(
             this.moveToShuffleStage.selector,
             largestHiloId
         );
-        shuffle.register(shuffleGameId, next);
+        shuffle.register(shuffleId, next);
 
-        emit CreateGame(largestHiloId, shuffleGameId, msg.sender);
+        emit CreateGame(largestHiloId, shuffleId, msg.sender);
     }
 
     // Allow players to shuffle the deck, and specify the next state:
@@ -106,7 +106,7 @@ contract HiloGame is IBaseGame {
             this.dealCard0ToPlayer0.selector,
             hiloId
         );
-        shuffle.shuffle(gameInfos[hiloId].shuffleGameId, next);
+        shuffle.shuffle(gameInfos[hiloId].shuffleId, next);
     }
 
     // Deal the 0th card to player 0 and specify the next state:
@@ -118,7 +118,7 @@ contract HiloGame is IBaseGame {
             this.dealCard1ToPlayer1.selector,
             hiloId
         );
-        shuffle.dealCardsTo(gameInfos[hiloId].shuffleGameId, cards, 0, next);
+        shuffle.dealCardsTo(gameInfos[hiloId].shuffleId, cards, 0, next);
     }
 
     // Deal the 1st card to player 1 and specify the next state:
@@ -130,12 +130,12 @@ contract HiloGame is IBaseGame {
             this.openCard0.selector,
             hiloId
         );
-        shuffle.dealCardsTo(gameInfos[hiloId].shuffleGameId, cards, 1, next);
+        shuffle.dealCardsTo(gameInfos[hiloId].shuffleId, cards, 1, next);
     }
 
     function guess(uint256 hiloId, Selection selection) external {
         uint256 playerIdx = shuffle.getPlayerIdx(
-            gameInfos[hiloId].shuffleGameId,
+            gameInfos[hiloId].shuffleId,
             msg.sender
         );
         require(playerIdx != shuffle.INVALID_INDEX());
@@ -158,7 +158,7 @@ contract HiloGame is IBaseGame {
             this.openCard1.selector,
             hiloId
         );
-        shuffle.openCards(gameInfos[hiloId].shuffleGameId, 0, 1, next);
+        shuffle.openCards(gameInfos[hiloId].shuffleId, 0, 1, next);
     }
 
     // Open the Card 1 and specify the next state:
@@ -168,13 +168,13 @@ contract HiloGame is IBaseGame {
             this.endGame.selector,
             hiloId
         );
-        shuffle.openCards(gameInfos[hiloId].shuffleGameId, 1, 1, next);
+        shuffle.openCards(gameInfos[hiloId].shuffleId, 1, 1, next);
     }
 
     // End the game, GG!
     function endGame(uint256 hiloId) external onlyShuffleManager {
         // game-specific cleanup
-        shuffle.endGame(gameInfos[hiloId].shuffleGameId);
+        shuffle.endGame(gameInfos[hiloId].shuffleId);
     }
 
     function isPlayerGuessed(
@@ -193,11 +193,11 @@ contract HiloGame is IBaseGame {
         require(playerIdx == 0 || playerIdx == 1, "invalid player");
 
         uint256 selfValue = shuffle.queryCardValue(
-            gameInfos[hiloId].shuffleGameId,
+            gameInfos[hiloId].shuffleId,
             playerIdx
         );
         uint256 opponentValue = shuffle.queryCardValue(
-            gameInfos[hiloId].shuffleGameId,
+            gameInfos[hiloId].shuffleId,
             1 - playerIdx
         );
         if (gameInfos[hiloId].selections[playerIdx] == Selection.High) {
