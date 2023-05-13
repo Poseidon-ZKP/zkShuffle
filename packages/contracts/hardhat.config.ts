@@ -39,6 +39,13 @@ const config: HardhatUserConfig = {
     hardhat: {
       allowUnlimitedContractSize: true,
     },
+    env: {
+      url: process.env.URL || "",
+      accounts:
+        process.env.PRIVATE_KEY !== undefined
+          ? process.env.PRIVATE_KEY.split(",")
+          : [],
+    },
   },
   mocha: {
     timeout: 100000000,
