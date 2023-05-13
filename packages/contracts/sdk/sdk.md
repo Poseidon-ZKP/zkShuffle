@@ -1,15 +1,33 @@
 # zkShuffle SDK
 
 
+<!-- ## TODO
+1. gameId mapping
+2. create game id
+3. checkTurn , checkShuffleTurn, checkDealTurn...
+4. playerId implicit.
+ -->
 
 
 ## Workflow
 
 
+## Solidity Interface
+```solidity
+interface IBaseGame {
+    function cardConfig() external view returns (DeckConfig);
+    function shuffleGameId(uint gameId) external view returns(uint shuffleGameId);
+}
+
+interface IBaseStateManager {
+    ...
+}
+
+```
 
 
+## SDK Interface
 
-## Interface
 
 ```typescript=
 interface IZKShuffle {
@@ -54,4 +72,44 @@ interface IZKShuffle {
 - ### open
     - gameId : number
     - cardId : number[]
+
+
+
+## Demo
+```typescript=
+    const player = new zkShuffle(ShuffleManater, owner)
+    await player.init()
+
+    // join game
+    const playerIdx = await player.joinGame(gameId)
+
+    // play game
+    let state
+    while (state != BaseState.Complete) {
+        state = await player.checkTurn(gameId, playerIdx)
+
+        if (state != NOT_TRUN) {
+            switch(state) {
+                case BaseState.Shuffle :
+                    await player.shuffle(gameId, playerIdx)
+                    break
+                case BaseState.Deal :
+                    await player.draw(gameId)
+                    break
+                case BaseState.Open :
+                    await player.open(gameId, playerIdx)
+                    break
+                case BaseState.Complete :
+                    break
+                case BaseState.Error :
+                    break
+                default :
+                    console.log("err state ", state)
+                    exit(-1)
+            }
+        }
+
+    }
+    
+```
     
