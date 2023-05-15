@@ -7,42 +7,20 @@ import "./IShuffleStateManager.sol";
 import "./ECC.sol";
 import "./IBaseGame.sol";
 import "./BitMaps.sol";
+import "./Storage.sol";
 
 /**
  * @title Shuffle Manager
  * @dev manage all ZK Games
  */
-contract ShuffleManager is IShuffleStateManager, Ownable {
+// #if SHUFFLE_UNIT_TEST
+import "../debug/Debug.sol";
+contract ShuffleManager is IShuffleStateManager, Debug, Ownable {
+// #else
+contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
+// #endif
     // event
     event GameContractCallError(address caller, bytes data);
-
-    // currently, all the decks shares the same decrypt circuits
-    IDecryptVerifier public decryptVerifier;
-
-    // Encryption verifier for 5 cards deck
-    address _deck5EncVerifier;
-
-    // Encryption verifier for 30 cards deck
-    address _deck30EncVerifier;
-
-    // Encryption verifier for 50 cards deck
-    address _deck52EncVerifier;
-
-    // mapping between gameId and game contract address
-    mapping(uint256 => address) _activeGames;
-
-    // mapping between gameId and game info
-    //  (game info is immutable once a game is created)
-    mapping(uint256 => ShuffleGameInfo) gameInfos;
-
-    // mapping between gameId and game state
-    mapping(uint256 => ShuffleGameState) gameStates;
-
-    // mapping between gameId and next game contract function to call
-    mapping(uint256 => bytes) nextToCall;
-
-    // counter of gameID
-    uint256 public largestGameId;
 
     event PlayerTurn (
         uint256 gameId,

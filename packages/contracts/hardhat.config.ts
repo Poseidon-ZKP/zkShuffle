@@ -1,15 +1,25 @@
 import { HardhatUserConfig } from 'hardhat/config';
 import '@nomiclabs/hardhat-ethers';
-import '@nomiclabs/hardhat-waffle';
 import '@typechain/hardhat';
 import { config as dotenvConfig } from 'dotenv';
 import { resolve } from 'path';
 import 'hardhat-contract-sizer';
 import 'solidity-docgen';
 import 'solidity-coverage'
+import "@nomiclabs/hardhat-solpp";
+import "@nomicfoundation/hardhat-chai-matchers"
 
 // setup the environment variables
 dotenvConfig({ path: resolve(__dirname, "./.env") });
+
+let testConfig = {
+  SHUFFLE_UNIT_TEST: true
+};
+
+let contractDefs = {
+  test: testConfig,
+  localhost: testConfig
+};
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -26,6 +36,12 @@ const config: HardhatUserConfig = {
     tests: "./tests",
     artifacts: "./artifacts/contract-artifacts",
     cache: "./artifacts/cache",
+  },
+  solpp: {
+    defs: ((hre) => {
+      return testConfig
+        //return contractDefs[process.env.CHAIN_ETH_NETWORK];
+    })()
   },
   networks: {
     hardhat: {
