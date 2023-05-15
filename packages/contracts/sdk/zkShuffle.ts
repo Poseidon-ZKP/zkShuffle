@@ -27,14 +27,14 @@ export enum BaseState {
 
 interface IZKShuffle {
     joinGame : (gameId : number) => Promise<number>
-    checkPlayerTurn : (
-        gameId : number,
-        playerIndex : number,
-        nextBlock : number
-    ) => Promise<[number, number]>
-    shuffle : (gameId: number, playerIdx : number) => Promise<void>
-    draw : (gameId: number) => Promise<void>
-    open : (gameId: number, cardIdx : number) => Promise<void>
+    checkTurn : (gameId : number) => Promise<number>
+    shuffle : (gameId: number) => Promise<boolean>
+    draw : (gameId: number) => Promise<boolean>
+    open : (gameId: number, cardIds : number[]) => Promise<number[]>
+    openOffchain : (gameId: number, cardIds : number[]) => Promise<number[]>
+
+    // helper
+    getPlayerId : (gameId : number) => Promise<number> 
 }
 
 // Wrap cryptography details(pk/sk, proof generate)
