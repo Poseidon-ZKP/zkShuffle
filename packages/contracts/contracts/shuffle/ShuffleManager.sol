@@ -7,7 +7,7 @@ import "./IShuffleStateManager.sol";
 import "./ECC.sol";
 import "./IBaseGame.sol";
 import "./BitMaps.sol";
-+import "./Storage.sol";
+import "./Storage.sol";
 
 /**
  * @title Shuffle Manager
@@ -15,9 +15,9 @@ import "./BitMaps.sol";
  */
 // #if SHUFFLE_UNIT_TEST
 import "../debug/Debug.sol";
-contract ShuffleManager is IBaseStateManager, Debug, Ownable {
+contract ShuffleManager is IShuffleStateManager, Debug, Ownable {
 // #else
-contract ShuffleManager is IBaseStateManager, Storage, Ownable {
+contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
 // #endif
     // event
     event GameContractCallError(address caller, bytes data);
