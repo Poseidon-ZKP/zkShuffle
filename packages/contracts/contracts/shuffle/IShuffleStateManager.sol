@@ -117,7 +117,7 @@ interface IShuffleStateManager {
 
     // Returns the player index in the `gameId`-th game.
     function getPlayerIdx(
-        uint gameId,
+        uint256 gameId,
         address player
     ) external view returns (uint256);
 
