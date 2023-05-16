@@ -98,7 +98,7 @@ interface IShuffleStateManager {
 
     function curPlayerIndex(uint gameId) external view returns (uint);
 
-    //function gameStatus(uint gameId) external view returns(uint);
+    // return decrypt record of a certain card
     function getDecryptRecord(
         uint gameId,
         uint cardIdx

@@ -200,6 +200,7 @@ contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
         cardsToDeal = gameStates[gameId].deck.cardsToDeal;
     }
 
+    // Returns the player index in the `gameId`-th game.
     function getPlayerIdx(
         uint gameId,
         address player
@@ -433,7 +434,6 @@ contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
             state.deck.cardsToDeal,
             info.numCards
         );
-
         require(
             proofs.length == numberCardsToDeal,
             "number of proofs is wrong!"
@@ -446,6 +446,7 @@ contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
             initDeltas.length == numberCardsToDeal,
             "init delta's shape is invalid!"
         );
+        
         uint256 counter = 0;
         for (uint256 cid = 0; cid < uint256(info.numCards); cid++) {
             if (BitMaps.get(state.deck.cardsToDeal, cid)) {
