@@ -446,7 +446,7 @@ contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
             initDeltas.length == numberCardsToDeal,
             "init delta's shape is invalid!"
         );
-        
+
         uint256 counter = 0;
         for (uint256 cid = 0; cid < uint256(info.numCards); cid++) {
             if (BitMaps.get(state.deck.cardsToDeal, cid)) {
@@ -600,7 +600,6 @@ contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
     function endGame(uint256 gameId) external override gameOwner(gameId) {
         ShuffleGameState storage state = gameStates[gameId];
         state.state = BaseState.Complete;
-
         delete _activeGames[gameId];
         for (
             uint256 playerId = 0;
