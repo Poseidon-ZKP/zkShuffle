@@ -94,7 +94,7 @@ interface IShuffleStateManager {
     function endGame(uint256 gameId) external;
 
     // public view function
-    function gameCardNum(uint256 gameId) external view returns (uint256);
+    function getNumCards(uint256 gameId) external view returns (uint256);
 
     function curPlayerIndex(uint gameId) external view returns (uint);
 
