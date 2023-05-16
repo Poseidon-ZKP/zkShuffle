@@ -27,7 +27,7 @@ export enum BaseState {
 
 interface IZKShuffle {
     joinGame : (gameId : number) => Promise<number>
-    checkTurn : (gameId : number) => Promise<number>
+    checkTurn : (gameId : number, startBlock : number) => Promise<number>
     shuffle : (gameId: number) => Promise<boolean>
     draw : (gameId: number) => Promise<boolean>
     open : (gameId: number, cardIds : number[]) => Promise<number[]>
@@ -42,6 +42,7 @@ interface IZKShuffle {
 // whether dapp devloper want control. maybe 2 kinds of interface.
 export class zkShuffle implements IZKShuffle {
 
+    // static (local storage cache)
     babyjub : any
     smc : ShuffleManager
     owner : SignerWithAddress
@@ -52,7 +53,10 @@ export class zkShuffle implements IZKShuffle {
     decrypt_wasm : any
     decrypt_zkey : any
 
-    constructor(
+    // per game
+    nextBlockPerGame : Map<number, number> | undefined;
+
+    private constructor(
         shuffleManagerContract : ShuffleManager,
         owner : SignerWithAddress
     ) {
@@ -60,7 +64,16 @@ export class zkShuffle implements IZKShuffle {
         this.smc = ShuffleManager__factory.connect(shuffleManagerContract.address, owner)
     }
 
-	async init(
+    public static create = async(
+        shuffleManagerContract : ShuffleManager,
+        owner : SignerWithAddress
+    ) : Promise<zkShuffle> => {
+        const ctx = new zkShuffle(shuffleManagerContract, owner)
+        await ctx.init()
+        return ctx
+    }
+
+	private async init(
 	) {
         await Promise.all(
             [
@@ -117,25 +130,29 @@ export class zkShuffle implements IZKShuffle {
         return -1
     }
 
-    async checkPlayerTurn(
+    async checkTurn(
         gameId : number,
-        playerIndex : number,
-        nextBlock : number
-    ) : Promise<[number, number]> {
+        startBlock : any = -1
+    ) : Promise<number> {
+        if (startBlock == -1) {
+            startBlock = this.nextBlockPerGame?.get(gameId)
+        }
         let filter = this.smc.filters.PlayerTurn(null, null, null)
-        let events = await this.smc.queryFilter(filter, nextBlock)
+        let events = await this.smc.queryFilter(filter, startBlock)
         for (let i = 0; i < events.length; i++) {
             const e = events[i];
-            nextBlock = e.blockNumber + 1;      // TODO : probably missing event in same block
+            startBlock = e.blockNumber + 1;      // TODO : probably missing event in same block
             if (e.args.gameId.toNumber() != gameId ||
                 e.args.playerIndex.toNumber() != playerIndex)
             {
                 continue
             }
-            return [e.args.state, nextBlock]
+            this.nextBlockPerGame?.set(gameId, startBlock)
+            return e.args.state
         }
         
-        return [NOT_TURN, nextBlock]
+        this.nextBlockPerGame?.set(gameId, startBlock)
+        return NOT_TURN
     }
 
     // Generates a secret key between 0 ~ min(2**numBits-1, Fr size).
@@ -177,7 +194,7 @@ export class zkShuffle implements IZKShuffle {
     }
 
     // Queries the current deck from contract, shuffles & generates ZK proof locally, and updates the deck on contract.
-    async _shuffle(
+    private async _shuffle(
         gameId: number
     ) {
         const numCards = (await this.smc.gameCardNum(gameId)).toNumber()
@@ -197,12 +214,11 @@ export class zkShuffle implements IZKShuffle {
     }
 
     async shuffle(
-        gameId: number,
-        playerIdx : any
+        gameId: number
     ) {
         const start = Date.now()
         await this._shuffle(gameId)
-        console.log("Player ", playerIdx, " Shuffled in ", Date.now() - start, "ms")
+        console.log("Player ", this.getPlayerId(gameId), " Shuffled in ", Date.now() - start, "ms")
     }
 
     async decrypt(
@@ -242,44 +258,57 @@ export class zkShuffle implements IZKShuffle {
 
     async draw(
         gameId: number
-    ) {
+    ) : Promise<boolean> {
         const start = Date.now()
         let cardsToDeal = (await this.smc.queryDeck(gameId)).cardsToDeal._data.toNumber();
         await this.decrypt(gameId, Math.log2(cardsToDeal))    // TODO : multi card compatible
-        console.log("Drawed in ", Date.now() - start, "ms")
+        console.log("Player ", this.getPlayerId(gameId)," Drawed in ", Date.now() - start, "ms")
+        return true
     }
 
     async open(
         gameId: number,
-        cardIdx : number
-    ) {
+        cardIds : number[]
+    ) : Promise<number[]> {
+        // remove duplicate card ids
+        cardIds = cardIds.filter((v, i, a) => a.indexOf(v) === i);
+        // sort card ids
+        cardIds = cardIds.sort((n1,n2) => n1 - n2)
+
         const start = Date.now()
-        //let cardsToDeal = (await this.smc.queryDeck(gameId)).cardsToDeal
         let deck = await this.smc.queryDeck(gameId);
-        let decryptProof = await generateDecryptProof(
-            [
-                deck.X0[cardIdx].toBigInt(),
-                deck.Y0[cardIdx].toBigInt(),
-                deck.X1[cardIdx].toBigInt(),
-                deck.Y1[cardIdx].toBigInt()
-            ],
-            this.sk, this.pk, this.decrypt_wasm, this.decrypt_zkey
-        );
-        let solidityProof: SolidityProof = packToSolidityProof(decryptProof.proof)
+
+        let decryptedCards = []
+        let proofs = []
+        let cardMap = 0
+    
+        for (let i = 0; i < cardIds.length; i++) {
+            const cardId = cardIds[i];
+            cardMap += (1 << cardId)
+            
+            let decryptProof = await generateDecryptProof(
+                [
+                    deck.X0[cardId].toBigInt(),
+                    deck.Y0[cardId].toBigInt(),
+                    deck.X1[cardId].toBigInt(),
+                    deck.Y1[cardId].toBigInt()
+                ],
+                this.sk, this.pk, this.decrypt_wasm, this.decrypt_zkey
+            );
+            decryptedCards.push({
+                X : decryptProof.publicSignals[0],
+                Y : decryptProof.publicSignals[1]
+            })
+
+            proofs.push(packToSolidityProof(decryptProof.proof))
+        }
         await this.smc.playerOpenCards(
             gameId,
             {
-                _data : 1 << cardIdx
+                _data : cardMap
             },
-            [
-                solidityProof
-            ],
-            [
-                {
-                    X : decryptProof.publicSignals[0],
-                    Y : decryptProof.publicSignals[1]
-                }
-            ]
+            proofs,
+            decryptedCards
         );
         console.log("Opened in ", Date.now() - start, "ms")
     }
