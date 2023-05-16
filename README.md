@@ -1,6 +1,9 @@
-# Poseidon ZK Monorepo
+# Poseidon ZKP
 
-Poseidon ZK Monorepo is a collection of useful ZK toolbox provided as NPM packages, including a variety of utilities like Circom circuit components, Solidity smart contracts and JavaScript/TypeScript SDK. By integrating these packages developers can easily enable their DApps with ZK abilities. 
+Poseidon ZK scales and make easy of zkDApp development in Ethereum. Poseidon ZKP contains the ZK Primitives that Poseidon offers/supports. A ZK Primitives include:
+- ZKP circuit (usually written in Circom)
+- Solidity smart contract, containing the verifier and other functions
+- TypeScript SDK, containing functions to help DApp Devs generating ZKP and doing other crypptogrpahic operations on their DApp.
 
 ## Prerequisite
 
@@ -97,12 +100,3 @@ This package provides some utilities for generating zk proofs and is depended by
 **Compile**
 
 `yarn compile`
-
-
-## TODOS
-
-- Add cryptographic tests for circuit packages
-- Publish packages to NPM registry
-- CI/CD
-- Add JSSDK to enable JS end users
-- Add contract hardhat deploy scripts

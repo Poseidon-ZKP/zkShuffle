@@ -1,7 +1,7 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethers } from "hardhat";
 import { exit } from "process";
-import { BaseState, NOT_TURN, ShuffleContext, sleep } from "../sdk/context";
+import { BaseState, NOT_TURN, zkShuffle, sleep } from "../sdk/zkShuffle";
 import { Hilo, Hilo__factory, ShuffleManager, ShuffleManager__factory } from "../types";
 import { deploy_shuffle_manager } from "../sdk/deploy";
 
@@ -11,7 +11,7 @@ async function player_run(
     gameId : number
 ) {
     console.log("Player ", owner.address.slice(0, 6).concat("..."), "init shuffle context!")
-    const player = new ShuffleContext(SM, owner)
+    const player = new zkShuffle(SM, owner)
     await player.init()
 
     // join Game
