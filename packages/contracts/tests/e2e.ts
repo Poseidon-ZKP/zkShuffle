@@ -1,9 +1,10 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethers } from "hardhat";
 import { exit } from "process";
-import { BaseState, NOT_TURN, zkShuffle, sleep } from "../sdk/zkShuffle";
-import { Hilo, Hilo__factory, ShuffleManager, ShuffleManager__factory } from "../types";
+import { BaseState, NOT_TURN, zkShuffle } from "../sdk/zkShuffle";
+import { Hilo, Hilo__factory, ShuffleManager } from "../types";
 import { deploy_shuffle_manager } from "../sdk/deploy";
+import { sleep } from "../sdk/utility";
 
 async function player_run(
     SM : ShuffleManager,
@@ -11,25 +12,23 @@ async function player_run(
     gameId : number
 ) {
     console.log("Player ", owner.address.slice(0, 6).concat("..."), "init shuffle context!")
-    const player = new zkShuffle(SM, owner)
-    await player.init()
+    const player = await zkShuffle.create(SM, owner)
 
     // join Game
     let playerIdx = await player.joinGame(gameId)
     console.log("Player ", owner.address.slice(0, 6).concat("...")  ,"Join Game ", gameId, " asigned playerId ", playerIdx)
 
     // play game
-    let nextBlock = 0
     let state
     while (state != BaseState.Complete) {
-        [state, nextBlock] = await player.checkPlayerTurn(gameId, playerIdx, nextBlock)
+        state = await player.checkTurn(gameId)
 
         //console.log("player ", playerIdx, " state : ", state, " nextBlock ", nextBlock)
         if (state != NOT_TURN) {
             switch(state) {
                 case BaseState.Shuffle :
                     console.log("Player ", playerIdx, " 's Shuffle turn!")
-                    await player.shuffle(gameId, playerIdx)
+                    await player.shuffle(gameId)
                     break
                 case BaseState.Deal :
                     console.log("Player ", playerIdx, " 's Deal Decrypt turn!")
@@ -37,7 +36,7 @@ async function player_run(
                     break
                 case BaseState.Open :
                     console.log("Player ", playerIdx, " 's Open Decrypt turn!")
-                    await player.open(gameId, playerIdx)
+                    await player.open(gameId, [playerIdx])
                     break
                 case BaseState.Complete :
                     console.log("Player ", playerIdx, " 's Game End!")
@@ -47,7 +46,6 @@ async function player_run(
                     exit(-1)
             }
         }
-
 
         await sleep(1000)
     }
