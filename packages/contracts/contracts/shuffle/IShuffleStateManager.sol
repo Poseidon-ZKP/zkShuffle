@@ -99,7 +99,7 @@ interface IShuffleStateManager {
     function curPlayerIndex(uint gameId) external view returns (uint);
 
     //function gameStatus(uint gameId) external view returns(uint);
-    function gameCardDecryptRecord(
+    function getDecryptRecord(
         uint gameId,
         uint cardIdx
     ) external view returns (BitMaps.BitMap256 memory);
