@@ -59,6 +59,7 @@ struct ShuffleGameState {
  * @title Base state manager
  */
 interface IShuffleStateManager {
+    // invalid card index or player index
     function INVALID_INDEX() external view returns (uint256);
 
     function createShuffleGame(uint8 numPlayers) external returns (uint256);
@@ -108,11 +109,13 @@ interface IShuffleStateManager {
         uint256 gameId
     ) external view returns (uint px, uint py);
 
+    // Returns the value of the `cardIndex`-th card in the `gameId`-th game.
     function queryCardValue(
         uint256 gameId,
         uint256 cardIndex
     ) external view returns (uint256);
 
+    // Returns the player index in the `gameId`-th game.
     function getPlayerIdx(
         uint gameId,
         address player

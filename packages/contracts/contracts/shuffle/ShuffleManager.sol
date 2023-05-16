@@ -19,6 +19,9 @@ contract ShuffleManager is IShuffleStateManager, Debug, Ownable {
 // #else
 contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
 // #endif
+    // invalid card index or player index
+    uint256 public constant override INVALID_INDEX = 999999;
+
     // event
     event GameContractCallError(address caller, bytes data);
 

@@ -9,12 +9,16 @@ import "./BitMaps.sol";
 
 // #if SHUFFLE_UNIT_TEST
 import "hardhat/console.sol";
+
 // #endif
 
 /// @title Storage Layout
 contract Storage {
     // currently, all the decks shares the same decrypt circuits
     IDecryptVerifier public decryptVerifier;
+
+    // initial deck
+    uint256[52] INIT_X1;
 
     // Encryption verifier for 5 cards deck
     address _deck5EncVerifier;
