@@ -1,7 +1,7 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethers } from "hardhat";
 import { exit } from "process";
-import { BaseState, NOT_TURN, zkShuffle } from "@poseidon-zkp/poseidon-zk-jssdk/shuffle/zkShuffle";
+import { BaseState, GameTurn, zkShuffle } from "@poseidon-zkp/poseidon-zk-jssdk/shuffle/zkShuffle";
 import { Hilo, Hilo__factory, ShuffleManager } from "../types";
 import { deploy_shuffle_manager } from "../sdk/deploy";
 import { sleep } from "@poseidon-zkp/poseidon-zk-jssdk/shuffle/utility";
@@ -19,30 +19,30 @@ async function player_run(
     console.log("Player ", owner.address.slice(0, 6).concat("...")  ,"Join Game ", gameId, " asigned playerId ", playerIdx)
 
     // play game
-    let state
-    while (state != BaseState.Complete) {
-        state = await player.checkTurn(gameId)
+    let turn = GameTurn.NOP
+    while (turn != GameTurn.Complete) {
+        turn = await player.checkTurn(gameId)
 
         //console.log("player ", playerIdx, " state : ", state, " nextBlock ", nextBlock)
-        if (state != NOT_TURN) {
-            switch(state) {
-                case BaseState.Shuffle :
+        if (turn != GameTurn.NOP) {
+            switch(turn) {
+                case GameTurn.Shuffle :
                     console.log("Player ", playerIdx, " 's Shuffle turn!")
                     await player.shuffle(gameId)
                     break
-                case BaseState.Deal :
+                case GameTurn.Deal :
                     console.log("Player ", playerIdx, " 's Deal Decrypt turn!")
                     await player.draw(gameId)
                     break
-                case BaseState.Open :
+                case GameTurn.Open :
                     console.log("Player ", playerIdx, " 's Open Decrypt turn!")
                     await player.open(gameId, [playerIdx])
                     break
-                case BaseState.Complete :
+                case GameTurn.Complete :
                     console.log("Player ", playerIdx, " 's Game End!")
                     break
                 default :
-                    console.log("err state ", state)
+                    console.log("err turn ", turn)
                     exit(-1)
             }
         }
