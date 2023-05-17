@@ -36,7 +36,7 @@ export enum GameTurn {
 
 interface IZKShuffle {
     joinGame : (gameId : number) => Promise<number>
-    checkTurn : (gameId : number, startBlock : number) => Promise<number>
+    checkTurn : (gameId : number, startBlock : number) => Promise<GameTurn>
     shuffle : (gameId: number) => Promise<boolean>
     draw : (gameId: number) => Promise<boolean>
     open : (gameId: number, cardIds : number[]) => Promise<number[]>
@@ -141,7 +141,7 @@ export class zkShuffle implements IZKShuffle {
     async checkTurn(
         gameId : number,
         startBlock : any = 0
-    ) : Promise<number> {
+    ) : Promise<GameTurn> {
         if (startBlock == undefined || startBlock == 0) {
             startBlock = this.nextBlockPerGame.get(gameId)
             if (startBlock == undefined) {
