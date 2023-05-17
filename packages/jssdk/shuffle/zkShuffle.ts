@@ -6,6 +6,7 @@ import { resolve } from 'path';
 import { dnld_aws, P0X_DIR, sleep } from "./utility";
 import { Contract, ethers } from "ethers";
 import shuffleManagerJson from './ABI/ShuffleManager.json'
+import { exit } from "process";
 
 const buildBabyjub = require('circomlibjs').buildBabyjub;
 
@@ -13,7 +14,6 @@ export type BabyJub = any;
 export type EC = any;
 export type Deck = any;
 
-export const NOT_TURN = -1
 export enum BaseState {
     Uncreated,   // Important to keep this to avoid EVM default 0 value 
     Created,
@@ -24,6 +24,15 @@ export enum BaseState {
     GameError,
     Complete
 }
+
+export enum GameTurn {
+    NOP, // Not Your Turn
+    Shuffle, // Shuffle Turn
+    Deal, // Deal Decrypt Turn
+    Open, // Open Card
+    Complete, // Game End
+    Error, // Game Error
+  }
 
 interface IZKShuffle {
     joinGame : (gameId : number) => Promise<number>
@@ -151,11 +160,25 @@ export class zkShuffle implements IZKShuffle {
                 continue
             }
             this.nextBlockPerGame.set(gameId, startBlock)
-            return e.args.state
+            switch(e.args.state) {
+                case BaseState.Shuffle :
+                    return GameTurn.Shuffle
+                case BaseState.Deal :
+                    return GameTurn.Deal
+                case BaseState.Open :
+                    return GameTurn.Open
+                case BaseState.Complete :
+                    return GameTurn.Complete
+                case BaseState.GameError :
+                    return GameTurn.Error
+                default :
+                    console.log("err state ", e.args.state)
+                    exit(-1)
+            }
         }
         
         this.nextBlockPerGame.set(gameId, startBlock)
-        return NOT_TURN
+        return GameTurn.NOP
     }
 
     // Generates a secret key between 0 ~ min(2**numBits-1, Fr size).
