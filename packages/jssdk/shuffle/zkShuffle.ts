@@ -3,7 +3,7 @@ import { shuffleEncryptV2Plaintext } from "@poseidon-zkp/poseidon-zk-proof/src/s
 import { dealCompressedCard, dealUncompressedCard, generateDecryptProof, generateShuffleEncryptV2Proof, packToSolidityProof, SolidityProof } from "@poseidon-zkp/poseidon-zk-proof/src/shuffle/proof";
 import { prepareShuffleDeck, sampleFieldElements, samplePermutation} from "@poseidon-zkp/poseidon-zk-proof/src/shuffle/utilities";
 import { resolve } from 'path';
-import { dnld_aws, P0X_DIR, P0X_AWS_URL, sleep } from "./utility";
+import { dnld_aws, P0X_DIR, P0X_AWS_URL, sleep, dnld_file } from "./utility";
 import { Contract, ethers } from "ethers";
 import shuffleManagerJson from './ABI/ShuffleManager.json'
 import { exit } from "process";
@@ -92,10 +92,10 @@ export class zkShuffle implements IZKShuffle {
         encrypt_wasm : string,
         encrypt_zkey : string
 	) {
-        this.decrypt_wasm = decrypt_wasm || resolve(P0X_AWS_URL, './wasm/decrypt.wasm');
-        this.decrypt_zkey = decrypt_zkey || resolve(P0X_AWS_URL, './zkey/decrypt.zkey');
-        this.encrypt_wasm = encrypt_wasm || resolve(P0X_AWS_URL, './wasm/encrypt.wasm.5');
-        this.encrypt_zkey = encrypt_zkey || resolve(P0X_AWS_URL, './zkey/encrypt.zkey.5');
+        this.decrypt_wasm = decrypt_wasm || await dnld_file('wasm/decrypt.wasm');
+        this.decrypt_zkey = decrypt_zkey || await dnld_file('zkey/decrypt.zkey');
+        this.encrypt_wasm = encrypt_wasm || await dnld_file('wasm/encrypt.wasm.5');
+        this.encrypt_zkey = encrypt_zkey || await dnld_file('zkey/encrypt.zkey.5');
 
         this.babyjub = await buildBabyjub();
         const keys = this.keyGen(BigInt(251))

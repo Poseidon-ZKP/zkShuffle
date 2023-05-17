@@ -1,4 +1,5 @@
 import { resolve } from 'path';
+import axios from 'axios';
 const fs = require('fs');
 const https = require('https')
 
@@ -25,6 +26,13 @@ export async function dnld_aws(file_name : string) {
         }
     });
 }
+
+export async function dnld_file(path: string) {
+    const res = await axios.get(P0X_AWS_URL + path, {
+        responseType: 'arraybuffer'
+    });
+    return res.data;
+  }
 
 export async function sleep(ms : number) {
     return new Promise(resolve => setTimeout(resolve, ms));
