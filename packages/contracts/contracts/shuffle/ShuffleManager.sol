@@ -125,7 +125,7 @@ contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
     }
 
     // get number of card of a gameId
-    function gameCardNum(
+    function getNumCards(
         uint256 gameId
     ) public view override returns (uint256) {
         require(gameId <= largestGameId, "Invalid gameId");
@@ -147,7 +147,7 @@ contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
     }
 
     // get decrypt record of a single card
-    function gameCardDecryptRecord(
+    function getDecryptRecord(
         uint256 gameId,
         uint256 cardIdx
     ) public view override returns (BitMaps.BitMap256 memory) {

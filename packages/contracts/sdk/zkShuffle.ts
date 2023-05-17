@@ -190,7 +190,7 @@ export class zkShuffle {
 
   async generate_shuffle_proof(gameId: number) {
     const numBits = BigInt(251);
-    const numCards = (await this.smc.gameCardNum(gameId)).toNumber();
+    const numCards = (await this.smc.getNumCards(gameId)).toNumber();
     const key = await this.smc.queryAggregatedPk(gameId);
     const aggrPK = [key[0].toBigInt(), key[1].toBigInt()];
     const aggrPKEC = [this.babyjub.F.e(aggrPK[0]), this.babyjub.F.e(aggrPK[1])];
@@ -248,7 +248,7 @@ export class zkShuffle {
 
   // Queries the current deck from contract, shuffles & generates ZK proof locally, and updates the deck on contract.
   async _shuffle(gameId: number) {
-    const numCards = (await this.smc.gameCardNum(gameId)).toNumber();
+    const numCards = (await this.smc.getNumCards(gameId)).toNumber();
     let shuffleFullProof = await this.generate_shuffle_proof(gameId);
 
     let solidityProof: SolidityProof = packToSolidityProof(
@@ -282,11 +282,9 @@ export class zkShuffle {
   }
 
   async decrypt(gameId: number, cardIdx: number): Promise<bigint[]> {
-    const numCards = (await this.smc.gameCardNum(gameId)).toNumber();
+    const numCards = (await this.smc.getNumCards(gameId)).toNumber();
     const isFirstDecryption =
-      (
-        await this.smc.gameCardDecryptRecord(gameId, cardIdx)
-      )._data.toNumber() == 0;
+      (await this.smc.getDecryptRecord(gameId, cardIdx))._data.toNumber() == 0;
     //console.log("decrypting card", cardIdx, " isFirstDecryption ", isFirstDecryption)
     let res: bigint[] = [];
     if (isFirstDecryption) {
