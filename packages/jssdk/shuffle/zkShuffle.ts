@@ -3,7 +3,7 @@ import { shuffleEncryptV2Plaintext } from "@poseidon-zkp/poseidon-zk-proof/src/s
 import { dealCompressedCard, dealUncompressedCard, generateDecryptProof, generateShuffleEncryptV2Proof, packToSolidityProof, SolidityProof } from "@poseidon-zkp/poseidon-zk-proof/src/shuffle/proof";
 import { prepareShuffleDeck, sampleFieldElements, samplePermutation} from "@poseidon-zkp/poseidon-zk-proof/src/shuffle/utilities";
 import { resolve } from 'path';
-import { dnld_aws, P0X_DIR, sleep } from "./utility";
+import { dnld_aws, P0X_DIR, P0X_AWS_URL, sleep } from "./utility";
 import { Contract, ethers } from "ethers";
 import shuffleManagerJson from './ABI/ShuffleManager.json'
 import { exit } from "process";
@@ -48,11 +48,12 @@ interface IZKShuffle {
 
 export class zkShuffle implements IZKShuffle {
 
-    // static (local storage cache)
     babyjub : any
     smc : Contract
     owner : SignerWithAddress
     pk : EC
+
+    // static (local storage cache)
     sk : any
     encrypt_wasm : any
     encrypt_zkey : any
@@ -74,33 +75,27 @@ export class zkShuffle implements IZKShuffle {
 
     public static create = async(
         shuffleManagerContract : string,
-        owner : SignerWithAddress
+        owner : SignerWithAddress,
+        decrypt_wasm : string = "",
+        decrypt_zkey : string = "",
+        encrypt_wasm : string = "",
+        encrypt_zkey : string = ""
     ) : Promise<zkShuffle> => {
         const ctx = new zkShuffle(shuffleManagerContract, owner)
-        await ctx.init()
+        await ctx.init(decrypt_wasm, decrypt_zkey, encrypt_wasm, encrypt_zkey)
         return ctx
     }
 
 	private async init(
+        decrypt_wasm : string,
+        decrypt_zkey : string,
+        encrypt_wasm : string,
+        encrypt_zkey : string
 	) {
-        await Promise.all(
-            [
-                'wasm/decrypt.wasm',
-                'zkey/decrypt.zkey',
-                'wasm/encrypt.wasm.2',
-                'zkey/encrypt.zkey.2',
-                'wasm/encrypt.wasm.5',
-                'zkey/encrypt.zkey.5',
-                'wasm/encrypt.wasm',
-                'zkey/encrypt.zkey'
-            ].map(async (e) => {
-                await dnld_aws(e)
-            }
-        ));
-        this.decrypt_wasm = resolve(P0X_DIR, './wasm/decrypt.wasm');
-        this.decrypt_zkey = resolve(P0X_DIR, './zkey/decrypt.zkey');
-        this.encrypt_wasm = resolve(P0X_DIR, './wasm/encrypt.wasm.5');
-        this.encrypt_zkey = resolve(P0X_DIR, './zkey/encrypt.zkey.5');
+        this.decrypt_wasm = decrypt_wasm || resolve(P0X_AWS_URL, './wasm/decrypt.wasm');
+        this.decrypt_zkey = decrypt_zkey || resolve(P0X_AWS_URL, './zkey/decrypt.zkey');
+        this.encrypt_wasm = encrypt_wasm || resolve(P0X_AWS_URL, './wasm/encrypt.wasm.5');
+        this.encrypt_zkey = encrypt_zkey || resolve(P0X_AWS_URL, './zkey/encrypt.zkey.5');
 
         this.babyjub = await buildBabyjub();
         const keys = this.keyGen(BigInt(251))
