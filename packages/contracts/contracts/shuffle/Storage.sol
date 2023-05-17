@@ -17,9 +17,6 @@ contract Storage {
     // currently, all the decks shares the same decrypt circuits
     IDecryptVerifier public decryptVerifier;
 
-    // initial deck
-    uint256[52] INIT_X1;
-
     // Encryption verifier for 5 cards deck
     address _deck5EncVerifier;
 
