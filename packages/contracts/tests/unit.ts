@@ -2,7 +2,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { packToSolidityProof, SolidityProof } from "@poseidon-zkp/poseidon-zk-proof/src/shuffle/proof";
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { BaseState, zkShuffle } from "../sdk/zkShuffle";
+import { BaseState, zkShuffle } from "../../jssdk/shuffle/zkShuffle";
 import { deploy_shuffle_manager } from "../sdk/deploy";
 import { tx_to_contract } from "../sdk/utility";
 import { ShuffleManager, ShuffleManager__factory, ShuffleTest, ShuffleTest__factory } from "../types";
