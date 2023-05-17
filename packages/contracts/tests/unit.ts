@@ -30,8 +30,7 @@ describe('zkShuffle Unit Test', function () {
         const signers = await ethers.getSigners()
         SM = await deploy_shuffle_manager(sm_owner)
         for (let i = 0; i < numPlayer; i++) {
-            players.push(new zkShuffle(SM, signers[i]))
-            await players[i].init()
+            players.push(await zkShuffle.create(SM.address, signers[i]))
         }
     });
 

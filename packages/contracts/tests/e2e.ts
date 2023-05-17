@@ -12,7 +12,7 @@ async function player_run(
     gameId : number
 ) {
     console.log("Player ", owner.address.slice(0, 6).concat("..."), "init shuffle context!")
-    const player = await zkShuffle.create(SM, owner)
+    const player = await zkShuffle.create(SM.address, owner)
 
     // join Game
     let playerIdx = await player.joinGame(gameId)
