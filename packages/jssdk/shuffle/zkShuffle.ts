@@ -2,9 +2,10 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { shuffleEncryptV2Plaintext } from "@poseidon-zkp/poseidon-zk-proof/src/shuffle/plaintext";
 import { dealCompressedCard, dealUncompressedCard, generateDecryptProof, generateShuffleEncryptV2Proof, packToSolidityProof, SolidityProof } from "@poseidon-zkp/poseidon-zk-proof/src/shuffle/proof";
 import { prepareShuffleDeck, sampleFieldElements, samplePermutation} from "@poseidon-zkp/poseidon-zk-proof/src/shuffle/utilities";
-import { ShuffleManager, ShuffleManager__factory } from "./ABI";
 import { resolve } from 'path';
 import { dnld_aws, P0X_DIR, sleep } from "./utility";
+import { Contract, ethers } from "ethers";
+import shuffleManagerJson from './ABI/ShuffleManager.json'
 
 const buildBabyjub = require('circomlibjs').buildBabyjub;
 
@@ -36,14 +37,11 @@ interface IZKShuffle {
     getPlayerId : (gameId : number) => Promise<number> 
 }
 
-// Wrap cryptography details(pk/sk, proof generate)
-// TODO : let user decide all contract call ? or anything wrapper in the ctx?
-// whether dapp devloper want control. maybe 2 kinds of interface.
 export class zkShuffle implements IZKShuffle {
 
     // static (local storage cache)
     babyjub : any
-    smc : ShuffleManager
+    smc : Contract
     owner : SignerWithAddress
     pk : EC
     sk : any
@@ -60,7 +58,8 @@ export class zkShuffle implements IZKShuffle {
         owner : SignerWithAddress
     ) {
         this.owner = owner
-        this.smc = ShuffleManager__factory.connect(shuffleManagerContract, owner)
+
+        this.smc = new ethers.Contract(shuffleManagerContract, shuffleManagerJson.abi, owner)
         this.nextBlockPerGame = new Map()
     }
 
