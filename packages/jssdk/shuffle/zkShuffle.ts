@@ -56,16 +56,16 @@ export class zkShuffle implements IZKShuffle {
     nextBlockPerGame : Map<number, number>
 
     private constructor(
-        shuffleManagerContract : ShuffleManager,
+        shuffleManagerContract : string,
         owner : SignerWithAddress
     ) {
         this.owner = owner
-        this.smc = ShuffleManager__factory.connect(shuffleManagerContract.address, owner)
+        this.smc = ShuffleManager__factory.connect(shuffleManagerContract, owner)
         this.nextBlockPerGame = new Map()
     }
 
     public static create = async(
-        shuffleManagerContract : ShuffleManager,
+        shuffleManagerContract : string,
         owner : SignerWithAddress
     ) : Promise<zkShuffle> => {
         const ctx = new zkShuffle(shuffleManagerContract, owner)
