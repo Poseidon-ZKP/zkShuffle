@@ -1,9 +1,9 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethers } from "hardhat";
 import { exit } from "process";
-import { BaseState, GameTurn, zkShuffle } from "@poseidon-zkp/poseidon-zk-jssdk/shuffle/zkShuffle";
+import { GameTurn, zkShuffle } from "@poseidon-zkp/poseidon-zk-jssdk/shuffle/zkShuffle";
 import { Hilo, Hilo__factory, ShuffleManager } from "../types";
-import { deploy_shuffle_manager } from "../sdk/deploy";
+import { deploy_shuffle_manager } from "../helper/deploy";
 import { sleep } from "@poseidon-zkp/poseidon-zk-jssdk/shuffle/utility";
 
 async function player_run(
