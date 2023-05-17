@@ -4,7 +4,7 @@ import { dealCompressedCard, dealUncompressedCard, generateDecryptProof, generat
 import { prepareShuffleDeck, sampleFieldElements, samplePermutation} from "@poseidon-zkp/poseidon-zk-proof/src/shuffle/utilities";
 import { ShuffleManager, ShuffleManager__factory } from "./ABI";
 import { resolve } from 'path';
-import { dnld_aws, P0X_DIR, sleep } from "../../contracts/sdk/utility";
+import { dnld_aws, P0X_DIR, sleep } from "./utility";
 
 const buildBabyjub = require('circomlibjs').buildBabyjub;
 
