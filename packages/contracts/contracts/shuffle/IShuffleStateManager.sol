@@ -14,7 +14,7 @@ import "./Deck.sol";
  * Complete: the game has been completed
  */
 enum BaseState {
-    Uncreated,   // Important to keep this to avoid EVM default 0 value 
+    Uncreated, // Important to keep this to avoid EVM default 0 value
     Created,
     Registration,
     Shuffle,
@@ -40,10 +40,10 @@ struct ShuffleGameState {
     uint256 nonce;
     // a mapping between playerId and number of cards
     // in player's hand
-    mapping (uint256 => uint256) playerHand;
+    mapping(uint256 => uint256) playerHand;
     // list of player's addresses
     address[] playerAddrs;
-    // list of signing addresses, could be different to 
+    // list of signing addresses, could be different to
     // the player address in the case of delegate/ephermal account,
     // must be the same order as playerAddrs
     address[] signingAddrs;
@@ -59,6 +59,9 @@ struct ShuffleGameState {
  * @title Base state manager
  */
 interface IShuffleStateManager {
+    // invalid card index or player index
+    function INVALID_INDEX() external view returns (uint256);
+
     function createShuffleGame(uint8 numPlayers) external returns (uint256);
 
     // transit to register player stage
@@ -91,15 +94,32 @@ interface IShuffleStateManager {
     function endGame(uint256 gameId) external;
 
     // public view function
-    function gameCardNum(uint256 gameId) external view returns(uint256);
-    function curPlayerIndex(uint gameId) external view returns(uint);
-    //function gameStatus(uint gameId) external view returns(uint);
-    function gameCardDecryptRecord(uint gameId, uint cardIdx) external view returns(BitMaps.BitMap256 memory);
+    function getNumCards(uint256 gameId) external view returns (uint256);
+
+    function curPlayerIndex(uint gameId) external view returns (uint);
+
+    // return decrypt record of a certain card
+    function getDecryptRecord(
+        uint gameId,
+        uint cardIdx
+    ) external view returns (BitMaps.BitMap256 memory);
 
     // Returns the aggregated public key for all players.
     function queryAggregatedPk(
         uint256 gameId
     ) external view returns (uint px, uint py);
+
+    // Returns the value of the `cardIndex`-th card in the `gameId`-th game.
+    function queryCardValue(
+        uint256 gameId,
+        uint256 cardIndex
+    ) external view returns (uint256);
+
+    // Returns the player index in the `gameId`-th game.
+    function getPlayerIdx(
+        uint256 gameId,
+        address player
+    ) external view returns (uint256);
 
     event Register(
         uint256 indexed gameId,

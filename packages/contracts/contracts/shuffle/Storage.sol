@@ -9,6 +9,7 @@ import "./BitMaps.sol";
 
 // #if SHUFFLE_UNIT_TEST
 import "hardhat/console.sol";
+
 // #endif
 
 /// @title Storage Layout
