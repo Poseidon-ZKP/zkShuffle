@@ -1,7 +1,7 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethers } from "hardhat";
 import { exit } from "process";
-import { BaseState, NOT_TURN, zkShuffle } from "../sdk/zkShuffle";
+import { BaseState, NOT_TURN, zkShuffle } from "../../jssdk/shuffle/zkShuffle";
 import { Hilo, Hilo__factory, ShuffleManager } from "../types";
 import { deploy_shuffle_manager } from "../sdk/deploy";
 import { sleep } from "../sdk/utility";
