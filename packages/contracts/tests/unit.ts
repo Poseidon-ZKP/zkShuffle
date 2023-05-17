@@ -3,8 +3,8 @@ import { packToSolidityProof, SolidityProof } from "@poseidon-zkp/poseidon-zk-pr
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import { BaseState, zkShuffle } from "@poseidon-zkp/poseidon-zk-jssdk/shuffle/zkShuffle";
-import { deploy_shuffle_manager } from "../sdk/deploy";
-import { tx_to_contract } from "../sdk/utility";
+import { deploy_shuffle_manager } from "../helper/deploy";
+import { tx_to_contract } from "../helper/utility";
 import { ShuffleManager, ShuffleManager__factory, ShuffleTest, ShuffleTest__factory } from "../types";
 
 describe('zkShuffle Unit Test', function () {
