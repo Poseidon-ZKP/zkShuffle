@@ -96,7 +96,7 @@ export class ZKShuffle implements IZKShuffle {
     return ctx;
   };
 
-  private async init(
+  public async init(
     decrypt_wasm: string,
     decrypt_zkey: string,
     encrypt_wasm: string,
