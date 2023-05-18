@@ -4,7 +4,7 @@ import { exit } from "process";
 import { GameTurn, zkShuffle } from "@poseidon-zkp/poseidon-zk-jssdk/shuffle/zkShuffle";
 import { Hilo, Hilo__factory, ShuffleManager } from "../types";
 import { deploy_shuffle_manager } from "../helper/deploy";
-import { P0X_DIR, sleep } from "@poseidon-zkp/poseidon-zk-jssdk/shuffle/utility";
+import { dnld_aws, P0X_DIR, sleep } from "@poseidon-zkp/poseidon-zk-jssdk/shuffle/utility";
 import { resolve } from "path";
 
 async function player_run(
@@ -12,15 +12,25 @@ async function player_run(
     owner : SignerWithAddress,
     gameId : number
 ) {
+    await Promise.all(
+            [
+                'wasm/decrypt.wasm',
+                'zkey/decrypt.zkey',
+                'wasm/encrypt.wasm.5',
+                'zkey/encrypt.zkey.5',
+                'wasm/encrypt.wasm',
+                'zkey/encrypt.zkey'
+            ].map(async (e) => {
+                await dnld_aws(e)
+            })
+    )
+
     console.log("Player ", owner.address.slice(0, 6).concat("..."), "init shuffle context!")
     const player = await zkShuffle.create(
-        SM.address, owner
-        ,
-        "",
-        // resolve(P0X_DIR, './wasm/decrypt.wasm'),
+        SM.address, owner,
+        "", // resolve(P0X_DIR, './wasm/decrypt.wasm'),
         resolve(P0X_DIR, './zkey/decrypt.zkey'),
-        // resolve(P0X_DIR, './wasm/encrypt.wasm.5'),
-        "",
+        "", // resolve(P0X_DIR, './wasm/encrypt.wasm.5'),
         resolve(P0X_DIR, './zkey/encrypt.zkey.5')
     )
 

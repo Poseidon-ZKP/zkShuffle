@@ -29,7 +29,6 @@
     "@poseidon-zkp/poseidon-zk-jssdk": "0.0.1",
     "@poseidon-zkp/poseidon-zk-proof": "0.0.1",
     "@semaphore-protocol/contracts": "^2.6.1",
-    "axios": "^1.4.0",
     "circomlibjs": "^0.1.7",
     "node-pandoc": "^0.3.0",
     "snarkjs": "^0.5.0",
