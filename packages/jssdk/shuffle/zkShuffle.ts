@@ -114,23 +114,7 @@ export class zkShuffle implements IZKShuffle {
 
     // pull player's Id for gameId
     async getPlayerId(gameId : number) : Promise<number> {
-        let nextBlock = 0
-        while (1) {
-            let filter = this.smc.filters.Register(null, null, null)
-            let events = await this.smc.queryFilter(filter, nextBlock)
-            for (let i = 0; i < events.length; i++) {
-                const e = events[i];
-                nextBlock = e.blockNumber - 1;
-                if (e.event == 'Register' &&
-                    e.args.gameId.toNumber() == gameId &&
-                    e.args.playerAddr == this.owner.address)
-                {
-                    return e.args.playerId.toNumber()
-                }
-            }
-            await sleep(5000)
-        }
-        return -1
+        return (await this.smc.getPlayerIdx(gameId, this.owner.address)).toNumber()
     }
 
     async checkTurn(
