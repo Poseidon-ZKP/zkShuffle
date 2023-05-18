@@ -1,71 +1,53 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethers } from "hardhat";
 import { exit } from "process";
-import { GameTurn, zkShuffle } from "@poseidon-zkp/poseidon-zk-jssdk/shuffle/zkShuffle";
-import { Hilo, Hilo__factory, ShuffleManager } from "../types";
-import { deploy_shuffle_manager } from "../helper/deploy";
-import { dnld_aws, P0X_DIR, sleep } from "@poseidon-zkp/poseidon-zk-jssdk/shuffle/utility";
-import { resolve } from "path";
+import { BaseState, NOT_TURN, zkShuffle, sleep } from "../sdk/zkShuffle";
+import { Hilo, Hilo__factory, ShuffleManager, ShuffleManager__factory } from "../types";
+import { deploy_shuffle_manager } from "../sdk/deploy";
 
 async function player_run(
     SM : ShuffleManager,
     owner : SignerWithAddress,
     gameId : number
 ) {
-    await Promise.all(
-            [
-                'wasm/decrypt.wasm',
-                'zkey/decrypt.zkey',
-                'wasm/encrypt.wasm.5',
-                'zkey/encrypt.zkey.5',
-                'wasm/encrypt.wasm',
-                'zkey/encrypt.zkey'
-            ].map(async (e) => {
-                await dnld_aws(e)
-            })
-    )
-
     console.log("Player ", owner.address.slice(0, 6).concat("..."), "init shuffle context!")
-    const player = await zkShuffle.create(
-        SM.address, owner,
-        "", // resolve(P0X_DIR, './wasm/decrypt.wasm'),
-        resolve(P0X_DIR, './zkey/decrypt.zkey'),
-        "", // resolve(P0X_DIR, './wasm/encrypt.wasm.5'),
-        resolve(P0X_DIR, './zkey/encrypt.zkey.5')
-    )
+    const player = new zkShuffle(SM, owner)
+    await player.init()
 
     // join Game
     let playerIdx = await player.joinGame(gameId)
     console.log("Player ", owner.address.slice(0, 6).concat("...")  ,"Join Game ", gameId, " asigned playerId ", playerIdx)
 
     // play game
-    let turn = GameTurn.NOP
-    while (turn != GameTurn.Complete) {
-        turn = await player.checkTurn(gameId)
+    let nextBlock = 0
+    let state
+    while (state != BaseState.Complete) {
+        [state, nextBlock] = await player.checkPlayerTurn(gameId, playerIdx, nextBlock)
 
         //console.log("player ", playerIdx, " state : ", state, " nextBlock ", nextBlock)
-        if (turn != GameTurn.NOP) {
-            switch(turn) {
-                case GameTurn.Shuffle :
+        if (state != NOT_TURN) {
+            switch(state) {
+                case BaseState.Shuffle :
                     console.log("Player ", playerIdx, " 's Shuffle turn!")
-                    await player.shuffle(gameId)
+                    await player.shuffle(gameId, playerIdx)
                     break
-                case GameTurn.Deal :
+                case BaseState.Deal :
                     console.log("Player ", playerIdx, " 's Deal Decrypt turn!")
                     await player.draw(gameId)
                     break
-                case GameTurn.Open :
+                case BaseState.Open :
                     console.log("Player ", playerIdx, " 's Open Decrypt turn!")
-                    await player.open(gameId, [playerIdx])
+                    await player.open(gameId, playerIdx)
                     break
-                case GameTurn.Complete :
+                case BaseState.Complete :
                     console.log("Player ", playerIdx, " 's Game End!")
                     break
                 default :
-                    console.log("err turn ", turn)
+                    console.log("err state ", state)
                     exit(-1)
             }
         }
+
 
         await sleep(1000)
     }

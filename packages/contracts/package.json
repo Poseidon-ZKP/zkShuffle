@@ -26,7 +26,6 @@
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.6",
     "@nomiclabs/hardhat-solpp": "^2.0.1",
     "@poseidon-zkp/poseidon-zk-circuits": "0.0.1",
-    "@poseidon-zkp/poseidon-zk-jssdk": "0.0.1",
     "@poseidon-zkp/poseidon-zk-proof": "0.0.1",
     "@semaphore-protocol/contracts": "^2.6.1",
     "circomlibjs": "^0.1.7",
