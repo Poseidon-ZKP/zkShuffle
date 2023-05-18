@@ -13,7 +13,7 @@ import {
   sampleFieldElements,
   samplePermutation,
 } from '@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/utilities';
-import { dnld_file } from "./utility";
+
 import { Contract, ethers, Signer } from "ethers";
 import shuffleManagerJson from './ABI/ShuffleManager.json'
 
@@ -78,7 +78,6 @@ export class ZKShuffle implements IZKShuffle {
         owner : Signer
     ) {
         this.owner = owner
-
         this.smc = new ethers.Contract(shuffleManagerContract, shuffleManagerJson.abi, owner)
         this.nextBlockPerGame = new Map()
     }
@@ -96,7 +95,7 @@ export class ZKShuffle implements IZKShuffle {
         return ctx;
       };
     
-      public async init(
+      private async init(
         decrypt_wasm: string,
         decrypt_zkey: string,
         encrypt_wasm: string,
@@ -115,49 +114,6 @@ export class ZKShuffle implements IZKShuffle {
           this.babyjub.F.toString(keys.pk[1]),
         ];
         this.sk = keys.sk;
-      }
-    
-      public async dnld_crypto_files(cardNum: number) {
-        try {
-          let wasmFileName = '';
-          let zkeyFileName = '';
-          switch (cardNum) {
-            case 5:
-              wasmFileName = 'wasm/encrypt.wasm.5';
-              zkeyFileName = 'zkey/encrypt.zkey.5';
-              break;
-            case 30:
-              wasmFileName = 'wasm/encrypt.wasm.30';
-              zkeyFileName = 'zkey/encrypt.zkey.30';
-              break;
-            case 52:
-              wasmFileName = 'wasm/encrypt.wasm';
-              zkeyFileName = 'zkey/encrypt.zkey';
-              break;
-            default:
-              break;
-          }
-          const wasmPromise = dnld_file(wasmFileName);
-          const zkeyPromise = dnld_file(zkeyFileName);
-          const decryptWasmPromise = dnld_file('wasm/decrypt.wasm');
-          const decryptZkeyPromise = dnld_file('zkey/decrypt.zkey');
-          const [encrypt_wasm, encrypt_zkey, decrypt_wasm, decrypt_zkey] =
-            await Promise.all([
-              wasmPromise,
-              zkeyPromise,
-              decryptWasmPromise,
-              decryptZkeyPromise,
-            ]);
-          //  developer can use this to cache the files
-          return {
-            encrypt_wasm,
-            encrypt_zkey,
-            decrypt_wasm,
-            decrypt_zkey,
-          };
-        } catch (e) {
-          console.log('download error', e);
-        }
       }
     
     async joinGame(gameId : number) : Promise<number> {
