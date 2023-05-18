@@ -1,9 +1,20 @@
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { shuffleEncryptV2Plaintext } from "@poseidon-zkp/poseidon-zk-proof/src/shuffle/plaintext";
-import { dealCompressedCard, dealUncompressedCard, generateDecryptProof, generateShuffleEncryptV2Proof, packToSolidityProof, SolidityProof } from "@poseidon-zkp/poseidon-zk-proof/src/shuffle/proof";
-import { initDeck, prepareShuffleDeck, sampleFieldElements, samplePermutation} from "@poseidon-zkp/poseidon-zk-proof/src/shuffle/utilities";
+import { shuffleEncryptV2Plaintext } from '@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/plaintext';
+import {
+  dealCompressedCard,
+  dealUncompressedCard,
+  generateDecryptProof,
+  generateShuffleEncryptV2Proof,
+  packToSolidityProof,
+  SolidityProof,
+} from '@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/proof';
+import {
+  initDeck,
+  prepareShuffleDeck,
+  sampleFieldElements,
+  samplePermutation,
+} from '@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/utilities';
 import { dnld_file } from "./utility";
-import { Contract, ethers } from "ethers";
+import { Contract, ethers, Signer } from "ethers";
 import shuffleManagerJson from './ABI/ShuffleManager.json'
 import { exit } from "process";
 
@@ -49,7 +60,7 @@ export class ZKShuffle implements IZKShuffle {
 
     babyjub : any
     smc : Contract
-    owner : SignerWithAddress
+    owner : Signer
     pk : EC
 
     // static (local storage cache)
@@ -64,7 +75,7 @@ export class ZKShuffle implements IZKShuffle {
 
     private constructor(
         shuffleManagerContract : string,
-        owner : SignerWithAddress
+        owner : Signer
     ) {
         this.owner = owner
 
@@ -72,48 +83,91 @@ export class ZKShuffle implements IZKShuffle {
         this.nextBlockPerGame = new Map()
     }
 
-    public static create = async(
-        shuffleManagerContract : string,
-        owner : SignerWithAddress,
-        decrypt_wasm : string = "",
-        decrypt_zkey : string = "",
-        encrypt_wasm : string = "",
-        encrypt_zkey : string = ""
-    ) : Promise<ZKShuffle> => {
-        const ctx = new ZKShuffle(shuffleManagerContract, owner)
-        await ctx.init(decrypt_wasm, decrypt_zkey, encrypt_wasm, encrypt_zkey)
-        return ctx
-    }
-
-	private async init(
-        decrypt_wasm : string,
-        decrypt_zkey : string,
-        encrypt_wasm : string,
-        encrypt_zkey : string
-	) {
-        this.decrypt_wasm = decrypt_wasm || await dnld_file('wasm/decrypt.wasm');
-        this.decrypt_zkey = decrypt_zkey || await dnld_file('zkey/decrypt.zkey');
-        this.encrypt_wasm = encrypt_wasm || await dnld_file('wasm/encrypt.wasm.5');
-        this.encrypt_zkey = encrypt_zkey || await dnld_file('zkey/encrypt.zkey.5');
-
+    public static create = async (
+        shuffleManagerContract: string,
+        owner: Signer,
+        decrypt_wasm: string = '',
+        decrypt_zkey: string = '',
+        encrypt_wasm: string = '',
+        encrypt_zkey: string = ''
+      ): Promise<ZKShuffle> => {
+        const ctx = new ZKShuffle(shuffleManagerContract, owner);
+        await ctx.init(decrypt_wasm, decrypt_zkey, encrypt_wasm, encrypt_zkey);
+        return ctx;
+      };
+    
+      public async init(
+        decrypt_wasm: string,
+        decrypt_zkey: string,
+        encrypt_wasm: string,
+        encrypt_zkey: string
+      ) {
+        this.decrypt_wasm = decrypt_wasm;
+        this.decrypt_zkey = decrypt_zkey;
+        this.encrypt_wasm = encrypt_wasm;
+        this.encrypt_zkey = encrypt_zkey;
+    
         this.babyjub = await buildBabyjub();
-        const keys = this.keyGen(BigInt(251))
-
+        const keys = this.keyGen(BigInt(251));
+    
         this.pk = [
-            this.babyjub.F.toString(keys.pk[0]),
-            this.babyjub.F.toString(keys.pk[1])
-        ]
-        this.sk = keys.sk
-	}
-
+          this.babyjub.F.toString(keys.pk[0]),
+          this.babyjub.F.toString(keys.pk[1]),
+        ];
+        this.sk = keys.sk;
+      }
+    
+      public async dnld_crypto_files(cardNum: number) {
+        try {
+          let wasmFileName = '';
+          let zkeyFileName = '';
+          switch (cardNum) {
+            case 5:
+              wasmFileName = 'wasm/encrypt.wasm.5';
+              zkeyFileName = 'zkey/encrypt.zkey.5';
+              break;
+            case 30:
+              wasmFileName = 'wasm/encrypt.wasm.30';
+              zkeyFileName = 'zkey/encrypt.zkey.30';
+              break;
+            case 52:
+              wasmFileName = 'wasm/encrypt.wasm';
+              zkeyFileName = 'zkey/encrypt.zkey';
+              break;
+            default:
+              break;
+          }
+          const wasmPromise = dnld_file(wasmFileName);
+          const zkeyPromise = dnld_file(zkeyFileName);
+          const decryptWasmPromise = dnld_file('wasm/decrypt.wasm');
+          const decryptZkeyPromise = dnld_file('zkey/decrypt.zkey');
+          const [encrypt_wasm, encrypt_zkey, decrypt_wasm, decrypt_zkey] =
+            await Promise.all([
+              wasmPromise,
+              zkeyPromise,
+              decryptWasmPromise,
+              decryptZkeyPromise,
+            ]);
+          //  developer can use this to cache the files
+          return {
+            encrypt_wasm,
+            encrypt_zkey,
+            decrypt_wasm,
+            decrypt_zkey,
+          };
+        } catch (e) {
+          console.log('download error', e);
+        }
+      }
+    
     async joinGame(gameId : number) : Promise<number> {
-        await (await this.smc.playerRegister(gameId, this.owner.address, this.pk[0], this.pk[1])).wait()
+        await (await this.smc.playerRegister(gameId, this.owner.getAddress(), this.pk[0], this.pk[1])).wait()
         return await this.getPlayerId(gameId)
     }
 
     // pull player's Id for gameId
     async getPlayerId(gameId : number) : Promise<number> {
-        return (await this.smc.getPlayerIdx(gameId, this.owner.address)).toNumber()
+        return (await this.smc.getPlayerIdx(gameId, this.owner.getAddress())).toNumber()
     }
 
     async checkTurn(
@@ -132,8 +186,8 @@ export class ZKShuffle implements IZKShuffle {
         for (let i = 0; i < events.length; i++) {
             const e = events[i];
             startBlock = e.blockNumber + 1;      // TODO : probably missing event in same block
-            if (e.args.gameId.toNumber() != gameId ||
-                e.args.playerIndex.toNumber() != await this.getPlayerId(gameId))
+            if (e?.args?.gameId.toNumber() != gameId ||
+                e?.args?.playerIndex.toNumber() != await this.getPlayerId(gameId))
             {
                 continue
             }
@@ -283,8 +337,8 @@ export class ZKShuffle implements IZKShuffle {
         const start = Date.now()
         let deck = await this.smc.queryDeck(gameId);
 
-        let decryptedCards = []
-        let proofs = []
+        let decryptedCards: Record<string, any> = [];
+        let proofs: Record<string, any> = [];
         let cardMap = 0
             
         for (let i = 0; i < cardIds.length; i++) {
@@ -334,7 +388,7 @@ export class ZKShuffle implements IZKShuffle {
     ) : Promise<number[]> {
         const numCards = (await this.smc.getNumCards(gameId)).toNumber()
         const {cardMap, decryptedCards, proofs} = await this.getOpenProof(gameId, cardIds)
-        let cards = []
+        let cards: number[] = [];
         for (let i = 0; i < decryptedCards.length; i++) {
             cards.push(await this.queryCards(decryptedCards[i].X, numCards))
         }
@@ -356,7 +410,7 @@ export class ZKShuffle implements IZKShuffle {
             decryptedCards
         )).wait()
 
-        let cards = []
+        let cards: number[] = [];
         for (let i = 0; i < cardIds.length; i++) {
             const cardId = cardIds[i];
             cards.push((await this.smc.queryCardValue(gameId, cardId)).toNumber())
