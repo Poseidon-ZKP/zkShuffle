@@ -122,7 +122,7 @@ describe('zkShuffle Unit Test', function () {
             gameId : number,
             player : zkShuffle
         ) {
-            const numCards = (await SM.gameCardNum(gameId)).toNumber()
+            const numCards = (await SM.getNumCards(gameId)).toNumber()
             let shuffleFullProof = await player.generate_shuffle_proof(gameId)
             let solidityProof: SolidityProof = packToSolidityProof(shuffleFullProof.proof);
             let compressDeck =  {
