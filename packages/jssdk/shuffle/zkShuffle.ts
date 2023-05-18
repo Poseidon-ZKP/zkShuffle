@@ -16,7 +16,7 @@ import {
 import { dnld_file } from "./utility";
 import { Contract, ethers, Signer } from "ethers";
 import shuffleManagerJson from './ABI/ShuffleManager.json'
-import { exit } from "process";
+
 
 const buildBabyjub = require('circomlibjs').buildBabyjub;
 
@@ -203,9 +203,9 @@ export class ZKShuffle implements IZKShuffle {
                     return GameTurn.Complete
                 case BaseState.GameError :
                     return GameTurn.Error
-                default :
+                default:
                     console.log("err state ", e.args.state)
-                    exit(-1)
+                    break;
             }
         }
         
