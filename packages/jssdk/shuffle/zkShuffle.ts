@@ -54,6 +54,7 @@ interface IZKShuffle {
 
     // helper
     getPlayerId : (gameId : number) => Promise<number> 
+    queryCards : (gameId: number, cardIds : number[]) => Promise<number[]>
 }
 
 export class ZKShuffle implements IZKShuffle {
@@ -325,7 +326,7 @@ export class ZKShuffle implements IZKShuffle {
         }
     }
 
-    async queryCards(
+    private async queryCardsPerX(
         px : string,
         numCards : number
     ) : Promise<number> {
@@ -346,7 +347,19 @@ export class ZKShuffle implements IZKShuffle {
         const {cardMap, decryptedCards, proofs} = await this.getOpenProof(gameId, cardIds)
         let cards: number[] = [];
         for (let i = 0; i < decryptedCards.length; i++) {
-            cards.push(await this.queryCards(decryptedCards[i].X, numCards))
+            cards.push(await this.queryCardsPerX(decryptedCards[i].X, numCards))
+        }
+        return cards
+    }
+
+    async queryCards(
+        gameId: number,
+        cardIds : number[]
+    ) : Promise<number[]> {
+        let cards: number[] = [];
+        for (let i = 0; i < cardIds.length; i++) {
+            const cardId = cardIds[i];
+            cards.push((await this.smc.queryCardValue(gameId, cardId)).toNumber())
         }
         return cards
     }
@@ -366,11 +379,6 @@ export class ZKShuffle implements IZKShuffle {
             decryptedCards
         )).wait()
 
-        let cards: number[] = [];
-        for (let i = 0; i < cardIds.length; i++) {
-            const cardId = cardIds[i];
-            cards.push((await this.smc.queryCardValue(gameId, cardId)).toNumber())
-        }
-        return cards
+        return await this.queryCards(gameId, cardIds)
     }
 }
