@@ -2,10 +2,12 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { packToSolidityProof, SolidityProof } from "@poseidon-zkp/poseidon-zk-proof/src/shuffle/proof";
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { BaseState, zkShuffle } from "../sdk/zkShuffle";
-import { deploy_shuffle_manager } from "../sdk/deploy";
-import { tx_to_contract } from "../sdk/utility";
+import { BaseState, zkShuffle } from "@poseidon-zkp/poseidon-zk-jssdk/shuffle/zkShuffle";
+import { deploy_shuffle_manager } from "../helper/deploy";
+import { tx_to_contract } from "../helper/utility";
 import { ShuffleManager, ShuffleManager__factory, ShuffleTest, ShuffleTest__factory } from "../types";
+import { resolve } from "path";
+import { dnld_aws, P0X_DIR } from "@poseidon-zkp/poseidon-zk-jssdk/shuffle/utility";
 
 describe('zkShuffle Unit Test', function () {
 	this.timeout(6000000);
@@ -24,14 +26,31 @@ describe('zkShuffle Unit Test', function () {
         //numPlayer = Math.ceil(Math.random() * 8 + 1)    // player 2~9
         numPlayer = 2
         console.log("numPlayer : ", numPlayer)
+        await Promise.all(
+            [
+                'wasm/decrypt.wasm',
+                'zkey/decrypt.zkey',
+                'wasm/encrypt.wasm.5',
+                'zkey/encrypt.zkey.5',
+                'wasm/encrypt.wasm',
+                'zkey/encrypt.zkey'
+            ].map(async (e) => {
+                await dnld_aws(e)
+            })
+        )
 	});
 
     it('Deploy Shuffle Manager', async () => {
         const signers = await ethers.getSigners()
         SM = await deploy_shuffle_manager(sm_owner)
         for (let i = 0; i < numPlayer; i++) {
-            players.push(new zkShuffle(SM, signers[i]))
-            await players[i].init()
+            players.push(await zkShuffle.create(
+                SM.address, signers[i],
+                resolve(P0X_DIR, './wasm/decrypt.wasm'),
+                resolve(P0X_DIR, './zkey/decrypt.zkey'),
+                resolve(P0X_DIR, './wasm/encrypt.wasm.5'),
+                resolve(P0X_DIR, './zkey/encrypt.zkey.5')
+            ))
         }
     });
 
@@ -136,6 +155,18 @@ describe('zkShuffle State Less Unit Test', function () {
         signers = await ethers.getSigners()
         sm_owner = signers[10];
         game_owner = signers[11];
+        await Promise.all(
+            [
+                'wasm/decrypt.wasm',
+                'zkey/decrypt.zkey',
+                'wasm/encrypt.wasm.5',
+                'zkey/encrypt.zkey.5',
+                'wasm/encrypt.wasm',
+                'zkey/encrypt.zkey'
+            ].map(async (e) => {
+                await dnld_aws(e)
+            })
+        )
 	});
 
     it('Player Register StateLess', async () => {
@@ -145,8 +176,13 @@ describe('zkShuffle State Less Unit Test', function () {
         const numPlayers = 2
         let players : zkShuffle[] = []
         for (let i = 0; i < 9; i++) {
-            players.push(new zkShuffle(SM, signers[i]))
-            await players[i].init()
+            players.push(await zkShuffle.create(
+                SM.address, signers[i],
+                resolve(P0X_DIR, './wasm/decrypt.wasm'),
+                resolve(P0X_DIR, './zkey/decrypt.zkey'),
+                resolve(P0X_DIR, './wasm/encrypt.wasm.5'),
+                resolve(P0X_DIR, './zkey/encrypt.zkey.5')
+            ))
         }
 
         //  prerequisite 1 : Init Game Info
