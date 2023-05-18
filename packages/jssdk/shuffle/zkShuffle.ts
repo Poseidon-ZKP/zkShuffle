@@ -1,9 +1,8 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { shuffleEncryptV2Plaintext } from "@poseidon-zkp/poseidon-zk-proof/src/shuffle/plaintext";
 import { dealCompressedCard, dealUncompressedCard, generateDecryptProof, generateShuffleEncryptV2Proof, packToSolidityProof, SolidityProof } from "@poseidon-zkp/poseidon-zk-proof/src/shuffle/proof";
-import { prepareShuffleDeck, sampleFieldElements, samplePermutation} from "@poseidon-zkp/poseidon-zk-proof/src/shuffle/utilities";
-import { resolve } from 'path';
-import { dnld_aws, P0X_DIR, P0X_AWS_URL, sleep, dnld_file } from "./utility";
+import { initDeck, prepareShuffleDeck, sampleFieldElements, samplePermutation} from "@poseidon-zkp/poseidon-zk-proof/src/shuffle/utilities";
+import { dnld_file } from "./utility";
 import { Contract, ethers } from "ethers";
 import shuffleManagerJson from './ABI/ShuffleManager.json'
 import { exit } from "process";
@@ -308,7 +307,7 @@ export class ZKShuffle implements IZKShuffle {
 
             proofs.push(packToSolidityProof(decryptProof.proof))
         }
-        console.log("Opened in ", Date.now() - start, "ms")
+        console.log("generate open card proof in ", Date.now() - start, "ms")
         return {
             cardMap : cardMap,
             decryptedCards : decryptedCards,
@@ -316,13 +315,30 @@ export class ZKShuffle implements IZKShuffle {
         }
     }
 
+    async queryCards(
+        px : string,
+        numCards : number
+    ) : Promise<number> {
+        const deck = initDeck(this.babyjub, numCards)
+        for (let i = 0; i < numCards; i++) {
+            if (BigInt(px) == deck[2 * numCards + i]) {
+                return i
+            }
+        }
+        return -1
+    }
 
     async openOffchain(
         gameId: number,
         cardIds : number[]
     ) : Promise<number[]> {
+        const numCards = (await this.smc.getNumCards(gameId)).toNumber()
         const {cardMap, decryptedCards, proofs} = await this.getOpenProof(gameId, cardIds)
-        return [0]  // TODO : search on-chain after PR21
+        let cards = []
+        for (let i = 0; i < decryptedCards.length; i++) {
+            cards.push(await this.queryCards(decryptedCards[i].X, numCards))
+        }
+        return cards
     }
 
     async open(
@@ -339,6 +355,12 @@ export class ZKShuffle implements IZKShuffle {
             proofs,
             decryptedCards
         )).wait()
-        return [0]  // TODO : search on-chain after PR21
+
+        let cards = []
+        for (let i = 0; i < cardIds.length; i++) {
+            const cardId = cardIds[i];
+            cards.push((await this.smc.queryCardValue(gameId, cardId)).toNumber())
+        }
+        return cards
     }
 }

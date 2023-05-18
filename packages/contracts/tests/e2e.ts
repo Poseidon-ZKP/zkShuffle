@@ -56,7 +56,10 @@ async function player_run(
                     break
                 case GameTurn.Open :
                     console.log("Player ", playerIdx, " 's Open Decrypt turn!")
-                    await player.open(gameId, [playerIdx])
+                    let cards = await player.openOffchain(gameId, [playerIdx])
+                    console.log("Player ", playerIdx, " open offchain hand card ", cards[0])
+                    cards = await player.open(gameId, [playerIdx])
+                    console.log("Player ", playerIdx, " open onchain hand card ", cards[0])
                     break
                 case GameTurn.Complete :
                     console.log("Player ", playerIdx, " 's Game End!")
