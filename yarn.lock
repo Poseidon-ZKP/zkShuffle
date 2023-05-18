@@ -1139,7 +1139,6 @@ __metadata:
     "@types/chai": ^4.3.4
     "@types/mocha": ^10.0.0
     "@types/node": ^18.11.9
-    axios: ^1.4.0
     chai: ^4.3.7
     circomlibjs: ^0.1.7
     dotenv: ^16.0.3
