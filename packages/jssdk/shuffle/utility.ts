@@ -38,49 +38,6 @@ export async function sleep(ms : number) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-async dnld_crypto_files(cardNum: number) {
-    try {
-      let wasmFileName = '';
-      let zkeyFileName = '';
-      switch (cardNum) {
-        case 5:
-          wasmFileName = 'wasm/encrypt.wasm.5';
-          zkeyFileName = 'zkey/encrypt.zkey.5';
-          break;
-        case 30:
-          wasmFileName = 'wasm/encrypt.wasm.30';
-          zkeyFileName = 'zkey/encrypt.zkey.30';
-          break;
-        case 52:
-          wasmFileName = 'wasm/encrypt.wasm';
-          zkeyFileName = 'zkey/encrypt.zkey';
-          break;
-        default:
-          break;
-      }
-      const wasmPromise = dnld_file(wasmFileName);
-      const zkeyPromise = dnld_file(zkeyFileName);
-      const decryptWasmPromise = dnld_file('wasm/decrypt.wasm');
-      const decryptZkeyPromise = dnld_file('zkey/decrypt.zkey');
-      const [encrypt_wasm, encrypt_zkey, decrypt_wasm, decrypt_zkey] =
-        await Promise.all([
-          wasmPromise,
-          zkeyPromise,
-          decryptWasmPromise,
-          decryptZkeyPromise,
-        ]);
-      //  developer can use this to cache the files
-      return {
-        encrypt_wasm,
-        encrypt_zkey,
-        decrypt_wasm,
-        decrypt_zkey,
-      };
-    } catch (e) {
-      console.log('download error', e);
-    }
-}  
-  
 export async function dnld_crypto_files(cardNum: number) {
     try {
       let wasmFileName = '';

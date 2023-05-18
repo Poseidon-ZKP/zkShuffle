@@ -1,4 +1,4 @@
-import { shuffleEncryptV2Plaintext } from '@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/plaintext';
+import { shuffleEncryptV2Plaintext } from '@poseidon-zkp/poseidon-zk-proof/src/shuffle/plaintext';
 import {
   dealCompressedCard,
   dealUncompressedCard,
@@ -6,13 +6,13 @@ import {
   generateShuffleEncryptV2Proof,
   packToSolidityProof,
   SolidityProof,
-} from '@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/proof';
+} from '@poseidon-zkp/poseidon-zk-proof/src/shuffle/proof';
 import {
   initDeck,
   prepareShuffleDeck,
   sampleFieldElements,
   samplePermutation,
-} from '@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/utilities';
+} from '@poseidon-zkp/poseidon-zk-proof/src/shuffle/utilities';
 
 import { Contract, ethers, Signer } from "ethers";
 import shuffleManagerJson from './ABI/ShuffleManager.json'
