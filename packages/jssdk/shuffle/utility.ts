@@ -81,7 +81,7 @@ async dnld_crypto_files(cardNum: number) {
     }
 }  
   
-async function dnld_crypto_files(cardNum: number) {
+export async function dnld_crypto_files(cardNum: number) {
     try {
       let wasmFileName = '';
       let zkeyFileName = '';
