@@ -8,7 +8,6 @@ import "./ECC.sol";
 import "./IBaseGame.sol";
 import "./BitMaps.sol";
 import "./Storage.sol";
-import "hardhat/console.sol";
 /**
  * @title Shuffle Manager
  * @dev manage all ZK Games
