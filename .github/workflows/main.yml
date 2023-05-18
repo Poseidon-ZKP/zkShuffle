@@ -60,8 +60,8 @@ jobs:
       - name: Install dependencies
         run: yarn
 
-      # - name: Compile all packages
-      #   run: yarn compile
+      - name: Compile all packages
+        run: cd packages/jssdk; yarn compile; cd -  # TODO : compile all after fix circuit
 
       - name: Run all unit tests
         run: yarn test
