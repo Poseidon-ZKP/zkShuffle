@@ -46,7 +46,7 @@ interface IZKShuffle {
     getPlayerId : (gameId : number) => Promise<number> 
 }
 
-export class zkShuffle implements IZKShuffle {
+export class ZKShuffle implements IZKShuffle {
 
     babyjub : any
     smc : Contract
@@ -80,8 +80,8 @@ export class zkShuffle implements IZKShuffle {
         decrypt_zkey : string = "",
         encrypt_wasm : string = "",
         encrypt_zkey : string = ""
-    ) : Promise<zkShuffle> => {
-        const ctx = new zkShuffle(shuffleManagerContract, owner)
+    ) : Promise<ZKShuffle> => {
+        const ctx = new ZKShuffle(shuffleManagerContract, owner)
         await ctx.init(decrypt_wasm, decrypt_zkey, encrypt_wasm, encrypt_zkey)
         return ctx
     }

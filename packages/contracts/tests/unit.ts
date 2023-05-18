@@ -2,17 +2,17 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { packToSolidityProof, SolidityProof } from "@poseidon-zkp/poseidon-zk-proof/src/shuffle/proof";
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { BaseState, zkShuffle } from "@poseidon-zkp/poseidon-zk-jssdk/shuffle/zkShuffle";
+import { BaseState, ZKShuffle } from "@poseidon-zkp/poseidon-zk-jssdk/shuffle/zkShuffle";
 import { deploy_shuffle_manager } from "../helper/deploy";
 import { tx_to_contract } from "../helper/utility";
 import { ShuffleManager, ShuffleManager__factory, ShuffleTest, ShuffleTest__factory } from "../types";
 import { resolve } from "path";
 import { dnld_aws, P0X_DIR } from "@poseidon-zkp/poseidon-zk-jssdk/shuffle/utility";
 
-describe('zkShuffle Unit Test', function () {
+describe('ZKShuffle Unit Test', function () {
 	this.timeout(6000000);
 
-    let players : zkShuffle[] = []
+    let players : ZKShuffle[] = []
     let numPlayer : number
     let sm_owner : SignerWithAddress
     let game_owner : SignerWithAddress
@@ -44,7 +44,7 @@ describe('zkShuffle Unit Test', function () {
         const signers = await ethers.getSigners()
         SM = await deploy_shuffle_manager(sm_owner)
         for (let i = 0; i < numPlayer; i++) {
-            players.push(await zkShuffle.create(
+            players.push(await ZKShuffle.create(
                 SM.address, signers[i],
                 resolve(P0X_DIR, './wasm/decrypt.wasm'),
                 resolve(P0X_DIR, './zkey/decrypt.zkey'),
@@ -120,7 +120,7 @@ describe('zkShuffle Unit Test', function () {
     it('Player Shuffle', async () => {
         async function playerShuffle(
             gameId : number,
-            player : zkShuffle
+            player : ZKShuffle
         ) {
             const numCards = (await SM.getNumCards(gameId)).toNumber()
             let shuffleFullProof = await player.generate_shuffle_proof(gameId)
@@ -147,7 +147,7 @@ describe('zkShuffle Unit Test', function () {
 
 });
 
-describe('zkShuffle State Less Unit Test', function () {
+describe('ZKShuffle State Less Unit Test', function () {
     let sm_owner : SignerWithAddress
     let game_owner : SignerWithAddress
     let signers : SignerWithAddress[]
@@ -174,9 +174,9 @@ describe('zkShuffle State Less Unit Test', function () {
         const gameId = 1
         const numCards = 5
         const numPlayers = 2
-        let players : zkShuffle[] = []
+        let players : ZKShuffle[] = []
         for (let i = 0; i < 9; i++) {
-            players.push(await zkShuffle.create(
+            players.push(await ZKShuffle.create(
                 SM.address, signers[i],
                 resolve(P0X_DIR, './wasm/decrypt.wasm'),
                 resolve(P0X_DIR, './zkey/decrypt.zkey'),
@@ -194,7 +194,7 @@ describe('zkShuffle State Less Unit Test', function () {
 
         // player 0 Register
         async function playerRegister(pid : number) {
-            const player : zkShuffle = players[pid]
+            const player : ZKShuffle = players[pid]
             // check Register Event
             return await ShuffleManager__factory.connect(SM.address, player.owner).playerRegister(
                 gameId,

@@ -1,7 +1,7 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethers } from "hardhat";
 import { exit } from "process";
-import { GameTurn, zkShuffle } from "@poseidon-zkp/poseidon-zk-jssdk/shuffle/zkShuffle";
+import { GameTurn, ZKShuffle } from "@poseidon-zkp/poseidon-zk-jssdk/shuffle/zkShuffle";
 import { Hilo, Hilo__factory, ShuffleManager } from "../types";
 import { deploy_shuffle_manager } from "../helper/deploy";
 import { dnld_aws, P0X_DIR, sleep } from "@poseidon-zkp/poseidon-zk-jssdk/shuffle/utility";
@@ -26,7 +26,7 @@ async function player_run(
     )
 
     console.log("Player ", owner.address.slice(0, 6).concat("..."), "init shuffle context!")
-    const player = await zkShuffle.create(
+    const player = await ZKShuffle.create(
         SM.address, owner,
         resolve(P0X_DIR, './wasm/decrypt.wasm'),
         resolve(P0X_DIR, './zkey/decrypt.zkey'),
@@ -98,7 +98,7 @@ async function fullprocess() {
     );
 }
 
-describe('zkShuffle E2E test', function () {
+describe('ZKShuffle E2E test', function () {
     it('Hilo E2E', async () => {
         await fullprocess()
     });
