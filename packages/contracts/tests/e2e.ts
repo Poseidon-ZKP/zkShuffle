@@ -28,6 +28,7 @@ async function player_run(
     console.log("Player ", owner.address.slice(0, 6).concat("..."), "init shuffle context!")
     const player = await ZKShuffle.create(
         SM.address, owner,
+        await ZKShuffle.generateShuffleSecret(),
         resolve(P0X_DIR, './wasm/decrypt.wasm'),
         resolve(P0X_DIR, './zkey/decrypt.zkey'),
         resolve(P0X_DIR, './wasm/encrypt.wasm.5'),

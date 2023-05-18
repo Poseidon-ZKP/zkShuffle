@@ -13,12 +13,13 @@ import {
   sampleFieldElements,
   samplePermutation,
 } from '@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/utilities';
+import assert from 'assert';
 
 import { Contract, ethers, Signer } from "ethers";
 import shuffleManagerJson from './ABI/ShuffleManager.json'
 
-
 const buildBabyjub = require('circomlibjs').buildBabyjub;
+const Scalar = require("ffjavascript").Scalar;
 
 export type BabyJub = any;
 export type EC = any;
@@ -86,17 +87,19 @@ export class ZKShuffle implements IZKShuffle {
     public static create = async (
         shuffleManagerContract: string,
         owner: Signer,
+        seed : bigint,
         decrypt_wasm: string = '',
         decrypt_zkey: string = '',
         encrypt_wasm: string = '',
         encrypt_zkey: string = ''
       ): Promise<ZKShuffle> => {
         const ctx = new ZKShuffle(shuffleManagerContract, owner);
-        await ctx.init(decrypt_wasm, decrypt_zkey, encrypt_wasm, encrypt_zkey);
+        await ctx.init(seed, decrypt_wasm, decrypt_zkey, encrypt_wasm, encrypt_zkey);
         return ctx;
       };
     
       private async init(
+        seed : bigint,
         decrypt_wasm: string,
         decrypt_zkey: string,
         encrypt_wasm: string,
@@ -108,15 +111,26 @@ export class ZKShuffle implements IZKShuffle {
         this.encrypt_zkey = encrypt_zkey;
     
         this.babyjub = await buildBabyjub();
-        const keys = this.keyGen(BigInt(251));
+        assert(seed < this.babyjub.p)
+        this.sk = seed;
+        const keys = this.babyjub.mulPointEscalar(this.babyjub.Base8, this.sk)
     
         this.pk = [
-          this.babyjub.F.toString(keys.pk[0]),
-          this.babyjub.F.toString(keys.pk[1]),
+          this.babyjub.F.toString(keys[0]),
+          this.babyjub.F.toString(keys[1]),
         ];
-        this.sk = keys.sk;
       }
     
+    static async generateShuffleSecret() : Promise<bigint> {
+        const babyjub = await buildBabyjub();
+        const threshold = Scalar.exp(2, 251);
+        let secret : bigint
+        do {
+            secret = Scalar.fromRprLE(babyjub.F.random());
+        } while (Scalar.geq(secret, threshold));
+        return secret
+    }
+
     async joinGame(gameId : number) : Promise<number> {
         await (await this.smc.playerRegister(gameId, this.owner.getAddress(), this.pk[0], this.pk[1])).wait()
         return await this.getPlayerId(gameId)
@@ -168,12 +182,6 @@ export class ZKShuffle implements IZKShuffle {
         
         this.nextBlockPerGame.set(gameId, startBlock)
         return GameTurn.NOP
-    }
-
-    // Generates a secret key between 0 ~ min(2**numBits-1, Fr size).
-    keyGen(numBits: bigint): { g: EC, sk: bigint, pk: EC } {
-        const sk = sampleFieldElements(this.babyjub, numBits, 1n)[0];
-        return { g: this.babyjub.Base8, sk: sk, pk: this.babyjub.mulPointEscalar(this.babyjub.Base8, sk) }
     }
 
     async generate_shuffle_proof(

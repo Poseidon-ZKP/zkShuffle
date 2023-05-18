@@ -8,6 +8,7 @@ import { tx_to_contract } from "../helper/utility";
 import { ShuffleManager, ShuffleManager__factory, ShuffleTest, ShuffleTest__factory } from "../types";
 import { resolve } from "path";
 import { dnld_aws, P0X_DIR } from "@poseidon-zkp/poseidon-zk-jssdk/shuffle/utility";
+import { Signer } from "ethers";
 
 describe('ZKShuffle Unit Test', function () {
 	this.timeout(6000000);
@@ -46,6 +47,7 @@ describe('ZKShuffle Unit Test', function () {
         for (let i = 0; i < numPlayer; i++) {
             players.push(await ZKShuffle.create(
                 SM.address, signers[i],
+                await ZKShuffle.generateShuffleSecret(),
                 resolve(P0X_DIR, './wasm/decrypt.wasm'),
                 resolve(P0X_DIR, './zkey/decrypt.zkey'),
                 resolve(P0X_DIR, './wasm/encrypt.wasm.5'),
@@ -62,7 +64,7 @@ describe('ZKShuffle Unit Test', function () {
     it('Create Shuffle Game', async () => {
         async function createShuffleGame(
             numPlayer : number,
-            owner : SignerWithAddress
+            owner : Signer
         ) {
             const calldata = SM.interface.encodeFunctionData("createShuffleGame", [numPlayer])
             await tx_to_contract(owner, game.address, calldata)
@@ -76,7 +78,7 @@ describe('ZKShuffle Unit Test', function () {
     it('Move to Register State', async () => {
         async function moveToRegister(
             gameId : number,
-            owner : SignerWithAddress
+            owner : Signer
         ) {
             const next = game.interface.encodeFunctionData("dummy")
             const calldata = SM.interface.encodeFunctionData("register", [gameId, next])
@@ -92,7 +94,7 @@ describe('ZKShuffle Unit Test', function () {
             signAddr : string,
             pkX : number,
             pkY : number,
-            owner : SignerWithAddress
+            owner : Signer
         ) {
             const calldata = SM.interface.encodeFunctionData("playerRegister", [gameId, signAddr, pkX, pkY])
             await tx_to_contract(owner, game.address, calldata)
@@ -107,7 +109,7 @@ describe('ZKShuffle Unit Test', function () {
     it('Move to Shuffle', async () => {
         async function moveToShuffle(
             gameId : number,
-            owner : SignerWithAddress
+            owner : Signer
         ) {
             const next = game.interface.encodeFunctionData("dummy")
             const calldata = SM.interface.encodeFunctionData("shuffle", [gameId, next])
@@ -178,6 +180,7 @@ describe('ZKShuffle State Less Unit Test', function () {
         for (let i = 0; i < 9; i++) {
             players.push(await ZKShuffle.create(
                 SM.address, signers[i],
+                await ZKShuffle.generateShuffleSecret(),
                 resolve(P0X_DIR, './wasm/decrypt.wasm'),
                 resolve(P0X_DIR, './zkey/decrypt.zkey'),
                 resolve(P0X_DIR, './wasm/encrypt.wasm.5'),
