@@ -13,7 +13,6 @@ import {
   sampleFieldElements,
   samplePermutation,
 } from '@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/utilities';
-import assert from 'assert';
 
 import { Contract, ethers, Signer } from "ethers";
 import shuffleManagerJson from './ABI/ShuffleManager.json'
