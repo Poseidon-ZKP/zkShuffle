@@ -70,7 +70,7 @@ describe('ZKShuffle Unit Test', function () {
             await tx_to_contract(owner, game.address, calldata)
         }
 
-        await createShuffleGame(numPlayer, players[0].owner)
+        await createShuffleGame(numPlayer, players[0].signer)
         gameId = (await SM.largestGameId()).toNumber()
         expect((await SM.gameState(gameId)).toNumber()).equal(BaseState.Created)
     });
@@ -84,7 +84,7 @@ describe('ZKShuffle Unit Test', function () {
             const calldata = SM.interface.encodeFunctionData("register", [gameId, next])
             await tx_to_contract(owner, game.address, calldata)
         }
-        await moveToRegister(gameId, players[0].owner)
+        await moveToRegister(gameId, players[0].signer)
         expect((await SM.gameState(gameId)).toNumber()).equal(BaseState.Registration)
     });
 
@@ -101,7 +101,7 @@ describe('ZKShuffle Unit Test', function () {
         }
 
         for (let i = 0; i < numPlayer; i++) {
-            await playerRegister(gameId, players[i].owner.address, players[i].pk[0], players[i].pk[1], players[i].owner)
+            await playerRegister(gameId, await players[i].signer.getAddress(), players[i].pk[0], players[i].pk[1], players[i].signer)
         }
         // check dummy get call
     });
@@ -115,7 +115,7 @@ describe('ZKShuffle Unit Test', function () {
             const calldata = SM.interface.encodeFunctionData("shuffle", [gameId, next])
             await tx_to_contract(owner, game.address, calldata)
         }
-        await moveToShuffle(gameId, players[0].owner)
+        await moveToShuffle(gameId, players[0].signer)
         expect((await SM.gameState(gameId)).toNumber()).equal(BaseState.Shuffle)
     });
 
@@ -135,7 +135,7 @@ describe('ZKShuffle Unit Test', function () {
                 selector1 : { _data : shuffleFullProof.publicSignals[6 + numCards * 4]}
             }
             const calldata = SM.interface.encodeFunctionData("playerShuffle", [gameId, solidityProof, compressDeck])
-            await tx_to_contract(player.owner, game.address, calldata)
+            await tx_to_contract(player.signer, game.address, calldata)
         }
 
         for (let i = 0; i < numPlayer; i++) {
@@ -199,16 +199,16 @@ describe('ZKShuffle State Less Unit Test', function () {
         async function playerRegister(pid : number) {
             const player : ZKShuffle = players[pid]
             // check Register Event
-            return await ShuffleManager__factory.connect(SM.address, player.owner).playerRegister(
+            return await ShuffleManager__factory.connect(SM.address, player.signer).playerRegister(
                 gameId,
-                player.owner.address,
+                await player.signer.getAddress(),
                 player.pk[0],
                 player.pk[1]
             )
         }
 
-        await expect(playerRegister(0)).to.emit(SM, "Register").withArgs(gameId, 0, players[0].owner.address)
-        await expect(playerRegister(1)).to.emit(SM, "Register").withArgs(gameId, 1, players[1].owner.address)
+        await expect(playerRegister(0)).to.emit(SM, "Register").withArgs(gameId, 0, await players[0].signer.getAddress())
+        await expect(playerRegister(1)).to.emit(SM, "Register").withArgs(gameId, 1, await players[1].signer.getAddress())
 
         // check Game Full
         await expect(playerRegister(2)).to.be.revertedWith("Game full");
