@@ -8,7 +8,6 @@ import "./ECC.sol";
 import "./IBaseGame.sol";
 import "./BitMaps.sol";
 import "./Storage.sol";
-
 /**
  * @title Shuffle Manager
  * @dev manage all ZK Games
@@ -22,11 +21,8 @@ contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
     // invalid card index or player index
     uint256 public constant override INVALID_INDEX = 999999;
 
-    // event
-    event GameContractCallError(address caller, bytes data);
-
     event PlayerTurn (
-        uint256 gameId,
+        uint256 indexed gameId,
         uint256 playerIndex,
         BaseState state
     );
@@ -405,6 +401,9 @@ contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
                 );
                 counter++;
             }
+            if (counter == numberCardsToDeal) {
+                break;
+            }
         }
         state.curPlayerIndex++;
         if (state.curPlayerIndex == state.deck.playerToDeal) {
@@ -413,7 +412,7 @@ contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
 
         if (state.curPlayerIndex == info.numPlayers) {
             state.curPlayerIndex = 0;
-            state.playerHand[state.deck.playerToDeal]++;
+            state.playerHand[state.deck.playerToDeal] += numberCardsToDeal;
             _callGameContract(gameId);
         } else {
             emit PlayerTurn(gameId, state.curPlayerIndex, BaseState.Deal);
@@ -503,7 +502,7 @@ contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
         ShuffleGameInfo memory info = gameInfos[gameId];
         ShuffleGameState storage state = gameStates[gameId];
         uint256 numberCardsToOpen = BitMaps.memberCountUpTo(
-            state.deck.cardsToDeal,
+            cards,
             info.numCards
         );
         require(
@@ -532,11 +531,14 @@ contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
                 );
                 counter++;
             }
+            if (counter == numberCardsToOpen) {
+                break;
+            }
         }
         // reset the openning register
         state.openning = 0;
         // update players handcard status
-        state.playerHand[state.curPlayerIndex]--;
+        state.playerHand[state.curPlayerIndex] -= numberCardsToOpen;
         // call the next action
         _callGameContract(gameId);
     }
@@ -568,8 +570,10 @@ contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
 
     // switch control to game contract, set the game to error state if the contract call failed
     function _callGameContract(uint256 gameId) internal {
-        (bool success, ) = _activeGames[gameId].call(nextToCall[gameId]);
-        require(success, "Error calling game contract");
+        if (nextToCall[gameId].length != 0) {
+            (bool success, ) = _activeGames[gameId].call(nextToCall[gameId]);
+            require(success, "Error calling game contract");
+        }
     }
 
     // query the value of the `cardIndex`-th card in the `gameId`-th game.
