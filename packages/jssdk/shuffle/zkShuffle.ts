@@ -62,7 +62,7 @@ export class ZKShuffle implements IZKShuffle {
 
     babyjub : any
     smc : Contract
-    owner : Signer
+    signer : Signer
     pk : EC
 
     // static (local storage cache)
@@ -77,23 +77,23 @@ export class ZKShuffle implements IZKShuffle {
 
     private constructor(
         shuffleManagerContract : string,
-        owner : Signer
+        signer : Signer
     ) {
-        this.owner = owner
-        this.smc = new ethers.Contract(shuffleManagerContract, shuffleManagerJson.abi, owner)
+        this.signer = signer
+        this.smc = new ethers.Contract(shuffleManagerContract, shuffleManagerJson.abi, signer)
         this.nextBlockPerGame = new Map()
     }
 
     public static create = async (
         shuffleManagerContract: string,
-        owner: Signer,
+        signer: Signer,
         seed : bigint,
         decrypt_wasm: string = '',
         decrypt_zkey: string = '',
         encrypt_wasm: string = '',
         encrypt_zkey: string = ''
       ): Promise<ZKShuffle> => {
-        const ctx = new ZKShuffle(shuffleManagerContract, owner);
+        const ctx = new ZKShuffle(shuffleManagerContract, signer);
         await ctx.init(seed, decrypt_wasm, decrypt_zkey, encrypt_wasm, encrypt_zkey);
         return ctx;
       };
@@ -111,7 +111,9 @@ export class ZKShuffle implements IZKShuffle {
         this.encrypt_zkey = encrypt_zkey;
     
         this.babyjub = await buildBabyjub();
-        assert(seed < this.babyjub.p)
+        if (seed >= this.babyjub.p) {
+          throw new Error('Seed is too large');
+        }
         this.sk = seed;
         const keys = this.babyjub.mulPointEscalar(this.babyjub.Base8, this.sk)
     
@@ -131,14 +133,16 @@ export class ZKShuffle implements IZKShuffle {
         return secret
     }
 
-    async joinGame(gameId : number) : Promise<number> {
-        await (await this.smc.playerRegister(gameId, this.owner.getAddress(), this.pk[0], this.pk[1])).wait()
+    async joinGame(gameId: number): Promise<number> {
+        const address = await this.signer.getAddress();
+        await (await this.smc.playerRegister(gameId,address, this.pk[0], this.pk[1])).wait()
         return await this.getPlayerId(gameId)
     }
 
     // pull player's Id for gameId
-    async getPlayerId(gameId : number) : Promise<number> {
-        return (await this.smc.getPlayerIdx(gameId, this.owner.getAddress())).toNumber()
+    async getPlayerId(gameId: number): Promise<number> {
+        const address = await this.signer.getAddress();
+        return (await this.smc.getPlayerIdx(gameId, address)).toNumber()
     }
 
     async checkTurn(
