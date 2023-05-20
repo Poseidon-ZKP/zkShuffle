@@ -12,27 +12,27 @@ async function player_run(
     owner : SignerWithAddress,
     gameId : number
 ) {
-    await Promise.all(
-            [
-                'wasm/decrypt.wasm',
-                'zkey/decrypt.zkey',
-                'wasm/encrypt.wasm.5',
-                'zkey/encrypt.zkey.5',
-                'wasm/encrypt.wasm',
-                'zkey/encrypt.zkey'
-            ].map(async (e) => {
-                await dnld_aws(e)
-            })
-    )
-
     console.log("Player ", owner.address.slice(0, 6).concat("..."), "init shuffle context!")
+    const numCards = (await SM.getNumCards(gameId)).toNumber()
+    let encrypt_wasm
+    let encrypt_zkey
+    if (numCards == 5) {
+        encrypt_wasm = resolve(P0X_DIR, './wasm/encrypt.wasm.5'),
+        encrypt_zkey = resolve(P0X_DIR, './zkey/encrypt.zkey.5')
+    } else if (numCards == 30) {
+        encrypt_wasm = resolve(P0X_DIR, './wasm/encrypt.wasm.30'),
+        encrypt_zkey = resolve(P0X_DIR, './zkey/encrypt.zkey.30')
+    } else if (numCards == 52) {
+        encrypt_wasm = resolve(P0X_DIR, './wasm/encrypt.wasm'),
+        encrypt_zkey = resolve(P0X_DIR, './zkey/encrypt.zkey')
+    }
     const player = await ZKShuffle.create(
         SM.address, owner,
         await ZKShuffle.generateShuffleSecret(),
         resolve(P0X_DIR, './wasm/decrypt.wasm'),
         resolve(P0X_DIR, './zkey/decrypt.zkey'),
-        resolve(P0X_DIR, './wasm/encrypt.wasm.5'),
-        resolve(P0X_DIR, './zkey/encrypt.zkey.5')
+        encrypt_wasm,
+        encrypt_zkey
     )
 
     // join Game
@@ -75,7 +75,7 @@ async function player_run(
     }
 }
 
-async function fullprocess() {
+async function fullprocess(numCard : number) {
     const signers = await ethers.getSigners()
     const sm_owner = signers[10];
     const hilo_owner = signers[11];
@@ -84,7 +84,7 @@ async function fullprocess() {
     const SM : ShuffleManager = await deploy_shuffle_manager(sm_owner)
 
     // deploy gameContract
-    const game : Hilo = await (new Hilo__factory(hilo_owner)).deploy(SM.address)
+    const game : Hilo = await (new Hilo__factory(hilo_owner)).deploy(SM.address, numCard)
 
     // Hilo.newGame
     await (await game.connect(players[0]).newGame()).wait()
@@ -103,7 +103,30 @@ async function fullprocess() {
 }
 
 describe('ZKShuffle E2E test', function () {
-    it('Hilo E2E', async () => {
-        await fullprocess()
+	before(async () => {
+        await Promise.all(
+            [
+                'wasm/decrypt.wasm',
+                'zkey/decrypt.zkey',
+                'wasm/encrypt.wasm.5',
+                'zkey/encrypt.zkey.5',
+                'wasm/encrypt.wasm.30',
+                'zkey/encrypt.zkey.30',
+                'wasm/encrypt.wasm',
+                'zkey/encrypt.zkey'
+            ].map(async (e) => {
+                await dnld_aws(e)
+            })
+        )
+    });
+
+    it('Hilo E2E 5 card', async () => {
+        await fullprocess(5)
+    });
+    it('Hilo E2E 30 card', async () => {
+        await fullprocess(30)
+    });
+    it('Hilo E2E 52 card', async () => {
+        await fullprocess(52)
     });
 });
