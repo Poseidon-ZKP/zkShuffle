@@ -1,6 +1,7 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { shuffleEncryptV2Plaintext } from "@poseidon-zkp/poseidon-zk-proof/src/shuffle/plaintext";
 import {
+  dealMultiCompressedCard,
   dealCompressedCard,
   dealUncompressedCard,
   generateDecryptProof,
@@ -24,6 +25,7 @@ import {
 } from "../types";
 import { resolve } from "path";
 import { exit } from "process";
+import { HardhatUserConfig } from "hardhat/config";
 
 const buildBabyjub = require("circomlibjs").buildBabyjub;
 const fs = require("fs");
@@ -97,6 +99,8 @@ export class zkShuffle {
         "zkey/encrypt.zkey.2",
         "wasm/encrypt.wasm.5",
         "zkey/encrypt.zkey.5",
+        "wasm/encrypt.wasm.30",
+        "zkey/encrypt.zkey.30",
         "wasm/encrypt.wasm",
         "zkey/encrypt.zkey",
       ].map(async (e) => {
@@ -105,8 +109,8 @@ export class zkShuffle {
     );
     this.decrypt_wasm = resolve(P0X_DIR, "./wasm/decrypt.wasm");
     this.decrypt_zkey = resolve(P0X_DIR, "./zkey/decrypt.zkey");
-    this.encrypt_wasm = resolve(P0X_DIR, "./wasm/encrypt.wasm.5");
-    this.encrypt_zkey = resolve(P0X_DIR, "./zkey/encrypt.zkey.5");
+    this.encrypt_wasm = resolve(P0X_DIR, "./wasm/encrypt.wasm.30");
+    this.encrypt_zkey = resolve(P0X_DIR, "./zkey/encrypt.zkey.30");
 
     this.babyjub = await buildBabyjub();
     const keys = this.keyGen(BigInt(251));
@@ -132,24 +136,7 @@ export class zkShuffle {
 
   // pull player's Id for gameId
   async getPlayerId(gameId: number) {
-    let nextBlock = 0;
-    while (1) {
-      let filter = this.smc.filters.Register(null, null, null);
-      let events = await this.smc.queryFilter(filter, nextBlock);
-      for (let i = 0; i < events.length; i++) {
-        const e = events[i];
-        nextBlock = e.blockNumber - 1;
-        if (
-          e.event == "Register" &&
-          e.args.gameId.toNumber() == gameId &&
-          e.args.playerAddr == this.owner.address
-        ) {
-          return e.args.playerId.toNumber();
-        }
-      }
-      await sleep(5000);
-    }
-    return -1;
+    return await this.smc.getPlayerIdx(gameId, this.owner.address);
   }
 
   async checkPlayerTurn(
@@ -219,6 +206,10 @@ export class zkShuffle {
         encrypt_wasm = resolve(P0X_DIR, "./wasm/encrypt.wasm.5");
         encrypt_zkey = resolve(P0X_DIR, "./zkey/encrypt.zkey.5");
         break;
+      case 30:
+        encrypt_wasm = resolve(P0X_DIR, "./wasm/encrypt.wasm.30");
+        encrypt_zkey = resolve(P0X_DIR, "./zkey/encrypt.zkey.30");
+        break;
       case 52:
         encrypt_wasm = resolve(P0X_DIR, "./wasm/encrypt.wasm");
         encrypt_zkey = resolve(P0X_DIR, "./zkey/encrypt.zkey");
@@ -285,7 +276,6 @@ export class zkShuffle {
     const numCards = (await this.smc.getNumCards(gameId)).toNumber();
     const isFirstDecryption =
       (await this.smc.getDecryptRecord(gameId, cardIdx))._data.toNumber() == 0;
-    //console.log("decrypting card", cardIdx, " isFirstDecryption ", isFirstDecryption)
     let res: bigint[] = [];
     if (isFirstDecryption) {
       await dealCompressedCard(
@@ -314,13 +304,72 @@ export class zkShuffle {
     return res;
   }
 
+  async batchDecrypt(gameId: number, cards: number[]): Promise<bigint[]> {
+    const numCards = (await this.smc.getNumCards(gameId)).toNumber();
+    const isFirstDecryption =
+      (await this.smc.getDecryptRecord(gameId, cards[0]))._data.toNumber() == 0;
+    let res: bigint[] = [];
+    if (isFirstDecryption) {
+      await dealMultiCompressedCard(
+        this.babyjub,
+        numCards,
+        gameId,
+        cards,
+        this.sk,
+        this.pk,
+        this.smc,
+        this.decrypt_wasm,
+        this.decrypt_zkey
+      );
+    } else {
+      res = await dealUncompressedCard(
+        gameId,
+        cards[0],
+        this.sk,
+        this.pk,
+        this.smc,
+        this.decrypt_wasm,
+        this.decrypt_zkey
+      );
+    }
+    //console.log("decrypting card", cardIdx, " DONE!")
+    return res;
+  }
+
+  getSetBitsPositions(num: number): number[] {
+    const binaryString = num.toString(2); // 将数字转换为二进制字符串
+    const setBitsPositions: number[] = [];
+
+    for (let i = binaryString.length - 1; i >= 0; i--) {
+      if (binaryString[i] === "1") {
+        setBitsPositions.push(binaryString.length - 1 - i);
+      }
+    }
+
+    return setBitsPositions;
+  }
+
   async draw(gameId: number): Promise<bigint[]> {
     const start = Date.now();
     let cardsToDeal = (
       await this.smc.queryDeck(gameId)
     ).cardsToDeal._data.toNumber();
-    //console.log("cardsToDeal ", cardsToDeal)
-    const res = await this.decrypt(gameId, Math.log2(cardsToDeal)); // TODO : multi card compatible
+
+    const res = await this.decrypt(gameId, Math.log2(cardsToDeal));
+    console.log("Drawed in ", Date.now() - start, "ms");
+    return res;
+  }
+
+  async batchDraw(gameId: number): Promise<bigint[]> {
+    const start = Date.now();
+    let cardsToDeal = (
+      await this.smc.queryDeck(gameId)
+    ).cardsToDeal._data.toNumber();
+
+    const res = await this.batchDecrypt(
+      gameId,
+      this.getSetBitsPositions(cardsToDeal)
+    );
     console.log("Drawed in ", Date.now() - start, "ms");
     return res;
   }
@@ -342,7 +391,7 @@ export class zkShuffle {
       this.decrypt_zkey
     );
     let solidityProof: SolidityProof = packToSolidityProof(decryptProof.proof);
-    await this.smc.playerOpenCards(
+    const tx = await this.smc.playerOpenCards(
       gameId,
       {
         _data: 1 << cardIdx,
@@ -355,6 +404,8 @@ export class zkShuffle {
         },
       ]
     );
+    await tx.wait();
     console.log("Opened in ", Date.now() - start, "ms");
+    return tx;
   }
 }
