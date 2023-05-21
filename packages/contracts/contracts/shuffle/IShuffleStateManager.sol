@@ -64,6 +64,13 @@ interface IShuffleStateManager {
 
     function createShuffleGame(uint8 numPlayers) external returns (uint256);
 
+    function playerRegister(
+        uint256 gameId,
+        address signingAddr,
+        uint256 pkX,
+        uint256 pkY
+    ) external returns (uint256);
+
     // transit to register player stage
     function register(uint256 gameId, bytes calldata next) external;
 

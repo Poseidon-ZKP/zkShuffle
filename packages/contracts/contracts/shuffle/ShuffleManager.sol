@@ -231,7 +231,7 @@ contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
         uint256 pkX,
         uint256 pkY
     )
-        external
+        external override
         checkState(gameId, BaseState.Registration)
         returns (uint256 pid)
     {

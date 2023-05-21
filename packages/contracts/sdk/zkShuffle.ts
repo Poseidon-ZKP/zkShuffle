@@ -79,6 +79,7 @@ export enum BaseState {
 // TODO : let user decide all contract call ? or anything wrapper in the ctx?
 // whether dapp devloper want control. maybe 2 kinds of interface.
 export class zkShuffle {
+  pk: any;
   constructor(
     shuffleManagerContract: ShuffleManager,
     owner: SignerWithAddress

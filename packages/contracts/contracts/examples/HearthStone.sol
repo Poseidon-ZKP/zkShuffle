@@ -17,6 +17,9 @@ struct Game {
     uint256[2] shield;
     uint256[2] shuffleIds;
     uint256 curPlayerIndex;
+    // cache for creator pk
+    uint256 pkX;
+    uint256 pkY;
 }
 
 contract HearthStone is IBaseGame {
@@ -37,7 +40,7 @@ contract HearthStone is IBaseGame {
         return DeckConfig.Deck30Card;
     }
 
-    uint256 public largestKSId;
+    uint256 public largestHSId;
 
     // a mappping between Hilo Id and game info
     mapping(uint256 => Game) gameInfos;
@@ -55,34 +58,46 @@ contract HearthStone is IBaseGame {
 
     constructor(IShuffleStateManager _shuffle) {
         shuffle = _shuffle;
-        largestKSId = 100;
+        largestHSId = 100;
     }
 
     // create a new game by a player
     // creator should be player 0 in shuffle1 and player 1 in shuffle2
-    function createShuffleForCreator() external {
-        ++largestKSId;
+    function createShuffleForCreator(uint256 pkX, uint256 pkY) external {
+        ++largestHSId;
 
-        gameInfos[largestKSId].players[0] = msg.sender;
-        gameInfos[largestKSId].health[0] = 30;
-        gameInfos[largestKSId].shuffleIds[0] = shuffle.createShuffleGame(2);
+        gameInfos[largestHSId].players[0] = msg.sender;
+        gameInfos[largestHSId].health[0] = 30;
+        gameInfos[largestHSId].shuffleIds[0] = shuffle.createShuffleGame(2);
+        gameInfos[largestHSId].pkX = pkX;
+        gameInfos[largestHSId].pkY = pkY;
 
         bytes memory next = abi.encodeWithSelector(
             this.moveToShuffleStage.selector,
-            gameInfos[largestKSId].shuffleIds[0]
+            gameInfos[largestHSId].shuffleIds[0]
         );
-        shuffle.register(gameInfos[largestKSId].shuffleIds[0], next);
+        shuffle.register(gameInfos[largestHSId].shuffleIds[0], next);
+        shuffle.playerRegister(
+            gameInfos[largestHSId].shuffleIds[0],
+            msg.sender,
+            pkX,
+            pkY
+        );
 
         emit CreateGame(
-            largestKSId,
-            gameInfos[largestKSId].shuffleIds[0],
+            largestHSId,
+            gameInfos[largestHSId].shuffleIds[0],
             msg.sender
         );
     }
 
     // create a new game by a player
     // creator should be player 0 in shuffle1 and player 1 in shuffle2
-    function createShuffleForJoiner(uint256 hsId) external {
+    function createShuffleForJoiner(
+        uint256 hsId,
+        uint256 pkX,
+        uint256 pkY
+    ) external {
         require(
             gameInfos[hsId].players[0] != address(0) &&
                 gameInfos[hsId].players[1] == address(0),
@@ -90,8 +105,8 @@ contract HearthStone is IBaseGame {
         );
 
         gameInfos[hsId].players[1] = msg.sender;
-        gameInfos[largestKSId].health[1] = 30;
-        gameInfos[largestKSId].shield[1] = 10;
+        gameInfos[largestHSId].health[1] = 30;
+        gameInfos[largestHSId].shield[1] = 10;
         gameInfos[hsId].shuffleIds[1] = shuffle.createShuffleGame(2);
 
         bytes memory next = abi.encodeWithSelector(
@@ -100,7 +115,28 @@ contract HearthStone is IBaseGame {
         );
         shuffle.register(gameInfos[hsId].shuffleIds[1], next);
 
-        emit JoinGame(largestKSId, gameInfos[hsId].shuffleIds[1], msg.sender);
+        shuffle.playerRegister(
+            gameInfos[hsId].shuffleIds[0],
+            msg.sender,
+            pkX,
+            pkY
+        );
+        shuffle.playerRegister(
+            gameInfos[hsId].shuffleIds[1],
+            msg.sender,
+            pkX,
+            pkY
+        );
+        shuffle.playerRegister(
+            gameInfos[hsId].shuffleIds[1],
+            gameInfos[hsId].players[0],
+            gameInfos[hsId].pkX,
+            gameInfos[hsId].pkY
+        );
+        delete gameInfos[hsId].pkX;
+        delete gameInfos[hsId].pkY;
+
+        emit JoinGame(largestHSId, gameInfos[hsId].shuffleIds[1], msg.sender);
     }
 
     // Allow players to shuffle the deck, and specify the next state:

@@ -22,24 +22,6 @@ async function fullprocess() {
     `deployed shuffleManager at ${shuffle.address}, hs at ${hs.address}`
   );
 
-  // Alice create game
-  const creatorTx = await hs.connect(Alice).createShuffleForCreator();
-  const creatorEvent = await creatorTx.wait().then((receipt: any) => {
-    return receipt.events[0].args;
-  });
-  const hsId = Number(creatorEvent.hsId);
-  const shuffleId1 = Number(creatorEvent.shuffleId);
-
-  // Bob join the game
-  const joinerTx = await hs.connect(Bob).createShuffleForJoiner(hsId);
-  const joinerEvent = await joinerTx.wait().then((receipt: any) => {
-    return receipt.events[0].args;
-  });
-  const shuffleId2 = Number(joinerEvent.shuffleId);
-  console.log(
-    `Alice Creates the game, and Bob joins the game, hsId is ${hsId}, shuffleId1 is ${shuffleId1}, shuffleId2 is ${shuffleId2}`
-  );
-
   // init shuffle context, which packages the ShuffleManager contract
 
   // Alice init shuffle
@@ -50,18 +32,53 @@ async function fullprocess() {
   const bobShuffle = new zkShuffle(shuffle, Bob);
   await bobShuffle.init();
 
-  // Alice and Bob join game, Alice should be the first player in shuffle1, Bob should be first player in shuffle2
-  const aliceIndex1 = (await aliceShuffle.joinGame(shuffleId1)).toNumber();
-  const bobIndex1 = (await bobShuffle.joinGame(shuffleId1)).toNumber();
+  // Alice create game
+  const creatorTx = await hs
+    .connect(Alice)
+    .createShuffleForCreator(aliceShuffle.pk[0], aliceShuffle.pk[1]);
+  const creatorEvent = await creatorTx.wait().then((receipt: any) => {
+    for (const event of receipt.events) {
+      if (event.topics[0] == hs.filters.CreateGame(null, null).topics) {
+        return event.args;
+      }
+    }
+  });
+  const hsId = Number(creatorEvent.hsId);
+  const shuffleId1 = Number(creatorEvent.shuffleId);
+
+  // Bob join the game
+  const joinerTx = await hs
+    .connect(Bob)
+    .createShuffleForJoiner(hsId, bobShuffle.pk[0], bobShuffle.pk[1]);
+  const joinerEvent = await joinerTx.wait().then((receipt: any) => {
+    for (const event of receipt.events) {
+      if (event.topics[0] == hs.filters.JoinGame(null, null, null).topics) {
+        return event.args;
+      }
+    }
+  });
+  const shuffleId2 = Number(joinerEvent.shuffleId);
   console.log(
-    `Alice and Bob join the first shuffle, alice id is ${aliceIndex1}, bob id is ${bobIndex1}`
+    `Alice Creates the game, and Bob joins the game, hsId is ${hsId}, shuffleId1 is ${shuffleId1}, shuffleId2 is ${shuffleId2}`
   );
 
-  const bobIndex2 = (await bobShuffle.joinGame(shuffleId2)).toNumber();
-  const aliceIndex2 = (await aliceShuffle.joinGame(shuffleId2)).toNumber();
-  console.log(
-    `Alice and Bob join the second shuffle, alice id is ${aliceIndex2}, bob id is ${bobIndex2}`
-  );
+  // // Alice and Bob join game, Alice should be the first player in shuffle1, Bob should be first player in shuffle2
+  // const aliceIndex1 = (await aliceShuffle.joinGame(shuffleId1)).toNumber();
+  // const bobIndex1 = (await bobShuffle.joinGame(shuffleId1)).toNumber();
+  // console.log(
+  //   `Alice and Bob join the first shuffle, alice id is ${aliceIndex1}, bob id is ${bobIndex1}`
+  // );
+
+  // const bobIndex2 = (await bobShuffle.joinGame(shuffleId2)).toNumber();
+  // const aliceIndex2 = (await aliceShuffle.joinGame(shuffleId2)).toNumber();
+  // console.log(
+  //   `Alice and Bob join the second shuffle, alice id is ${aliceIndex2}, bob id is ${bobIndex2}`
+  // );
+
+  const aliceIndex1 = 0;
+  const aliceIndex2 = 1;
+  const bobIndex1 = 1;
+  const bobIndex2 = 0;
 
   // Alice shuffle the fist deck
   await aliceShuffle.shuffle(shuffleId1, aliceIndex1);
