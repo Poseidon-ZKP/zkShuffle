@@ -13,22 +13,6 @@ export declare type FullProof = {
     publicSignals: string[];
 };
 
-// Generates proof for shuffle encrypt v1 circuit.
-export async function generateShuffleEncryptProof(
-    A: bigint[],
-    X: bigint[],
-    R: bigint[],
-    pk: bigint[],
-    wasmFile: string,
-    zkeyFile: string,
-): Promise<FullProof> {
-    return <FullProof>await snarkjs.groth16.fullProve(
-        { A: A, X: X, R: R, pk: pk },
-        wasmFile,
-        zkeyFile
-    );
-}
-
 // Generates proof for decryption circuit.
 export async function generateDecryptProof(
     Y: bigint[],
