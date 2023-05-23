@@ -75,12 +75,25 @@ contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
         _deck5EncVerifier = deck5EncVerifier;
         decryptVerifier = IDecryptVerifier(decryptVerifier_);
 
-        // reason="VM Exception while processing transaction: reverted with custom error 'StoreCore_TableNotFound
-        MyTable.set(keccak256("largestGameId"), 1);
-        console.log("largestGameId : ", MyTable.get(keccak256("largestGameId")));
+        // // reason="VM Exception while processing transaction: reverted with custom error 'StoreCore_TableNotFound
+        // console.log("registerSchema ");
         // MyTable.registerSchema();
-        // // Setting metadata is optional. It helps off-chain actors name columns
-        // MyTable.setMetadata();
+        // // // Setting metadata is optional. It helps off-chain actors name columns
+        // // MyTable.setMetadata();
+        // console.log("set ");
+        // MyTable.set(keccak256("largestGameId"), 1);
+        // console.log("get ");
+        // console.log("largestGameId : ", MyTable.get(keccak256("largestGameId")));
+
+        Schema keySchema = SchemaLib.encode(SchemaType.UINT256);
+        Schema schema = SchemaLib.encode(SchemaType.UINT256);
+        bytes32 table = keccak256("MyTable");
+        StoreCore.initialize();
+        StoreCore.registerSchema(table, schema, keySchema);
+        // Setting metadata is optional. It helps off-chain actors name columns
+        string[] memory fieldNames = new string[](1);
+        fieldNames[0] = "largestGameId";
+        StoreSwitch.setMetadata(table, "MyTable", fieldNames);
     }
 
     // get number of card of a gameId
