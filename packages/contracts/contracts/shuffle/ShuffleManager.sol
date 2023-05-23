@@ -29,9 +29,6 @@ contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
     // invalid card index or player index
     uint256 public constant override INVALID_INDEX = 999999;
 
-    // counter of gameID
-    uint256 public largestGameId;
-
     event PlayerTurn (
         uint256 indexed gameId,
         uint256 playerIndex,
@@ -75,38 +72,24 @@ contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
         _deck5EncVerifier = deck5EncVerifier;
         decryptVerifier = IDecryptVerifier(decryptVerifier_);
 
-        // // reason="VM Exception while processing transaction: reverted with custom error 'StoreCore_TableNotFound
-        // console.log("registerSchema ");
-        // MyTable.registerSchema();
-        // // // Setting metadata is optional. It helps off-chain actors name columns
-        // // MyTable.setMetadata();
-        // console.log("set ");
-        // MyTable.set(keccak256("largestGameId"), 1);
-        // console.log("get ");
-        // console.log("largestGameId : ", MyTable.get(keccak256("largestGameId")));
-
-        Schema keySchema = SchemaLib.encode(SchemaType.UINT256);
-        Schema schema = SchemaLib.encode(SchemaType.UINT256);
-        bytes32 table = keccak256("MyTable");
         StoreCore.initialize();
-        StoreCore.registerSchema(table, schema, keySchema);
+        MyTable.registerSchema();
         // Setting metadata is optional. It helps off-chain actors name columns
-        string[] memory fieldNames = new string[](1);
-        fieldNames[0] = "largestGameId";
-        StoreSwitch.setMetadata(table, "MyTable", fieldNames);
+        MyTable.setMetadata();
+        MyTable.set(keccak256("largestGameId"), 0);
     }
 
     // get number of card of a gameId
     function getNumCards(
         uint256 gameId
     ) public view override returns (uint256) {
-        require(gameId <= largestGameId, "Invalid gameId");
+        require(gameId <= MyTable.get(keccak256("largestGameId")), "Invalid gameId");
         return gameInfos[gameId].numCards;
     }
 
     // get state of the game
     function gameState(uint256 gameId) public view returns (uint256) {
-        require(gameId <= largestGameId, "Invalid gameId");
+        require(gameId <= MyTable.get(keccak256("largestGameId")), "Invalid gameId");
         return uint(gameStates[gameId].state);
     }
 
@@ -114,7 +97,7 @@ contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
     function curPlayerIndex(
         uint256 gameId
     ) public view override returns (uint256) {
-        require(gameId <= largestGameId, "Invalid gameId");
+        require(gameId <= MyTable.get(keccak256("largestGameId")), "Invalid gameId");
         return gameStates[gameId].curPlayerIndex;
     }
 
@@ -123,7 +106,7 @@ contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
         uint256 gameId,
         uint256 cardIdx
     ) public view override returns (BitMaps.BitMap256 memory) {
-        require(gameId <= largestGameId, "Invalid gameId");
+        require(gameId <= MyTable.get(keccak256("largestGameId")), "Invalid gameId");
         require(cardIdx < gameInfos[gameId].numCards, "Invalid cardIdx");
         return gameStates[gameId].deck.decryptRecord[cardIdx];
     }
@@ -192,7 +175,9 @@ contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
     function createShuffleGame(
         uint8 numPlayers
     ) external override returns (uint256) {
-        uint256 newGameId = ++largestGameId;
+        uint256 newGameId = MyTable.get(keccak256("largestGameId"));
+        MyTable.set(keccak256("largestGameId"), ++newGameId);
+
         gameInfos[newGameId].numPlayers = numPlayers;
 
         // TODO: do we need to explicit start
