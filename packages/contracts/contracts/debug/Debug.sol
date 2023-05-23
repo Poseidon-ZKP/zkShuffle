@@ -10,7 +10,7 @@ abstract contract Debug is Storage {
         uint8 numCards,
         uint8 numPlayers
     ) external {
-        //largestGameId = gameId + 1;
+        largestGameId = gameId + 1;
         gameInfos[gameId].numCards = numCards;
         gameInfos[gameId].numPlayers = numPlayers;
         if (numCards == 5) {
