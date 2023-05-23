@@ -61,12 +61,12 @@ contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
         _;
     }
 
-  constructor(
+    constructor(
         address decryptVerifier_,
         address deck52EncVerifier,
         address deck30EncVerifier,
         address deck5EncVerifier
-  ) {
+    ) {
         _deck52EncVerifier = deck52EncVerifier;
         _deck30EncVerifier = deck30EncVerifier;
         _deck5EncVerifier = deck5EncVerifier;
