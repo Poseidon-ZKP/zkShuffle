@@ -674,6 +674,28 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@latticexyz/schema-type@npm:^1.42.0":
+  version: 1.42.0
+  resolution: "@latticexyz/schema-type@npm:1.42.0"
+  checksum: 5b3a74be0a604d67ebe11d8132ed6eb644a38a6688503006ee4fd2804a10ea35223e2047fe0d520892441b18b16b3fa607edb6c624b8289a7345cb5bcd52c399
+  languageName: node
+  linkType: hard
+
+"@latticexyz/store@npm:^1.42.0":
+  version: 1.42.0
+  resolution: "@latticexyz/store@npm:1.42.0"
+  peerDependencies:
+    "@ethersproject/abi": ^5.7.0
+    "@ethersproject/providers": ^5.7.2
+    "@latticexyz/config": "*"
+    "@latticexyz/schema-type": "*"
+    ds-test: "*"
+    ethers: ^5.7.2
+    forge-std: "*"
+  checksum: 31fc3c0438ff782cf4e8cfd93c5ac86ed3610e0c4bb03bae5a7ed27adf224855986ce0fbfb3b0b14bd0215123d2cba57176a38a8a4cfad3cfe7109031b120480
+  languageName: node
+  linkType: hard
+
 "@metamask/eth-sig-util@npm:^4.0.0":
   version: 4.0.1
   resolution: "@metamask/eth-sig-util@npm:4.0.1"
@@ -1127,6 +1149,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@poseidon-zkp/poseidon-zk-contracts@workspace:packages/contracts"
   dependencies:
+    "@latticexyz/schema-type": ^1.42.0
+    "@latticexyz/store": ^1.42.0
     "@nomicfoundation/hardhat-chai-matchers": ^1.0.6
     "@nomiclabs/hardhat-ethers": ^2.2.1
     "@nomiclabs/hardhat-solpp": ^2.0.1
@@ -1144,6 +1168,7 @@ __metadata:
     dotenv: ^16.0.3
     ethereum-waffle: ^3.4.4
     ethers: ^5.7.2
+    forge-std: ^1.1.2
     hardhat: ^2.12.5
     hardhat-contract-sizer: ^2.6.1
     node-pandoc: ^0.3.0
@@ -6088,6 +6113,13 @@ __metadata:
   version: 0.6.1
   resolution: "forever-agent@npm:0.6.1"
   checksum: 766ae6e220f5fe23676bb4c6a99387cec5b7b62ceb99e10923376e27bfea72f3c3aeec2ba5f45f3f7ba65d6616965aa7c20b15002b6860833bb6e394dea546a8
+  languageName: node
+  linkType: hard
+
+"forge-std@npm:^1.1.2":
+  version: 1.1.2
+  resolution: "forge-std@npm:1.1.2"
+  checksum: d5b36b909269a39dd30b619ac09a78e59b1a65e7887872ef99304298c4ffe2aa16f5dc5238c77e481a5e615582191b446401098a2ed567283d7df87e099a9d3c
   languageName: node
   linkType: hard
 
