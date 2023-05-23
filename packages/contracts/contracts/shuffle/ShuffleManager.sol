@@ -10,7 +10,6 @@ import "./BitMaps.sol";
 import "./Storage.sol";
 
 import { MyTable } from "../mud-codegen/codegen/tables/MyTable.sol";
-import { NextToCall } from "../mud-codegen/codegen/tables/NextToCall.sol";
 
 import { Schema, SchemaType, SchemaLib } from "@latticexyz/store/src/Schema.sol";
 import { Store } from "@latticexyz/store/src/Store.sol";
@@ -78,9 +77,6 @@ contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
         // Setting metadata is optional. It helps off-chain actors name columns
         MyTable.setMetadata();
         MyTable.set(keccak256("largestGameId"), 0);
-
-        NextToCall.registerSchema();
-        NextToCall.setMetadata();
     }
 
     // get number of card of a gameId
@@ -238,7 +234,7 @@ contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
     {
         ShuffleGameState storage state = gameStates[gameId];
         state.state = BaseState.Registration;
-        NextToCall.set(gameId, next);
+        nextToCall[gameId] = next;
     }
 
     /**
@@ -307,7 +303,7 @@ contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
             "wrong player index to start shuffle"
         );
         state.state = BaseState.Shuffle;
-        NextToCall.set(gameId, next);
+        nextToCall[gameId] = next;
         emit PlayerTurn(gameId, state.curPlayerIndex, BaseState.Shuffle);
     }
 
@@ -376,7 +372,7 @@ contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
         if (playerId == 0) {
             state.curPlayerIndex = 1;
         }
-        NextToCall.set(gameId, next);
+        nextToCall[gameId] = next;
         emit PlayerTurn(gameId, state.curPlayerIndex, BaseState.Deal);
     }
 
@@ -507,7 +503,7 @@ contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
         );
         state.openning = openningNum;
         state.curPlayerIndex = playerId;
-        NextToCall.set(gameId, next);
+        nextToCall[gameId] = next;
         state.state = BaseState.Open;
         emit PlayerTurn(gameId, playerId, BaseState.Open);
     }
@@ -584,14 +580,14 @@ contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
         bytes calldata next
     ) external override gameOwner(gameId) {
         gameStates[gameId].state = BaseState.GameError;
-        NextToCall.set(gameId, next);
+        nextToCall[gameId] = next;
         _callGameContract(gameId);
     }
 
     // switch control to game contract, set the game to error state if the contract call failed
     function _callGameContract(uint256 gameId) internal {
-        if (NextToCall.get(gameId) != 0) {
-            (bool success, ) = _activeGames[gameId].call(NextToCall.get(gameId));
+        if (nextToCall[gameId].length != 0) {
+            (bool success, ) = _activeGames[gameId].call(nextToCall[gameId]);
             require(success, "Error calling game contract");
         }
     }
