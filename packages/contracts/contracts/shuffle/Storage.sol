@@ -6,9 +6,6 @@ import "./IShuffleStateManager.sol";
 import "./ECC.sol";
 import "./IBaseGame.sol";
 import "./BitMaps.sol";
-import { Store } from "@latticexyz/store/src/Store.sol";
-
-//type PackedCounter is bytes32;
 
 // #if SHUFFLE_UNIT_TEST
 import "hardhat/console.sol";
@@ -41,7 +38,4 @@ contract Storage {
 
     // mapping between gameId and next game contract function to call
     mapping(uint256 => bytes) nextToCall;
-
-    // counter of gameID
-    uint256 public largestGameId;
 }

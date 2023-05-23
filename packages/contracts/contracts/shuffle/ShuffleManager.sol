@@ -8,6 +8,14 @@ import "./ECC.sol";
 import "./IBaseGame.sol";
 import "./BitMaps.sol";
 import "./Storage.sol";
+
+import { MyTable } from "../mud-codegen/codegen/tables/MyTable.sol";
+
+import { Schema, SchemaType, SchemaLib } from "@latticexyz/store/src/Schema.sol";
+import { Store } from "@latticexyz/store/src/Store.sol";
+import { StoreSwitch } from "@latticexyz/store/src/StoreSwitch.sol";
+import { StoreCore } from "@latticexyz/store/src/StoreCore.sol";
+
 /**
  * @title Shuffle Manager
  * @dev manage all ZK Games
@@ -20,6 +28,9 @@ contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
 // #endif
     // invalid card index or player index
     uint256 public constant override INVALID_INDEX = 999999;
+
+    // counter of gameID
+    uint256 public largestGameId;
 
     event PlayerTurn (
         uint256 indexed gameId,
@@ -53,16 +64,23 @@ contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
         _;
     }
 
-    constructor(
+  constructor(
         address decryptVerifier_,
         address deck52EncVerifier,
         address deck30EncVerifier,
         address deck5EncVerifier
-    ) {
+  ) {
         _deck52EncVerifier = deck52EncVerifier;
         _deck30EncVerifier = deck30EncVerifier;
         _deck5EncVerifier = deck5EncVerifier;
         decryptVerifier = IDecryptVerifier(decryptVerifier_);
+
+        // reason="VM Exception while processing transaction: reverted with custom error 'StoreCore_TableNotFound
+        MyTable.set(keccak256("largestGameId"), 1);
+        console.log("largestGameId : ", MyTable.get(keccak256("largestGameId")));
+        // MyTable.registerSchema();
+        // // Setting metadata is optional. It helps off-chain actors name columns
+        // MyTable.setMetadata();
     }
 
     // get number of card of a gameId
