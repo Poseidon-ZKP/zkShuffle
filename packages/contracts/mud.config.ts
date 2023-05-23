@@ -7,5 +7,9 @@ export default mudConfig({
         largestGameId: "uint256",
       },
     },
+    NextToCall: {
+      keySchema: { gameId: "uint256" },
+      schema: { call: "bytes" },
+    },
   },
 });

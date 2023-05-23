@@ -35,7 +35,4 @@ contract Storage {
 
     // mapping between gameId and game state
     mapping(uint256 => ShuffleGameState) gameStates;
-
-    // mapping between gameId and next game contract function to call
-    mapping(uint256 => bytes) nextToCall;
 }
