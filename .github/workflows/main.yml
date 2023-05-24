@@ -62,6 +62,7 @@ jobs:
 
       - name: Compile all packages
         run: cd packages/proof; yarn compile; cd -  # TODO : compile all after fix circuit
+        run: cd packages/circuit; yarn compile; cd -
 
       - name: Run all unit tests
         run: yarn test
