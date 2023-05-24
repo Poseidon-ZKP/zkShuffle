@@ -10,7 +10,7 @@ const snarkjs = require('snarkjs');
 
 describe('Shuffle encrypt/decrypt benchmark tests', function () {
   const numBits = BigInt(251);
-  const numCards = BigInt(30);
+  const numCards = BigInt(52);
   const numProfiling = 1;
 
   before(async function () {
