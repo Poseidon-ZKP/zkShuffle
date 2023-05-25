@@ -47,14 +47,22 @@ contract HearthStone is IBaseGame {
 
     event CreateGame(uint256 indexed hsId, uint256 shuffleId, address creator);
     event JoinGame(uint256 indexed hsId, uint256 shuffleId, address joiner);
+    event DealEnd(uint256 indexed hsId, address player, uint256 playerIdx);
     event ChooseCard(
         uint256 indexed hsId,
         address player,
         uint256 playerIdx,
         uint256 cardIdx
     );
-    event NextPlayer(uint256 indexed hsId, uint256 playerIdx);
-    event EndGame(uint256 indexed hsId, uint256 playerIdx);
+    event OpenCard(
+        uint256 indexed hsId,
+        address player,
+        uint256 playerIdx,
+        uint256 cardIdx,
+        uint256 cardValue
+    );
+    event NextPlayer(uint256 indexed hsId, address player, uint256 playerIdx);
+    event EndGame(uint256 indexed hsId, address player, uint256 playerIdx);
 
     constructor(IShuffleStateManager _shuffle) {
         shuffle = _shuffle;
@@ -74,7 +82,9 @@ contract HearthStone is IBaseGame {
 
         bytes memory next = abi.encodeWithSelector(
             this.moveToShuffleStage.selector,
-            gameInfos[largestHSId].shuffleIds[0]
+            largestHSId,
+            gameInfos[largestHSId].shuffleIds[0],
+            0
         );
         shuffle.register(gameInfos[largestHSId].shuffleIds[0], next);
         shuffle.playerRegister(
@@ -105,13 +115,15 @@ contract HearthStone is IBaseGame {
         );
 
         gameInfos[hsId].players[1] = msg.sender;
-        gameInfos[largestHSId].health[1] = 30;
-        gameInfos[largestHSId].shield[1] = 10;
+        gameInfos[hsId].health[1] = 30;
+        gameInfos[hsId].shield[1] = 10;
         gameInfos[hsId].shuffleIds[1] = shuffle.createShuffleGame(2);
 
         bytes memory next = abi.encodeWithSelector(
             this.moveToShuffleStage.selector,
-            gameInfos[hsId].shuffleIds[1]
+            hsId,
+            gameInfos[hsId].shuffleIds[1],
+            1
         );
         shuffle.register(gameInfos[hsId].shuffleIds[1], next);
 
@@ -141,21 +153,40 @@ contract HearthStone is IBaseGame {
 
     // Allow players to shuffle the deck, and specify the next state:
     // dealCard0ToPlayer0
-    function moveToShuffleStage(uint256 shuffleId) external onlyShuffleManager {
+    function moveToShuffleStage(
+        uint256 hsId,
+        uint256 shuffleId,
+        uint256 playerIdx
+    ) external onlyShuffleManager {
         bytes memory next = abi.encodeWithSelector(
             this.dealCardsToPlayer.selector,
-            shuffleId
+            hsId,
+            shuffleId,
+            playerIdx
         );
         shuffle.shuffle(shuffleId, next);
     }
 
-    // Deal cards player 0 and specify the next state:
-    // dealCard1ToPlayer1
-    function dealCardsToPlayer(uint256 shuffleId) external onlyShuffleManager {
+    function dealCardsToPlayer(
+        uint256 hsId,
+        uint256 shuffleId,
+        uint256 playerIdx
+    ) external onlyShuffleManager {
         BitMaps.BitMap256 memory cards;
         cards._data = 1023; // ...1111111111
-        bytes memory next;
+        bytes memory next = abi.encodeWithSelector(
+            this.moveToChooseStage.selector,
+            hsId,
+            playerIdx
+        );
         shuffle.dealCardsTo(shuffleId, cards, 0, next);
+    }
+
+    function moveToChooseStage(
+        uint256 hsId,
+        uint256 playerIdx
+    ) external onlyShuffleManager {
+        emit DealEnd(hsId, gameInfos[hsId].players[playerIdx], playerIdx);
     }
 
     // choose which card to show at this round, shuffleIdx means player's deck
@@ -195,6 +226,14 @@ contract HearthStone is IBaseGame {
         );
         require(cardValue != shuffle.INVALID_INDEX(), "invalid card value");
 
+        emit OpenCard(
+            hsId,
+            gameInfos[hsId].players[playerIdx],
+            playerIdx,
+            cardIdx,
+            cardValue
+        );
+
         battle(hsId, playerIdx, cardValue);
     }
 
@@ -226,10 +265,14 @@ contract HearthStone is IBaseGame {
             if (gameInfos[hsId].curPlayerIndex == 2) {
                 gameInfos[hsId].curPlayerIndex = 0;
             }
-            emit NextPlayer(hsId, gameInfos[hsId].curPlayerIndex);
+            emit NextPlayer(
+                hsId,
+                gameInfos[hsId].players[gameInfos[hsId].curPlayerIndex],
+                gameInfos[hsId].curPlayerIndex
+            );
         } else {
             gameInfos[hsId].health[1 - playerIdx] = 0;
-            emit EndGame(hsId, playerIdx);
+            emit EndGame(hsId, gameInfos[hsId].players[playerIdx], playerIdx);
             shuffle.endGame(gameInfos[hsId].shuffleIds[playerIdx]);
         }
     }
