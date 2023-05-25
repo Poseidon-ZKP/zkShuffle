@@ -4,7 +4,6 @@ pragma solidity >=0.8.2 <0.9.0;
 
 import "../../shuffle/IBaseGame.sol";
 import "../../shuffle/IShuffleStateManager.sol";
-import "hardhat/console.sol";
 
 // An example game contract using zkShuffle
 // Hilo is a simple two-player game on 5 card deck 
@@ -20,6 +19,7 @@ import "hardhat/console.sol";
 //   calldata so that ShuffleManager will call back 
 contract Hilo is IBaseGame {
     IShuffleStateManager public ishuffle;
+    DeckConfig _cardConfig;
 
     // check whether the caller is the shuffle Manager
     modifier onlyShuffleManager() {
@@ -33,8 +33,8 @@ contract Hilo is IBaseGame {
         _;
     }
 
-    function cardConfig() external override pure returns (DeckConfig) {
-        return DeckConfig.Deck5Card;
+    function cardConfig() external override view returns (DeckConfig) {
+        return _cardConfig;
     }
 
     uint256 public largestGameId;
@@ -47,9 +47,19 @@ contract Hilo is IBaseGame {
     mapping(uint => address) gameOwners;
 
     constructor(
-        IShuffleStateManager _ishuffle
+        IShuffleStateManager _ishuffle,
+        uint numCards
     ) {
         ishuffle = _ishuffle;
+        if (numCards == 5) {
+            _cardConfig = DeckConfig.Deck5Card;
+        } else if (numCards == 30) {
+            _cardConfig = DeckConfig.Deck30Card;
+        } else if (numCards == 52) {
+            _cardConfig = DeckConfig.Deck52Card;
+        } else {
+            require(false, "invalid numCards!");
+        }
     }
 
     // create a new game by a player 

@@ -193,11 +193,8 @@ export async function deal(
       numCards,
       gameId,
       cardIdx,
-      curPlayerIdx,
       sk,
       pk,
-      playerAddr,
-      gameContract,
       stateMachineContract,
       decryptWasmFile,
       decryptZkeyFile
@@ -207,11 +204,8 @@ export async function deal(
     return await dealUncompressedCard(
       gameId,
       cardIdx,
-      curPlayerIdx,
       sk,
       pk,
-      playerAddr,
-      gameContract,
       stateMachineContract,
       decryptWasmFile,
       decryptZkeyFile
