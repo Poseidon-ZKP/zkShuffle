@@ -1,7 +1,7 @@
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { Signer } from "ethers";
 
 export async function tx_to_contract(
-    owner : SignerWithAddress,
+    owner : Signer,
     address		:	string,
     calldata	:	string)
 {
