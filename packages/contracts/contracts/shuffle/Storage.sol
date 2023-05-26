@@ -17,14 +17,8 @@ contract Storage {
     // currently, all the decks shares the same decrypt circuits
     IDecryptVerifier public decryptVerifier;
 
-    // Encryption verifier for 5 cards deck
-    address _deck5EncVerifier;
-
-    // Encryption verifier for 30 cards deck
-    address _deck30EncVerifier;
-
-    // Encryption verifier for 50 cards deck
-    address _deck52EncVerifier;
+    // mapping between card size and encryption verifier
+    mapping(uint8 => IShuffleEncryptVerifier) public encryptVerifiers;
 
     // mapping between gameId and game contract address
     mapping(uint256 => address) _activeGames;

@@ -4,13 +4,6 @@ pragma solidity >=0.8.2 <0.9.0;
 
 import "./BitMaps.sol";
 
-// currently, we support 30 card deck and 52 card deck
-enum DeckConfig {
-    Deck5Card,
-    Deck30Card,
-    Deck52Card
-}
-
 // Deck of cards
 //
 // Suppose that we have n cards in the deck, for each card,
@@ -22,8 +15,8 @@ enum DeckConfig {
 // We compress the selector to a bitmap and packed the bitmap into two uint256,
 // which means the deck can at most support 253 cards.
 struct Deck {
-    // config
-    DeckConfig config;
+    // deck size
+    uint8 config;
     // x0 of cards
     uint256[] X0;
     // x1 of cards
@@ -47,8 +40,8 @@ struct Deck {
 
 // Compressed representation of the Deck
 struct CompressedDeck {
-    // config
-    DeckConfig config;
+    // deck size
+    uint8 config;
     // X0 of cards
     uint256[] X0;
     // X1 of cards
@@ -82,27 +75,15 @@ interface IDecryptVerifier {
 }
 
 library zkShuffleCrypto {
-    function deckSize(DeckConfig config) internal pure returns (uint256 size) {
-        if (config == DeckConfig.Deck5Card) {
-            size = 5;
-        } else if (config == DeckConfig.Deck30Card) {
-            size = 30;
-        } else {
-            size = 52;
-        }
-    }
-
     modifier checkDeck(CompressedDeck memory deck) {
-        require(deckSize(deck.config) == deck.X0.length, "wrong X0 length");
-        require(deckSize(deck.config) == deck.X0.length, "wrong X0 length");
+        require(deck.config == deck.X0.length, "wrong X0 length");
+        require(deck.config == deck.X0.length, "wrong X0 length");
         _;
     }
 
-    function getCompressedDeck(Deck storage deck)
-        external
-        view
-        returns (CompressedDeck memory compDeck)
-    {
+    function getCompressedDeck(
+        Deck storage deck
+    ) external view returns (CompressedDeck memory compDeck) {
         compDeck.config = deck.config;
         compDeck.X0 = deck.X0;
         compDeck.X1 = deck.X1;
@@ -137,21 +118,20 @@ library zkShuffleCrypto {
         returns (uint256[] memory)
     {
         require(encDeck.config == oldDeck.config, "Deck config inconsistent");
-        uint256 _deckSize = deckSize(encDeck.config);
-        uint256[] memory input = new uint256[](7 + _deckSize * 4);
+        uint256[] memory input = new uint256[](7 + encDeck.config * 4);
         input[0] = nonce;
         input[1] = aggPkX;
         input[2] = aggPkY;
-        for (uint256 i = 0; i < _deckSize; i++) {
+        for (uint256 i = 0; i < encDeck.config; i++) {
             input[i + 3] = oldDeck.X0[i];
-            input[i + 3 + _deckSize] = oldDeck.X1[i];
-            input[i + 3 + _deckSize * 2] = encDeck.X0[i];
-            input[i + 3 + _deckSize * 3] = encDeck.X1[i];
+            input[i + 3 + encDeck.config] = oldDeck.X1[i];
+            input[i + 3 + encDeck.config * 2] = encDeck.X0[i];
+            input[i + 3 + encDeck.config * 3] = encDeck.X1[i];
         }
-        input[3 + 4 * _deckSize] = oldDeck.selector0._data;
-        input[4 + 4 * _deckSize] = oldDeck.selector1._data;
-        input[5 + 4 * _deckSize] = encDeck.selector0._data;
-        input[6 + 4 * _deckSize] = encDeck.selector1._data;
+        input[3 + 4 * encDeck.config] = oldDeck.selector0._data;
+        input[4 + 4 * encDeck.config] = oldDeck.selector1._data;
+        input[5 + 4 * encDeck.config] = encDeck.selector0._data;
+        input[6 + 4 * encDeck.config] = encDeck.selector1._data;
         return input;
     }
 
@@ -211,15 +191,19 @@ library zkShuffleCrypto {
             16257260290674454725761605597495173678803471245971702030005143987297548407836,
             3673082978401597800140653084819666873666278094336864183112751111018951461681
         ];
-        deck.X0 = new uint256[](deckSize(deck.config));
-        deck.Y0 = new uint256[](deckSize(deck.config));
-        deck.X1 = new uint256[](deckSize(deck.config));
-        deck.Y1 = new uint256[](deckSize(deck.config));
-        for(uint256 i = 0; i < deckSize(deck.config); i++) {
+        deck.X0 = new uint256[](deck.config);
+        deck.Y0 = new uint256[](deck.config);
+        deck.X1 = new uint256[](deck.config);
+        deck.Y1 = new uint256[](deck.config);
+        for (uint256 i = 0; i < deck.config; i++) {
             deck.X0[i] = 0;
             deck.X1[i] = INIT_X1[i];
         }
-        deck.selector0 = BitMaps.BitMap256(4503599627370495 >> (52 - deckSize(deck.config)));
-        deck.selector1 = BitMaps.BitMap256(3075935501959818 >> (52 - deckSize(deck.config)));
+        deck.selector0 = BitMaps.BitMap256(
+            4503599627370495 >> (52 - deck.config)
+        );
+        deck.selector1 = BitMaps.BitMap256(
+            3075935501959818 >> (52 - deck.config)
+        );
     }
 }
