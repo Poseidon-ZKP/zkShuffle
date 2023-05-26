@@ -53,16 +53,23 @@ contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
         _;
     }
 
+    // currently, only support deck size of 5/30/52
     constructor(
-        address decryptVerifier_,
-        address deck52EncVerifier,
-        address deck30EncVerifier,
-        address deck5EncVerifier
+        IDecryptVerifier decryptVerifier_,
+        IShuffleEncryptVerifier deck52EncVerifier,
+        IShuffleEncryptVerifier deck30EncVerifier,
+        IShuffleEncryptVerifier deck5EncVerifier
     ) {
-        _deck52EncVerifier = deck52EncVerifier;
-        _deck30EncVerifier = deck30EncVerifier;
-        _deck5EncVerifier = deck5EncVerifier;
-        decryptVerifier = IDecryptVerifier(decryptVerifier_);
+        encryptVerifiers[5] = deck5EncVerifier;
+        encryptVerifiers[30] = deck30EncVerifier;
+        encryptVerifiers[52] = deck52EncVerifier;
+
+        decryptVerifier = decryptVerifier_;
+    }
+
+    function addVerifier(uint8 deckSize, IShuffleEncryptVerifier verifier) external onlyOwner {
+        require(deckSize <= 52, "only support card size <= 52");
+        encryptVerifiers[deckSize] = verifier;
     }
 
     // get number of card of a gameId
@@ -112,7 +119,7 @@ contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
     }
 
     // Returns Deck Config.
-    function cardConfig(uint gameId) external view returns (DeckConfig) {
+    function cardConfig(uint gameId) external view returns (uint256) {
         return IBaseGame(_activeGames[gameId]).cardConfig();
     }
 
@@ -152,6 +159,11 @@ contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
                 return i;
             }
         }
+        for (uint256 i = 0; i < state.signingAddrs.length; i++) {
+            if (player == state.signingAddrs[i]) {
+                return i;
+            }
+        }
         return INVALID_INDEX;
     }
 
@@ -161,6 +173,9 @@ contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
     function createShuffleGame(
         uint8 numPlayers
     ) external override returns (uint256) {
+        uint8 deckSize = IBaseGame(msg.sender).cardConfig();
+        require(address(encryptVerifiers[deckSize]) != address(0), "invalid card config");
+
         uint256 newGameId = ++largestGameId;
         gameInfos[newGameId].numPlayers = numPlayers;
 
@@ -171,32 +186,9 @@ contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
         ShuffleGameState storage state = gameStates[newGameId];
         state.state = BaseState.Created;
 
-        // set up verifier contract according to deck type
-        if (IBaseGame(msg.sender).cardConfig() == DeckConfig.Deck5Card) {
-            gameInfos[newGameId].encryptVerifier = IShuffleEncryptVerifier(
-                _deck5EncVerifier
-            );
-            gameInfos[newGameId].numCards = 5;
-            state.deck.config = DeckConfig.Deck5Card;
-        } else if (
-            IBaseGame(msg.sender).cardConfig() == DeckConfig.Deck30Card
-        ) {
-            gameInfos[newGameId].encryptVerifier = IShuffleEncryptVerifier(
-                _deck30EncVerifier
-            );
-            gameInfos[newGameId].numCards = 30;
-            state.deck.config = DeckConfig.Deck30Card;
-        } else if (
-            IBaseGame(msg.sender).cardConfig() == DeckConfig.Deck52Card
-        ) {
-            gameInfos[newGameId].encryptVerifier = IShuffleEncryptVerifier(
-                _deck52EncVerifier
-            );
-            gameInfos[newGameId].numCards = 52;
-            state.deck.config = DeckConfig.Deck52Card;
-        } else {
-            revert("Unsupported size of deck.");
-        }
+        gameInfos[newGameId].encryptVerifier = encryptVerifiers[deckSize];
+        gameInfos[newGameId].numCards = deckSize;
+        state.deck.config = deckSize;
 
         // init deck
         zkShuffleCrypto.initDeck(state.deck);
@@ -232,6 +224,7 @@ contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
         uint256 pkY
     )
         external
+        override
         checkState(gameId, BaseState.Registration)
         returns (uint256 pid)
     {
@@ -298,7 +291,7 @@ contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
         uint256 gameId,
         uint256[8] memory proof,
         CompressedDeck memory compDeck
-    ) external checkState(gameId, BaseState.Shuffle) checkTurn(gameId) {
+    ) external override checkState(gameId, BaseState.Shuffle) checkTurn(gameId) {
         ShuffleGameInfo memory info = gameInfos[gameId];
         ShuffleGameState storage state = gameStates[gameId];
         info.encryptVerifier.verifyProof(
@@ -368,7 +361,7 @@ contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
         uint[8][] memory proofs,
         Card[] memory decryptedCards,
         uint256[2][] memory initDeltas
-    ) external checkState(gameId, BaseState.Deal) checkTurn(gameId) {
+    ) external override checkState(gameId, BaseState.Deal) checkTurn(gameId) {
         ShuffleGameInfo memory info = gameInfos[gameId];
         ShuffleGameState storage state = gameStates[gameId];
         uint256 numberCardsToDeal = BitMaps.memberCountUpTo(
@@ -498,7 +491,7 @@ contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
         BitMaps.BitMap256 memory cards, // TODO : should be inner shuffleManager
         uint[8][] memory proofs,
         Card[] memory decryptedCards
-    ) external checkState(gameId, BaseState.Open) checkTurn(gameId) {
+    ) external override checkState(gameId, BaseState.Open) checkTurn(gameId) {
         ShuffleGameInfo memory info = gameInfos[gameId];
         ShuffleGameState storage state = gameStates[gameId];
         uint256 numberCardsToOpen = BitMaps.memberCountUpTo(

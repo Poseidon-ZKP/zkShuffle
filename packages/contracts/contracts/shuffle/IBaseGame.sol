@@ -12,5 +12,5 @@ struct ShuffleGameInfo {
 }
 
 interface IBaseGame {
-    function cardConfig() external view returns (DeckConfig);
+    function cardConfig() external view returns (uint8);
 }

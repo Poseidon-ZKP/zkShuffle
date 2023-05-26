@@ -8,13 +8,11 @@ import "hardhat/console.sol";
 contract ShuffleTest is IBaseGame {
     IShuffleStateManager public ishuffle;
 
-    function cardConfig() external override pure returns (DeckConfig) {
-        return DeckConfig.Deck5Card;
+    function cardConfig() external pure override returns (uint8) {
+        return 5;
     }
 
-    constructor(
-        IShuffleStateManager _ishuffle
-    ) {
+    constructor(IShuffleStateManager _ishuffle) {
         ishuffle = _ishuffle;
     }
 
@@ -29,5 +27,4 @@ contract ShuffleTest is IBaseGame {
     function dummy() external {
         console.log("ShuffleTest dummy");
     }
-
 }

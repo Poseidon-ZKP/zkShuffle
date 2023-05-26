@@ -4,7 +4,6 @@ pragma solidity >=0.8.2 <0.9.0;
 import "../shuffle/Storage.sol";
 
 abstract contract Debug is Storage {
-
     function set_gameInfo(
         uint gameId,
         uint8 numCards,
@@ -14,20 +13,14 @@ abstract contract Debug is Storage {
         gameInfos[gameId].numCards = numCards;
         gameInfos[gameId].numPlayers = numPlayers;
         if (numCards == 5) {
-            gameInfos[gameId].encryptVerifier = IShuffleEncryptVerifier(
-                _deck5EncVerifier
-            );
+            gameInfos[gameId].encryptVerifier = encryptVerifiers[5];
         } else {
             console.log("Invalid numCards ", numCards);
             assert(false);
         }
     }
 
-    function set_gameState(
-        uint gameId,
-        BaseState state
-    ) external {
+    function set_gameState(uint gameId, BaseState state) external {
         gameStates[gameId].state = state;
     }
-
 }

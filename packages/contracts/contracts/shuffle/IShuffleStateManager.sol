@@ -67,6 +67,14 @@ interface IShuffleStateManager {
     // transit to register player stage
     function register(uint256 gameId, bytes calldata next) external;
 
+    // player register
+    function playerRegister(
+        uint256 gameId,
+        address signingAddr,
+        uint256 pkX,
+        uint256 pkY
+    ) external returns (uint256);
+
     // deal a set of cards to a specific player
     // An error is thrown if dealCardsTo is called under any other states
     function dealCardsTo(
@@ -76,8 +84,22 @@ interface IShuffleStateManager {
         bytes calldata next
     ) external;
 
+    function playerDealCards(
+        uint256 gameId,
+        uint[8][] memory proofs,
+        Card[] memory decryptedCards,
+        uint256[2][] memory initDeltas
+    ) external;
+
     // shuffle the remaining deck, this will transit the base state to Shuffle
     function shuffle(uint256 gameId, bytes calldata next) external;
+
+    // shuffle the deck
+    function playerShuffle(
+        uint256 gameId,
+        uint256[8] memory proof,
+        CompressedDeck memory compDeck
+    ) external;
 
     // specify a player to open a specified number of cards
     function openCards(
@@ -85,6 +107,14 @@ interface IShuffleStateManager {
         uint256 playerId,
         uint8 openningNum,
         bytes calldata next
+    ) external;
+
+    // player open cards
+    function playerOpenCards(
+        uint256 gameId,
+        BitMaps.BitMap256 memory cards, // TODO : should be inner shuffleManager
+        uint[8][] memory proofs,
+        Card[] memory decryptedCards
     ) external;
 
     // transit to error state, game devs call specify error handling logic in the callback
