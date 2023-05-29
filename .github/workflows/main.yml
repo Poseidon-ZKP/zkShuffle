@@ -49,13 +49,13 @@ jobs:
             override: true
             components: rustfmt, clippy
 
-      # - name: Setup Circom global command
-      #   run: |
-      #     git clone https://github.com/iden3/circom.git
-      #     cd circom
-      #     cargo build --release
-      #     cargo install --path circom
-      #     circom --version
+      - name: Setup Circom global command
+        run: |
+          git clone https://github.com/iden3/circom.git
+          cd circom
+          cargo build --release
+          cargo install --path circom
+          circom --version
 
       - name: Install dependencies
         run: yarn
