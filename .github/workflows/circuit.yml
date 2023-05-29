@@ -8,7 +8,7 @@ on:
     branches:
       - main                                  # when PR merge to main
     paths :
-      - 'packages/circuit/'                   # when circuit file modified in PR
+      - 'packages/circuits/'                  # when circuit file modified in PR
       - 'packages/proof/'                     # when proof file modified in PR
 
 jobs:
