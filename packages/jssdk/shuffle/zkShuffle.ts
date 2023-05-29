@@ -22,7 +22,8 @@ const Scalar = require('ffjavascript').Scalar;
 
 export type BabyJub = any;
 export type EC = any;
-export type Deck = any;
+export type Deck = any
+export type FileType= ArrayBuffer | string
 
 export enum BaseState {
   Uncreated, // Important to keep this to avoid EVM default 0 value
@@ -65,10 +66,10 @@ export class ZKShuffle implements IZKShuffle {
 
   // static (local storage cache)
   sk: bigint;
-  encrypt_wasm: ArrayBuffer | string;
-  encrypt_zkey: ArrayBuffer | string;
-  decrypt_wasm: ArrayBuffer | string;
-  decrypt_zkey: ArrayBuffer | string;
+  encrypt_wasm: FileType;
+  encrypt_zkey: FileType;
+  decrypt_wasm: FileType;
+  decrypt_zkey: FileType;
 
   // per game
   nextBlockPerGame: Map<number, number>;
@@ -87,10 +88,10 @@ export class ZKShuffle implements IZKShuffle {
     shuffleManagerContract: string,
     signer: Signer,
     seed: bigint,
-    decrypt_wasm: ArrayBuffer | string,
-    decrypt_zkey: ArrayBuffer | string,
-    encrypt_wasm: ArrayBuffer | string,
-    encrypt_zkey: ArrayBuffer | string
+    decrypt_wasm: FileType = '',
+    decrypt_zkey: FileType = '',
+    encrypt_wasm: FileType = '',
+    encrypt_zkey: FileType = ''
   ): Promise<ZKShuffle> => {
     const ctx = new ZKShuffle(shuffleManagerContract, signer);
     await ctx.init(
@@ -105,10 +106,10 @@ export class ZKShuffle implements IZKShuffle {
 
   private async init(
     seed: bigint,
-    decrypt_wasm: ArrayBuffer | string,
-    decrypt_zkey: ArrayBuffer | string,
-    encrypt_wasm: ArrayBuffer | string,
-    encrypt_zkey: ArrayBuffer | string
+    decrypt_wasm: FileType,
+    decrypt_zkey: FileType,
+    encrypt_wasm: FileType,
+    encrypt_zkey: FileType
   ) {
     this.decrypt_wasm = decrypt_wasm;
     this.decrypt_zkey = decrypt_zkey;
@@ -378,7 +379,10 @@ export class ZKShuffle implements IZKShuffle {
 
   async openOffchain(gameId: number, cardIds: number[]): Promise<number[]> {
     const numCards = (await this.smc.getNumCards(gameId)).toNumber();
-    const { decryptedCards } = await this.getOpenProof(gameId, cardIds);
+    const { cardMap, decryptedCards, proofs } = await this.getOpenProof(
+      gameId,
+      cardIds
+    );
     let cards: number[] = [];
     for (let i = 0; i < decryptedCards.length; i++) {
       cards.push(await this.queryCardsPerX(decryptedCards[i].X, numCards));
