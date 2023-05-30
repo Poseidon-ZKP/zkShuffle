@@ -190,27 +190,27 @@ contract Groth16DecryptVerifier {
 
             // Validate that all evaluations ∈ F
             
-            checkField(calldataload(add(_pubSignals, 0)))
+            checkField(calldataload(add(_pubSignals.offset, 0)))
             
-            checkField(calldataload(add(_pubSignals, 32)))
+            checkField(calldataload(add(_pubSignals.offset, 32)))
             
-            checkField(calldataload(add(_pubSignals, 64)))
+            checkField(calldataload(add(_pubSignals.offset, 64)))
             
-            checkField(calldataload(add(_pubSignals, 96)))
+            checkField(calldataload(add(_pubSignals.offset, 96)))
             
-            checkField(calldataload(add(_pubSignals, 128)))
+            checkField(calldataload(add(_pubSignals.offset, 128)))
             
-            checkField(calldataload(add(_pubSignals, 160)))
+            checkField(calldataload(add(_pubSignals.offset, 160)))
             
-            checkField(calldataload(add(_pubSignals, 192)))
+            checkField(calldataload(add(_pubSignals.offset, 192)))
             
-            checkField(calldataload(add(_pubSignals, 224)))
+            checkField(calldataload(add(_pubSignals.offset, 224)))
             
-            checkField(calldataload(add(_pubSignals, 256)))
+            checkField(calldataload(add(_pubSignals.offset, 256)))
             
 
             // Validate all evaluations
-            let isValid := checkDecryptPairing(_pA, _pB, _pC, _pubSignals, pMem)
+            let isValid := checkDecryptPairing(_pA, _pB, _pC, _pubSignals.offset, pMem)
 
             mstore(0, isValid)
              return(0, 0x20)
