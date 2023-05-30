@@ -29,19 +29,6 @@ jobs:
       - name: Activate Yarn v2
         run: npm i -g corepack && corepack prepare yarn@stable --activate && yarn plugin import workspace-tools
       
-      # - name: Cache circom
-      #   id: cache-circom
-      #   uses: actions/cache@v3
-      #   with:
-      #     # npm cache files are stored in `~/.npm` on Linux/macOS
-      #     path: ~/.npm
-      #     key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hash('11') }}
-      #     restore-keys: |
-      #       ${{ runner.os }}-build-${{ env.cache-name }}-
-      #       ${{ runner.os }}-build-
-      #       ${{ runner.os }}-
-      # - if: ${{ steps.cache-circom.outputs.cache-hit != 'true' }}
-    
       - name: Install latest nightly
         uses: actions-rs/toolchain@v1
         with:
@@ -49,19 +36,11 @@ jobs:
             override: true
             components: rustfmt, clippy
 
-      # - name: Setup Circom global command
-      #   run: |
-      #     git clone https://github.com/iden3/circom.git
-      #     cd circom
-      #     cargo build --release
-      #     cargo install --path circom
-      #     circom --version
-
       - name: Install dependencies
         run: yarn
 
       - name: Compile all packages
-        run: cd packages/proof; yarn compile; cd -  # TODO : compile all after fix circuit
+        run: cd packages/proof; yarn compile; cd - ; # TODO : compile all after fix circuit
 
       - name: Run all unit tests
         run: yarn test
