@@ -1,4 +1,4 @@
-import { shuffleEncryptV2Plaintext } from '@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/plaintext';
+import { shuffleEncryptV2Plaintext } from "@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/plaintext";
 import {
   dealMultiCompressedCard,
   generateDecryptProof,
@@ -11,12 +11,12 @@ import {
   prepareShuffleDeck,
   sampleFieldElements,
   samplePermutation,
-} from '@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/utilities';
+} from "@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/utilities";
 
 import { Contract, ethers, Signer } from "ethers";
-import shuffleManagerJson from './ABI/ShuffleManager.json'
+import shuffleManagerJson from "./ABI/ShuffleManager.json";
 
-const buildBabyjub = require('circomlibjs').buildBabyjub;
+const buildBabyjub = require("circomlibjs").buildBabyjub;
 const Scalar = require("ffjavascript").Scalar;
 
 export type BabyJub = any;
@@ -24,36 +24,36 @@ export type EC = any;
 export type Deck = any;
 
 export enum BaseState {
-    Uncreated,   // Important to keep this to avoid EVM default 0 value 
-    Created,
-    Registration,
-    Shuffle,
-    Deal,
-    Open,
-    GameError,
-    Complete
+  Uncreated, // Important to keep this to avoid EVM default 0 value
+  Created,
+  Registration,
+  Shuffle,
+  Deal,
+  Open,
+  GameError,
+  Complete,
 }
 
 export enum GameTurn {
-    NOP, // Not Your Turn
-    Shuffle, // Shuffle Turn
-    Deal, // Deal Decrypt Turn
-    Open, // Open Card
-    Complete, // Game End
-    Error, // Game Error
-  }
+  NOP, // Not Your Turn
+  Shuffle, // Shuffle Turn
+  Deal, // Deal Decrypt Turn
+  Open, // Open Card
+  Complete, // Game End
+  Error, // Game Error
+}
 
 interface IZKShuffle {
-    joinGame : (gameId : number) => Promise<number>
-    checkTurn : (gameId : number, startBlock : number) => Promise<GameTurn>
-    shuffle : (gameId: number) => Promise<boolean>
-    draw : (gameId: number) => Promise<boolean>
-    open : (gameId: number, cardIds : number[]) => Promise<number[]>
-    openOffchain : (gameId: number, cardIds : number[]) => Promise<number[]>
+  joinGame: (gameId: number) => Promise<number>;
+  checkTurn: (gameId: number, startBlock: number) => Promise<GameTurn>;
+  shuffle: (gameId: number) => Promise<boolean>;
+  draw: (gameId: number) => Promise<boolean>;
+  open: (gameId: number, cardIds: number[]) => Promise<number[]>;
+  openOffchain: (gameId: number, cardIds: number[]) => Promise<number[]>;
 
-    // helper
-    getPlayerId : (gameId : number) => Promise<number> 
-    queryCards : (gameId: number, cardIds : number[]) => Promise<number[]>
+  // helper
+  getPlayerId: (gameId: number) => Promise<number>;
+  queryCards: (gameId: number, cardIds: number[]) => Promise<number[]>;
 }
 
 export class ZKShuffle implements IZKShuffle {
