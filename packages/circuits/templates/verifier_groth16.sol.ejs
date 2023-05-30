@@ -97,7 +97,7 @@ contract Groth16Verifier {
 
                 // Compute the linear combination vk_x
                 <% for (let i = 1; i <= nPublic; i++) { %>
-                g1_mulAccC(_pVk, IC<%=i%>x, IC<%=i%>y, calldataload(add(pubSignals, <%=(i-1)*32%>)))
+                g1_mulAccC(_pVk, IC<%=i%>x, IC<%=i%>y, calldataload(add(pubSignals.offset, <%=(i-1)*32%>)))
                 <% } %>
 
                 // -A
@@ -152,7 +152,7 @@ contract Groth16Verifier {
 
             // Validate that all evaluations ∈ F
             <% for (let i=0; i<IC.length; i++) { %>
-            checkField(calldataload(add(_pubSignals, <%=i*32%>)))
+            checkField(calldataload(add(_pubSignals.offset, <%=i*32%>)))
             <% } %>
 
             // Validate all evaluations
