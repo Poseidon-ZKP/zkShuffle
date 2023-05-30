@@ -169,7 +169,6 @@ export async function dealCompressedCard(
     );
     let decryptProof = await generateDecryptProof(Y, sk, pk, decryptWasmFile, decryptZkeyFile);
     let solidityProof: SolidityProof = packToSolidityProof(decryptProof.proof)
-    //console.log("deal solidityProof ", solidityProof)
     const res = await (await stateMachineContract.playerDealCards(
         gameId,
         [solidityProof],
@@ -232,4 +231,55 @@ export async function dealUncompressedCard(
     // publicSignals contain 8 values.
     // 1~2 is the card value, 3~6 is the Y, 7～8 is the personal public key.
     return [BigInt(decryptProof.publicSignals[0]), BigInt(decryptProof.publicSignals[1])];
+}
+
+export async function dealMultiCompressedCard(
+  babyjub: BabyJub,
+  numCards: number,
+  gameId: number,
+  cards: number[],
+  sk: bigint,
+  pk: bigint[],
+  stateMachineContract: Contract,
+  decryptWasmFile: string,
+  decryptZkeyFile: string
+) {
+  let proofs = [];
+  let decryptedDatas = [];
+  let initDeltas = [];
+  for (let i = 0; i < cards.length; i++) {
+    let deck = await stateMachineContract.queryDeck(gameId);
+    let Y = prepareDecryptData(
+      babyjub,
+      deck.X0[cards[i]],
+      deck.X1[cards[i]],
+      deck.selector0._data,
+      deck.selector1._data,
+      Number(numCards),
+      cards[i]
+    );
+    let decryptProof = await generateDecryptProof(
+      Y,
+      sk,
+      pk,
+      decryptWasmFile,
+      decryptZkeyFile
+    );
+    let solidityProof: SolidityProof = packToSolidityProof(decryptProof.proof);
+
+    proofs[i] = solidityProof;
+    decryptedDatas[i] = {
+      X: decryptProof.publicSignals[0],
+      Y: decryptProof.publicSignals[1],
+    };
+    initDeltas[i] = [ecX2Delta(babyjub, Y[0]), ecX2Delta(babyjub, Y[2])];
+  }
+  await (
+    await stateMachineContract.playerDealCards(
+      gameId,
+      proofs,
+      decryptedDatas,
+      initDeltas
+    )
+  ).wait();
 }

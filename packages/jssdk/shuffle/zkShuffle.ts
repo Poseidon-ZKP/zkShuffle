@@ -1,7 +1,6 @@
 import { shuffleEncryptV2Plaintext } from '@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/plaintext';
 import {
-  dealCompressedCard,
-  dealUncompressedCard,
+  dealMultiCompressedCard,
   generateDecryptProof,
   generateShuffleEncryptV2Proof,
   packToSolidityProof,
@@ -250,37 +249,33 @@ export class ZKShuffle implements IZKShuffle {
 
     async decrypt(
         gameId: number,
-        cardIdx: number
+        Cards: number[]
     ): Promise<bigint[]> {
         const numCards = (await this.smc.getNumCards(gameId)).toNumber()
-        const isFirstDecryption = ((await this.smc.getDecryptRecord(gameId, cardIdx))._data.toNumber() == 0)
-        //console.log("decrypting card", cardIdx, " isFirstDecryption ", isFirstDecryption)
-        let res : bigint[] = []
-        if (isFirstDecryption) {
-            await dealCompressedCard(
-                this.babyjub,
-                numCards,
-                gameId,
-                cardIdx,
-                this.sk,
-                this.pk,
-                this.smc,
-                this.decrypt_wasm,
-                this.decrypt_zkey,
-            );
-        } else {
-            res = await dealUncompressedCard(
-                gameId,
-                cardIdx,
-                this.sk,
-                this.pk,
-                this.smc,
-                this.decrypt_wasm,
-                this.decrypt_zkey,
-            );
+        await dealMultiCompressedCard(
+            this.babyjub,
+            numCards,
+            gameId,
+            Cards,
+            this.sk,
+            this.pk,
+            this.smc,
+            this.decrypt_wasm,
+            this.decrypt_zkey,
+        );
+        
+    }
+
+    private getSetBitsPositions(num: number): number[] {
+        const binaryString = num.toString(2);
+        const setBitsPositions: number[] = [];
+
+        for (let i = binaryString.length - 1; i >= 0; i--) {
+          if (binaryString[i] === '1') {
+            setBitsPositions.push(binaryString.length - 1 - i);
+          }
         }
-        //console.log("decrypting card", cardIdx, " DONE!")
-        return res
+        return setBitsPositions;
     }
 
     async draw(
@@ -288,7 +283,7 @@ export class ZKShuffle implements IZKShuffle {
     ) : Promise<boolean> {
         const start = Date.now()
         let cardsToDeal = (await this.smc.queryDeck(gameId)).cardsToDeal._data.toNumber();
-        await this.decrypt(gameId, Math.log2(cardsToDeal))    // TODO : multi card compatible
+        await this.decrypt(gameId, this. getSetBitsPositions(cardsToDeal));
         console.log("Player ", await this.getPlayerId(gameId)," Drawed in ", Date.now() - start, "ms")
         return true
     }
