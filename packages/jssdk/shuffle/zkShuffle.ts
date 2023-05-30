@@ -1,3 +1,4 @@
+import { FileType } from './zkShuffle';
 import { shuffleEncryptV2Plaintext } from '@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/plaintext';
 import {
   dealMultiCompressedCard,
@@ -22,7 +23,7 @@ const Scalar = require("ffjavascript").Scalar;
 export type BabyJub = any;
 export type EC = any;
 export type Deck = any;
-
+export type FileType= ArrayBuffer | string
 export enum BaseState {
     Uncreated,   // Important to keep this to avoid EVM default 0 value 
     Created,
@@ -64,11 +65,11 @@ export class ZKShuffle implements IZKShuffle {
     pk : EC
 
     // static (local storage cache)
-    sk : any
-    encrypt_wasm : any
-    encrypt_zkey : any
-    decrypt_wasm : any
-    decrypt_zkey : any
+    sk : bigint
+    encrypt_wasm : FileType
+    encrypt_zkey : FileType
+    decrypt_wasm : FileType
+    decrypt_zkey : FileType
 
     // per game
     nextBlockPerGame : Map<number, number>
@@ -86,10 +87,10 @@ export class ZKShuffle implements IZKShuffle {
         shuffleManagerContract: string,
         signer: Signer,
         seed : bigint,
-        decrypt_wasm: string = '',
-        decrypt_zkey: string = '',
-        encrypt_wasm: string = '',
-        encrypt_zkey: string = ''
+        decrypt_wasm: FileType = '',
+        decrypt_zkey: FileType = '',
+        encrypt_wasm: FileType = '',
+        encrypt_zkey: FileType = ''
       ): Promise<ZKShuffle> => {
         const ctx = new ZKShuffle(shuffleManagerContract, signer);
         await ctx.init(seed, decrypt_wasm, decrypt_zkey, encrypt_wasm, encrypt_zkey);
@@ -98,10 +99,10 @@ export class ZKShuffle implements IZKShuffle {
     
       private async init(
         seed : bigint,
-        decrypt_wasm: string,
-        decrypt_zkey: string,
-        encrypt_wasm: string,
-        encrypt_zkey: string
+        decrypt_wasm: FileType,
+        decrypt_zkey: FileType,
+        encrypt_wasm: FileType,
+        encrypt_zkey: FileType
       ) {
         this.decrypt_wasm = decrypt_wasm;
         this.decrypt_zkey = decrypt_zkey;
@@ -250,7 +251,7 @@ export class ZKShuffle implements IZKShuffle {
     async decrypt(
         gameId: number,
         Cards: number[]
-    ): Promise<bigint[]> {
+    ) {
         const numCards = (await this.smc.getNumCards(gameId)).toNumber()
         await dealMultiCompressedCard(
             this.babyjub,
