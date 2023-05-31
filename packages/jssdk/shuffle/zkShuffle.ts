@@ -272,141 +272,143 @@ export class ZKShuffle implements IZKShuffle {
     return true;
   }
 
-  async decrypt(gameId: number, Cards: number[]) {
-    const numCards = (await this.smc.getNumCards(gameId)).toNumber();
-    await dealMultiCompressedCard(
-      this.babyjub,
-      numCards,
-      gameId,
-      Cards,
-      this.sk,
-      this.pk,
-      this.smc,
-      this.decrypt_wasm,
-      this.decrypt_zkey
-    );
-  }
-
-  private getSetBitsPositions(num: number): number[] {
-    const binaryString = num.toString(2);
-    const setBitsPositions: number[] = [];
-
-    for (let i = binaryString.length - 1; i >= 0; i--) {
-      if (binaryString[i] === '1') {
-        setBitsPositions.push(binaryString.length - 1 - i);
-      }
+  async decrypt(
+        gameId: number,
+        cards: number[]
+    ) {
+        const numCards = (await this.smc.getNumCards(gameId)).toNumber();
+        await dealMultiCompressedCard(
+          this.babyjub,
+          numCards,
+          gameId,
+          cards,
+          this.sk,
+          this.pk,
+          this.smc,
+          this.decrypt_wasm,
+          this.decrypt_zkey
+        );
     }
-    return setBitsPositions;
-  }
 
-  async draw(gameId: number): Promise<boolean> {
-    const start = Date.now();
-    let cardsToDeal = (
-      await this.smc.queryDeck(gameId)
-    ).cardsToDeal._data.toNumber();
-    await this.decrypt(gameId, this.getSetBitsPositions(cardsToDeal));
-    console.log(
-      'Player ',
-      await this.getPlayerId(gameId),
-      ' Drawed in ',
-      Date.now() - start,
-      'ms'
-    );
-    return true;
-  }
+    private getSetBitsPositions(num: number): number[] {
+        const binaryString = num.toString(2);
+        const setBitsPositions: number[] = [];
 
-  async getOpenProof(gameId: number, cardIds: number[]) {
-    // remove duplicate card ids
-    cardIds = cardIds.filter((v, i, a) => a.indexOf(v) === i);
-    // sort card ids
-    cardIds = cardIds.sort((n1, n2) => n1 - n2);
-
-    const start = Date.now();
-    let deck = await this.smc.queryDeck(gameId);
-
-    let decryptedCards: Record<string, any> = [];
-    let proofs: Record<string, any> = [];
-    let cardMap = 0;
-
-    for (let i = 0; i < cardIds.length; i++) {
-      const cardId = cardIds[i];
-      cardMap += 1 << cardId;
-
-      let decryptProof = await generateDecryptProof(
-        [
-          deck.X0[cardId].toBigInt(),
-          deck.Y0[cardId].toBigInt(),
-          deck.X1[cardId].toBigInt(),
-          deck.Y1[cardId].toBigInt(),
-        ],
-        this.sk,
-        this.pk,
-        this.decrypt_wasm,
-        this.decrypt_zkey
-      );
-      decryptedCards.push({
-        X: decryptProof.publicSignals[0],
-        Y: decryptProof.publicSignals[1],
-      });
-
-      proofs.push(packToSolidityProof(decryptProof.proof));
+        for (let i = binaryString.length - 1; i >= 0; i--) {
+          if (binaryString[i] === '1') {
+            setBitsPositions.push(binaryString.length - 1 - i);
+          }
+        }
+        return setBitsPositions;
     }
-    console.log('generate open card proof in ', Date.now() - start, 'ms');
-    return {
-      cardMap: cardMap,
-      decryptedCards: decryptedCards,
-      proofs: proofs,
-    };
-  }
 
-  private async queryCardsPerX(px: string, numCards: number): Promise<number> {
-    const deck = initDeck(this.babyjub, numCards);
-    for (let i = 0; i < numCards; i++) {
-      if (BigInt(px) == deck[2 * numCards + i]) {
-        return i;
-      }
+    async draw(
+        gameId: number
+    ) : Promise<boolean> {
+        const start = Date.now()
+        let cardsToDeal = (await this.smc.queryDeck(gameId)).cardsToDeal._data.toNumber();
+        await this.decrypt(gameId, this.getSetBitsPositions(cardsToDeal));
+        console.log("Player ", await this.getPlayerId(gameId)," Drawed in ", Date.now() - start, "ms")
+        return true
     }
-    return -1;
-  }
 
-  async openOffchain(gameId: number, cardIds: number[]): Promise<number[]> {
-    const numCards = (await this.smc.getNumCards(gameId)).toNumber();
-    const { cardMap, decryptedCards, proofs } = await this.getOpenProof(
-      gameId,
-      cardIds
-    );
-    let cards: number[] = [];
-    for (let i = 0; i < decryptedCards.length; i++) {
-      cards.push(await this.queryCardsPerX(decryptedCards[i].X, numCards));
+    async getOpenProof(
+        gameId: number,
+        cardIds : number[]
+    ) {
+        // remove duplicate card ids
+        cardIds = cardIds.filter((v, i, a) => a.indexOf(v) === i);
+        // sort card ids
+        cardIds = cardIds.sort((n1,n2) => n1 - n2)
+        
+        const start = Date.now()
+        let deck = await this.smc.queryDeck(gameId);
+
+        let decryptedCards: Record<string, any> = [];
+        let proofs: Record<string, any> = [];
+        let cardMap = 0
+            
+        for (let i = 0; i < cardIds.length; i++) {
+            const cardId = cardIds[i];
+            cardMap += (1 << cardId)
+            
+            let decryptProof = await generateDecryptProof(
+                [
+                    deck.X0[cardId].toBigInt(),
+                    deck.Y0[cardId].toBigInt(),
+                    deck.X1[cardId].toBigInt(),
+                    deck.Y1[cardId].toBigInt()
+                ],
+                this.sk, this.pk, this.decrypt_wasm, this.decrypt_zkey
+            );
+            decryptedCards.push({
+                X : decryptProof.publicSignals[0],
+                Y : decryptProof.publicSignals[1]
+            })
+
+            proofs.push(packToSolidityProof(decryptProof.proof))
+        }
+        console.log("generate open card proof in ", Date.now() - start, "ms")
+        return {
+            cardMap : cardMap,
+            decryptedCards : decryptedCards,
+            proofs : proofs
+        }
     }
-    return cards;
-  }
 
-  async queryCards(gameId: number, cardIds: number[]): Promise<number[]> {
-    let cards: number[] = [];
-    for (let i = 0; i < cardIds.length; i++) {
-      const cardId = cardIds[i];
-      cards.push((await this.smc.queryCardValue(gameId, cardId)).toNumber());
+    private async queryCardsPerX(
+        px : string,
+        numCards : number
+    ) : Promise<number> {
+        const deck = initDeck(this.babyjub, numCards)
+        for (let i = 0; i < numCards; i++) {
+            if (BigInt(px) == deck[2 * numCards + i]) {
+                return i
+            }
+        }
+        return -1
     }
-    return cards;
-  }
 
-  async open(gameId: number, cardIds: number[]): Promise<number[]> {
-    const { cardMap, decryptedCards, proofs } = await this.getOpenProof(
-      gameId,
-      cardIds
-    );
-    await (
-      await this.smc.playerOpenCards(
-        gameId,
-        {
-          _data: cardMap,
-        },
-        proofs,
-        decryptedCards
-      )
-    ).wait();
+    async openOffchain(
+        gameId: number,
+        cardIds : number[]
+    ) : Promise<number[]> {
+        const numCards = (await this.smc.getNumCards(gameId)).toNumber()
+        const {cardMap, decryptedCards, proofs} = await this.getOpenProof(gameId, cardIds)
+        let cards: number[] = [];
+        for (let i = 0; i < decryptedCards.length; i++) {
+            cards.push(await this.queryCardsPerX(decryptedCards[i].X, numCards))
+        }
+        return cards
+    }
 
-    return await this.queryCards(gameId, cardIds);
-  }
+    async queryCards(
+        gameId: number,
+        cardIds : number[]
+    ) : Promise<number[]> {
+        let cards: number[] = [];
+        for (let i = 0; i < cardIds.length; i++) {
+            const cardId = cardIds[i];
+            cards.push((await this.smc.queryCardValue(gameId, cardId)).toNumber())
+        }
+        return cards
+    }
+
+    async open(
+        gameId: number,
+        cardIds : number[]
+    ) : Promise<number[]> {
+
+        const {cardMap, decryptedCards, proofs} = await this.getOpenProof(gameId, cardIds)
+        await (await this.smc.playerOpenCards(
+            gameId,
+            {
+                _data : cardMap
+            },
+            proofs,
+            decryptedCards
+        )).wait()
+
+        return await this.queryCards(gameId, cardIds)
+    }
 }

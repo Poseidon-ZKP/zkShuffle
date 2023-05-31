@@ -152,6 +152,11 @@ contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
                 return i;
             }
         }
+        for (uint256 i = 0; i < state.signingAddrs.length; i++) {
+            if (player == state.signingAddrs[i]) {
+                return i;
+            }
+        }
         return INVALID_INDEX;
     }
 
@@ -231,7 +236,7 @@ contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
         uint256 pkX,
         uint256 pkY
     )
-        external
+        external override
         checkState(gameId, BaseState.Registration)
         returns (uint256 pid)
     {
