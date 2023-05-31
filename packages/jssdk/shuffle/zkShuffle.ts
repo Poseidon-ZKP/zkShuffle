@@ -249,21 +249,20 @@ export class ZKShuffle implements IZKShuffle {
 
     async decrypt(
         gameId: number,
-        Cards: number[]
-    ): Promise<bigint[]> {
-        const numCards = (await this.smc.getNumCards(gameId)).toNumber()
+        cards: number[]
+    ) {
+        const numCards = (await this.smc.getNumCards(gameId)).toNumber();
         await dealMultiCompressedCard(
-            this.babyjub,
-            numCards,
-            gameId,
-            Cards,
-            this.sk,
-            this.pk,
-            this.smc,
-            this.decrypt_wasm,
-            this.decrypt_zkey,
+          this.babyjub,
+          numCards,
+          gameId,
+          cards,
+          this.sk,
+          this.pk,
+          this.smc,
+          this.decrypt_wasm,
+          this.decrypt_zkey
         );
-        
     }
 
     private getSetBitsPositions(num: number): number[] {
@@ -283,7 +282,7 @@ export class ZKShuffle implements IZKShuffle {
     ) : Promise<boolean> {
         const start = Date.now()
         let cardsToDeal = (await this.smc.queryDeck(gameId)).cardsToDeal._data.toNumber();
-        await this.decrypt(gameId, this. getSetBitsPositions(cardsToDeal));
+        await this.decrypt(gameId, this.getSetBitsPositions(cardsToDeal));
         console.log("Player ", await this.getPlayerId(gameId)," Drawed in ", Date.now() - start, "ms")
         return true
     }
