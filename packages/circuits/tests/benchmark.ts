@@ -5,7 +5,7 @@ import { initDeck, keyGen, sampleFieldElements, samplePermutation, compressDeck,
 import { ethers } from 'hardhat';
 import { resolve } from 'path';
 import { readFileSync } from 'fs';
-import { dnld_aws } from 'utils/utils';
+import { dnld_aws, P0X_DIR } from '../utils/utils';
 const buildBabyjub = require('circomlibjs').buildBabyjub;
 const snarkjs = require('snarkjs');
 
