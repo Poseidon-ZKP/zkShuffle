@@ -97,7 +97,7 @@ contract Verifier {
 
                 // Compute the linear combination vk_x
                 <% for (let i = 1; i <= nPublic; i++) { %>
-                g1_mulAccC(_pVk, IC<%=i%>x, IC<%=i%>y, calldataload(add(pubSignals.offset, <%=(i-1)*32%>)))
+                g1_mulAccC(_pVk, IC<%=i%>x, IC<%=i%>y, calldataload(add(pubSignals, <%=(i-1)*32%>)))
                 <% } %>
 
                 // -A
@@ -156,7 +156,7 @@ contract Verifier {
             <% } %>
 
             // Validate all evaluations
-            let isValid := checkPairing(_pA, _pB, _pC, _pubSignals, pMem)
+            let isValid := checkPairing(_pA, _pB, _pC, _pubSignals.offset, pMem)
 
             mstore(0, isValid)
              return(0, 0x20)

@@ -120,13 +120,13 @@ describe('ZKShuffle E2E test', function () {
         )
     });
 
-    // it('Hilo E2E 5 card', async () => {
-    //     await fullprocess(5)
-    // });
+    it('Hilo E2E 5 card', async () => {
+        await fullprocess(5)
+    });
     // it('Hilo E2E 30 card', async () => {
     //     await fullprocess(30)
     // });
-    it('Hilo E2E 52 card', async () => {
-        await fullprocess(52)
-    });
+//     it('Hilo E2E 52 card', async () => {
+//         await fullprocess(52)
+//     });
 });
