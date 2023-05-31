@@ -62,10 +62,19 @@ interface IShuffleStateManager {
     // invalid card index or player index
     function INVALID_INDEX() external view returns (uint256);
 
+    // create a game
     function createShuffleGame(uint8 numPlayers) external returns (uint256);
 
     // transit to register player stage
     function register(uint256 gameId, bytes calldata next) external;
+
+    // player register 
+    function playerRegister(
+        uint256 gameId,
+        address signingAddr,
+        uint256 pkX,
+        uint256 pkY
+    ) external returns (uint256 pid);
 
     // deal a set of cards to a specific player
     // An error is thrown if dealCardsTo is called under any other states
