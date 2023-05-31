@@ -25,8 +25,8 @@ async function deployShuffleEncryptCARD5(owner : SignerWithAddress) {
 export async function deploy_shuffle_manager(owner : SignerWithAddress) {
 
     const encrypt52 = await deployShuffleEncrypt(owner);
-    // const encrypt30 = await deployShuffleEncryptCARD30();
-    // const encrypt5  = await deployShuffleEncryptCARD5(owner)
+    const encrypt30 = await deployShuffleEncryptCARD30(owner);
+    const encrypt5  = await deployShuffleEncryptCARD5(owner)
     const decrypt = await deployDecrypt(owner);
 
     const crypto = await (await ethers.getContractFactory('zkShuffleCrypto')).deploy();
@@ -37,10 +37,8 @@ export async function deploy_shuffle_manager(owner : SignerWithAddress) {
     })).deploy(
         decrypt.address,
         encrypt52.address,
-        encrypt52.address,
-        encrypt52.address
-        // encrypt30.address,
-        // encrypt5.address
+        encrypt30.address,
+        encrypt5.address
     );
     return ShuffleManager__factory.connect(sm.address, owner)
 }
