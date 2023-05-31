@@ -54,4 +54,4 @@ template ShuffleEncryptV2(numCards) {
     }
 }
 
-component main {public [pk, UX0, UX1, VX0, VX1, s_u, s_v]}  = ShuffleEncryptV2(52);
+component main {public [pk, UX0, UX1, VX0, VX1, s_u, s_v]}  = ShuffleEncryptV2(30);

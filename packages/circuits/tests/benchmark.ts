@@ -48,10 +48,6 @@ describe('Shuffle Prod encrypt/decrypt benchmark tests', function () {
       [
           'wasm/decrypt.wasm',
           'zkey/decrypt.zkey',
-          'wasm/encrypt.wasm.5',
-          'zkey/encrypt.zkey.5',
-          'wasm/encrypt.wasm.30',
-          'zkey/encrypt.zkey.30',
           'wasm/encrypt.wasm',
           'zkey/encrypt.zkey'
       ].map(async (e) => {
