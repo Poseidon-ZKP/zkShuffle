@@ -21,7 +21,8 @@ export async function generateDecryptProof(
   wasmFile: string,
   zkeyFile: string,
 ): Promise<FullProof> {
-  return <FullProof> await snarkjs.groth16.fullProve({ Y, skP, pkP }, wasmFile, zkeyFile);
+  // eslint-disable-next-line keyword-spacing
+  return <FullProof>await snarkjs.groth16.fullProve({ Y, skP, pkP }, wasmFile, zkeyFile);
 }
 
 // Generates proof for shuffle encrypt v2 circuit.

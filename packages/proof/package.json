@@ -26,8 +26,10 @@
     "compile": "patch-package && tsc",
     "watch": "tsc --watch",
     "test": "hardhat test",
-    "lint": "eslint -c '../../.eslintrc' --fix './src/**/*.ts'",
-    "prettier": "prettier --check '{src,test}/**/*.{js,ts,jsx,tsx}'"
+    "lint:check": "eslint -c '../../.eslintrc' './src/**/*.ts'",
+    "lint:fix": "eslint -c '../../.eslintrc' --fix './src/**/*.ts'",
+    "prettier:check": "prettier --check '{src,test}/**/*.{js,ts,jsx,tsx}'",
+    "prettier:fix": "prettier --write './src/**/*.ts'"
   },
   "dependencies": {
     "@semaphore-protocol/group": "^2.6.1",

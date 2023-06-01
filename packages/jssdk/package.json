@@ -4,6 +4,12 @@
   "main": "index.js",
   "license": "MIT",
   "description": "A Typescript SDK for NodeJS and frontend ZK ability integration",
+  "scripts": {
+    "lint:check": "eslint -c '../../.eslintrc' './**/*.ts'",
+    "lint:fix": "eslint -c '../../.eslintrc' --fix './**/*.ts'",
+    "prettier:check": "prettier --check './**/*.ts'",
+    "prettier:fix": "prettier --write './**/*.ts'"
+  },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.2.1",
     "@nomiclabs/hardhat-waffle": "^2.0.3",

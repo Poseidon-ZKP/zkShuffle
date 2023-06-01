@@ -4,7 +4,6 @@ cache
 temp
 typechain
 .openzeppelin/unknown-*.json*
-.vscode
 third-party
 .env*
 *.rej
