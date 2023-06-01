@@ -25,7 +25,9 @@
   "scripts": {
     "compile": "patch-package && tsc",
     "watch": "tsc --watch",
-    "test": "hardhat test"
+    "test": "hardhat test",
+    "lint": "eslint -c '../../.eslintrc' --fix './src/**/*.ts'",
+    "prettier": "prettier --check '{src,test}/**/*.{js,ts,jsx,tsx}'"
   },
   "dependencies": {
     "@semaphore-protocol/group": "^2.6.1",
