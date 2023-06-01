@@ -1,6 +1,6 @@
 {
   "name": "@poseidon-zkp/poseidon-zk-proof",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "main": "index.js",
   "license": "MIT",
   "description": "A library to generate proofs",
