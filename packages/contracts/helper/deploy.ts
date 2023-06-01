@@ -1,25 +1,20 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethers } from "hardhat";
-import { DecryptVerifier, ShuffleManager__factory, Shuffle_encryptVerifier5Card__factory } from "../types";
+import { DecryptVerifier__factory, Shuffle_encryptVerifier__factory, ShuffleManager__factory, Shuffle_encryptVerifier5Card__factory, Shuffle_encryptVerifier30Card__factory } from "../types";
 
 
 // Depploys contract for decryption.
-async function deployDecrypt() {
-    return <DecryptVerifier>await (await ethers.getContractFactory('DecryptVerifier')).deploy();
+async function deployDecrypt(owner : SignerWithAddress) {
+    return await (new DecryptVerifier__factory(owner)).deploy()
 }
 
 // Deploys contract for shuffle encrypt.
-async function deployShuffleEncrypt() {
-    const vk = await (await ethers.getContractFactory('ShuffleEncryptVerifierKey')).deploy();
-    return await (await ethers.getContractFactory('Shuffle_encryptVerifier', {
-        libraries: {
-            ShuffleEncryptVerifierKey: vk.address,
-        }
-    })).deploy();
+async function deployShuffleEncrypt(owner : SignerWithAddress) {
+    return await (new Shuffle_encryptVerifier__factory(owner)).deploy()
 }
 
-async function deployShuffleEncryptCARD30() {
-    return await (await ethers.getContractFactory('Shuffle_encryptVerifier_30card')).deploy();
+async function deployShuffleEncryptCARD30(owner : SignerWithAddress) {
+    return await (new Shuffle_encryptVerifier30Card__factory(owner)).deploy()
 }
 
 
@@ -29,10 +24,10 @@ async function deployShuffleEncryptCARD5(owner : SignerWithAddress) {
 
 export async function deploy_shuffle_manager(owner : SignerWithAddress) {
 
-    const encrypt52 = await deployShuffleEncrypt();
-    const encrypt30 = await deployShuffleEncryptCARD30();
+    const encrypt52 = await deployShuffleEncrypt(owner);
+    const encrypt30 = await deployShuffleEncryptCARD30(owner);
     const encrypt5  = await deployShuffleEncryptCARD5(owner)
-    const decrypt = await deployDecrypt();
+    const decrypt = await deployDecrypt(owner);
 
     const crypto = await (await ethers.getContractFactory('zkShuffleCrypto')).deploy();
     const sm = await (await ethers.getContractFactory('ShuffleManager', {

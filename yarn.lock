@@ -1116,7 +1116,7 @@ __metadata:
     hardhat: ^2.12.2
     keccak: ^3.0.3
     log4js: ^6.7.1
-    snarkjs: ^0.5.0
+    snarkjs: ^0.7.0
     ts-node: ^10.9.1
     typechain: ^8.1.1
     typescript: ^4.9.3
@@ -1147,7 +1147,7 @@ __metadata:
     hardhat: ^2.12.5
     hardhat-contract-sizer: ^2.6.1
     node-pandoc: ^0.3.0
-    snarkjs: ^0.5.0
+    snarkjs: ^0.7.0
     solhint: ^3.3.7
     solidity-coverage: ^0.8.2
     solidity-docgen: ^0.6.0-beta.32
@@ -1205,7 +1205,7 @@ __metadata:
     ethers: ^5.7.2
     hardhat: ^2.12.2
     patch-package: ^6.5.0
-    snarkjs: ^0.5.0
+    snarkjs: ^0.7.0
     ts-node: ^10.9.1
     typechain: ^8.1.1
     typescript: ^4.9.3
@@ -3890,6 +3890,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"circom_runtime@npm:0.1.22":
+  version: 0.1.22
+  resolution: "circom_runtime@npm:0.1.22"
+  dependencies:
+    ffjavascript: 0.2.57
+  bin:
+    calcwit: calcwit.js
+  checksum: bf7b2e9f74cd7704ebc45ce686d4df49e58ed09114070a98beaab90e5ff7784d1943468ea3315bd4db638e6a76cda24e8b610aa2cd50be56adb4391e20469366
+  languageName: node
+  linkType: hard
+
 "circom_tester@npm:^0.0.19":
   version: 0.0.19
   resolution: "circom_tester@npm:0.0.19"
@@ -5885,7 +5896,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ffjavascript@npm:^0.2.38, ffjavascript@npm:^0.2.45, ffjavascript@npm:^0.2.48, ffjavascript@npm:^0.2.56, ffjavascript@npm:^0.2.57":
+"ffjavascript@npm:0.2.57, ffjavascript@npm:^0.2.38, ffjavascript@npm:^0.2.45, ffjavascript@npm:^0.2.48, ffjavascript@npm:^0.2.56, ffjavascript@npm:^0.2.57":
   version: 0.2.57
   resolution: "ffjavascript@npm:0.2.57"
   dependencies:
@@ -5893,6 +5904,17 @@ __metadata:
     wasmcurves: 0.2.0
     web-worker: ^1.2.0
   checksum: 8f3e87b3e2739c607dfc2ef8cb36d92202da57b1323987cca09ade378c584a946b9d784607ee5e2193a2de6200afdc254c19f72f79145aa55d9a8688f83f6708
+  languageName: node
+  linkType: hard
+
+"ffjavascript@npm:0.2.59":
+  version: 0.2.59
+  resolution: "ffjavascript@npm:0.2.59"
+  dependencies:
+    wasmbuilder: 0.0.16
+    wasmcurves: 0.2.1
+    web-worker: ^1.2.0
+  checksum: a2e77936b3b189b4728c625d04c2740ff7e2216970c7ba19ef0d480447ab770d08a01c036dbd906a3f587c297b697318e8cdaaaf2ec5d503003703e72dc82f30
   languageName: node
   linkType: hard
 
@@ -10414,6 +10436,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"r1csfile@npm:0.0.45":
+  version: 0.0.45
+  resolution: "r1csfile@npm:0.0.45"
+  dependencies:
+    "@iden3/bigarray": 0.0.2
+    "@iden3/binfileutils": 0.0.11
+    fastfile: 0.0.20
+    ffjavascript: 0.2.57
+  checksum: ae2d7ab3f2c37640aea2b4f45753d1f2258f5d904a51d7aaff67c32a931c3e90d22d257e8f10752044fa36b3ac31516f60e503f858913a625015b9b05575ba47
+  languageName: node
+  linkType: hard
+
 "randombytes@npm:^2.0.0, randombytes@npm:^2.0.1, randombytes@npm:^2.0.5, randombytes@npm:^2.0.6, randombytes@npm:^2.1.0":
   version: 2.1.0
   resolution: "randombytes@npm:2.1.0"
@@ -11380,7 +11414,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"snarkjs@npm:0.5.0, snarkjs@npm:^0.5.0":
+"snarkjs@npm:0.5.0":
   version: 0.5.0
   resolution: "snarkjs@npm:0.5.0"
   dependencies:
@@ -11417,6 +11451,26 @@ __metadata:
   bin:
     snarkjs: build/cli.cjs
   checksum: 5898ee988f3e2dfeb9cd25454fce3b185b8f596ae56bbe2faaf0bc6db4e7e6049f296b4e9bddf425fd804775a9d2d7b228d08363452229f57e92cf334156cd01
+  languageName: node
+  linkType: hard
+
+"snarkjs@npm:^0.7.0":
+  version: 0.7.0
+  resolution: "snarkjs@npm:0.7.0"
+  dependencies:
+    "@iden3/binfileutils": 0.0.11
+    bfj: ^7.0.2
+    blake2b-wasm: ^2.4.0
+    circom_runtime: 0.1.22
+    ejs: ^3.1.6
+    fastfile: 0.0.20
+    ffjavascript: 0.2.59
+    js-sha3: ^0.8.0
+    logplease: ^1.2.15
+    r1csfile: 0.0.45
+  bin:
+    snarkjs: build/cli.cjs
+  checksum: 8382c765c9b2fb3fac71807cd58352d0f497793b8eb18843a6ca7d7d6d4c8afbb97becd0e02211c51c0561e97646660a4c3edaed8200d1d182845879156f76b6
   languageName: node
   linkType: hard
 
@@ -12998,6 +13052,15 @@ __metadata:
   dependencies:
     wasmbuilder: 0.0.16
   checksum: 0769ca2d0c2f99619436f86dcab16294d94cc0c8a114b0c5e6ed71df49625a6ad35000011fee57471b7647838eeb75f631e74b200996ac2513e8ca0c47e5b8d0
+  languageName: node
+  linkType: hard
+
+"wasmcurves@npm:0.2.1":
+  version: 0.2.1
+  resolution: "wasmcurves@npm:0.2.1"
+  dependencies:
+    wasmbuilder: 0.0.16
+  checksum: 3bfd6c3bf339e5e3980590afecf83d5a06fbb0ec8d4e1612c5d7a8edd90173c05270b45832330964eac281c70b9d04229de430673952c6516c2feb9c42d2ab03
   languageName: node
   linkType: hard
 
