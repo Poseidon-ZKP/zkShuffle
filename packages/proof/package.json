@@ -1,6 +1,6 @@
 {
   "name": "@poseidon-zkp/poseidon-zk-proof",
-  "version": "0.0.1",
+  "version": "0.0.9",
   "main": "index.js",
   "license": "MIT",
   "description": "A library to generate proofs",
@@ -25,6 +25,7 @@
   "scripts": {
     "compile": "patch-package && tsc",
     "watch": "tsc --watch",
+    "pub2npmjs": "npm publish --access=public",
     "test": "hardhat test"
   },
   "dependencies": {
