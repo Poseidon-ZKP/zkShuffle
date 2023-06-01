@@ -457,20 +457,20 @@ contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
             );
         }
 
+        uint256[] memory input = new uint256[](8);
+        input[0] = decryptedCard.X;
+        input[1] = decryptedCard.Y;
+        input[2] = state.deck.X0[cardIndex];
+        input[3] = state.deck.Y0[cardIndex];
+        input[4] = state.deck.X1[cardIndex];
+        input[5] = state.deck.Y1[cardIndex];
+        input[6] = state.playerPkX[state.curPlayerIndex];
+        input[7] = state.playerPKY[state.curPlayerIndex];
         decryptVerifier.verifyProof(
             [proof[0], proof[1]],
             [[proof[2], proof[3]], [proof[4], proof[5]]],
             [proof[6], proof[7]],
-            [
-                decryptedCard.X,
-                decryptedCard.Y,
-                state.deck.X0[cardIndex],
-                state.deck.Y0[cardIndex],
-                state.deck.X1[cardIndex],
-                state.deck.Y1[cardIndex],
-                state.playerPkX[state.curPlayerIndex],
-                state.playerPKY[state.curPlayerIndex]
-            ]
+            input
         );
         // update X1 and Y1 in the deck
         state.deck.X1[cardIndex] = decryptedCard.X;
