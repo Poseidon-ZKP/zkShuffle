@@ -1093,23 +1093,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@poseidon-zkp/poseidon-zk-circuits@npm:0.0.1":
-  version: 0.0.1
-  resolution: "@poseidon-zkp/poseidon-zk-circuits@npm:0.0.1"
-  dependencies:
-    circomlib: ^2.0.5
-    dotenv: ^16.0.3
-  checksum: a65d16afe160b17f5ca944c73b5beb1e3b55dd747499480ae70a6453170a7f92dac03f6671d9bd26e925432d25c362333d9b38b85731aeddf1dac52062cab901
-  languageName: node
-  linkType: hard
-
-"@poseidon-zkp/poseidon-zk-circuits@workspace:packages/circuits":
+"@poseidon-zkp/poseidon-zk-circuits@0.0.9, @poseidon-zkp/poseidon-zk-circuits@workspace:packages/circuits":
   version: 0.0.0-use.local
   resolution: "@poseidon-zkp/poseidon-zk-circuits@workspace:packages/circuits"
   dependencies:
     "@nomiclabs/hardhat-ethers": ^2.2.1
     "@nomiclabs/hardhat-waffle": ^2.0.3
-    "@poseidon-zkp/poseidon-zk-proof": 0.0.1
+    "@poseidon-zkp/poseidon-zk-proof": 0.0.9
     "@typechain/ethers-v5": ^10.1.1
     "@typechain/hardhat": ^6.1.4
     "@types/chai": ^4.3.4
@@ -1140,9 +1130,9 @@ __metadata:
     "@nomicfoundation/hardhat-chai-matchers": ^1.0.6
     "@nomiclabs/hardhat-ethers": ^2.2.1
     "@nomiclabs/hardhat-solpp": ^2.0.1
-    "@poseidon-zkp/poseidon-zk-circuits": 0.0.1
-    "@poseidon-zkp/poseidon-zk-jssdk": 0.0.1
-    "@poseidon-zkp/poseidon-zk-proof": 0.0.1
+    "@poseidon-zkp/poseidon-zk-circuits": 0.0.9
+    "@poseidon-zkp/poseidon-zk-jssdk": 0.0.9
+    "@poseidon-zkp/poseidon-zk-proof": 0.0.9
     "@semaphore-protocol/contracts": ^2.6.1
     "@typechain/ethers-v5": ^10.1.1
     "@typechain/hardhat": ^6.1.4
@@ -1167,20 +1157,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@poseidon-zkp/poseidon-zk-jssdk@npm:0.0.1":
-  version: 0.0.1
-  resolution: "@poseidon-zkp/poseidon-zk-jssdk@npm:0.0.1"
-  checksum: 4595d929d8da0776ec3c28f3d5be4e223b267bd621784f7e27515087d9eb02ff52dd2b15357a280ddae394b34cec02302fef37d5c1f0c2ebaa1f0f2a2d2f64f9
-  languageName: node
-  linkType: hard
-
-"@poseidon-zkp/poseidon-zk-jssdk@workspace:packages/jssdk":
+"@poseidon-zkp/poseidon-zk-jssdk@0.0.9, @poseidon-zkp/poseidon-zk-jssdk@workspace:packages/jssdk":
   version: 0.0.0-use.local
   resolution: "@poseidon-zkp/poseidon-zk-jssdk@workspace:packages/jssdk"
   dependencies:
     "@nomiclabs/hardhat-ethers": ^2.2.1
     "@nomiclabs/hardhat-waffle": ^2.0.3
-    "@poseidon-zkp/poseidon-zk-proof": 0.0.1
+    "@poseidon-zkp/poseidon-zk-proof": 0.0.9
     "@typechain/ethers-v5": ^10.1.1
     "@typechain/hardhat": ^6.1.4
     "@types/chai": ^4.3.4
@@ -1199,23 +1182,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@poseidon-zkp/poseidon-zk-proof@npm:0.0.1":
-  version: 0.0.1
-  resolution: "@poseidon-zkp/poseidon-zk-proof@npm:0.0.1"
-  dependencies:
-    "@semaphore-protocol/group": ^2.6.1
-    "@semaphore-protocol/identity": ^2.6.1
-    "@semaphore-protocol/proof": ^2.6.1
-    "@types/debug": ^4.1.7
-    "@zk-kit/incremental-merkle-tree": ^1.0.0
-    dotenv: ^16.0.3
-    ethers: ^5.7.2
-    snarkjs: ^0.5.0
-  checksum: 81224cd27549d3970be5493d2e80e77c9b64dc1f26581bcfaf43c4e56611599c5e5a6f94a493821624e67b2b119af4384ddf252e9bb02d550e6a3c7d170852d0
-  languageName: node
-  linkType: hard
-
-"@poseidon-zkp/poseidon-zk-proof@workspace:packages/proof":
+"@poseidon-zkp/poseidon-zk-proof@0.0.9, @poseidon-zkp/poseidon-zk-proof@workspace:packages/proof":
   version: 0.0.0-use.local
   resolution: "@poseidon-zkp/poseidon-zk-proof@workspace:packages/proof"
   dependencies:
