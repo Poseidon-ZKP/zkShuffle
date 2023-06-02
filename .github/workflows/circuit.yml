@@ -29,8 +29,8 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - name: Activate Yarn v2
-        run: npm i -g corepack && corepack prepare yarn@yarn@1.22.10 --activate && yarn plugin import workspace-tools
+      - name: Activate Yarn v1
+        run: npm i -g corepack && corepack prepare yarn@1.22.10 --activate && yarn plugin import workspace-tools
 
       - name: Setup Circom global command
         run: |
