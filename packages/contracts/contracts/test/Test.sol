@@ -30,7 +30,6 @@ contract Test is ShuffleManager {
                 _deck5EncVerifier
             );
         } else {
-            console.log("Invalid numCards ", numCards);
             assert(false);
         }
     }

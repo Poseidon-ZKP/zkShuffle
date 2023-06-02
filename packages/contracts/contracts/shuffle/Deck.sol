@@ -3,7 +3,6 @@
 pragma solidity >=0.8.2 <0.9.0;
 
 import "./BitMaps.sol";
-import "hardhat/console.sol";
 
 // currently, we support 30 card deck and 52 card deck
 enum DeckConfig {
