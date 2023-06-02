@@ -1,6 +1,6 @@
 {
   "name": "@poseidon-zkp/poseidon-zk-proof",
-  "version": "0.0.1",
+  "version": "0.0.12",
   "main": "index.js",
   "license": "MIT",
   "description": "A library to generate proofs",
@@ -26,6 +26,7 @@
     "compile": "patch-package && tsc",
     "watch": "tsc --watch",
     "test": "hardhat test",
+    "pub2npmjs": "npm publish --access=public",
     "lint:check": "eslint -c '../../.eslintrc' './src/**/*.ts'",
     "lint:fix": "eslint -c '../../.eslintrc' --fix './src/**/*.ts'",
     "prettier:check": "prettier --check '{src,test}/**/*.{js,ts,jsx,tsx}'",
