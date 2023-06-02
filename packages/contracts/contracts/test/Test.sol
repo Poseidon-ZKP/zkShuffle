@@ -1,9 +1,21 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.8.2 <0.9.0;
 
-import "../shuffle/Storage.sol";
+import "../shuffle/ShuffleManager.sol";
 
-abstract contract Debug is Storage {
+contract Test is ShuffleManager {
+
+    constructor(
+        address decryptVerifier_,
+        address deck52EncVerifier,
+        address deck30EncVerifier,
+        address deck5EncVerifier
+    ) ShuffleManager (
+        decryptVerifier_,
+        deck52EncVerifier,
+        deck30EncVerifier,
+        deck5EncVerifier
+    ) {}
 
     function set_gameInfo(
         uint gameId,
