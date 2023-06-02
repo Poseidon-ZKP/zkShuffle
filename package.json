@@ -10,7 +10,11 @@
   "scripts": {
     "compile": "yarn workspaces foreach run compile",
     "test": "cd packages/contracts && yarn test && cd ../proof && yarn test",
-    "doc": "cd packages/contracts && yarn doc"
+    "doc": "cd packages/contracts && yarn doc",
+    "lint:fix": "npm run lint:fix --workspaces --if-present",
+    "lint:check": "npm run lint:check --workspaces --if-present",
+    "prettier:fix": "npm run prettier:fix --workspaces --if-present",
+    "prettier:check": "npm run prettier:check --workspaces --if-present"
   },
   "installConfig": {
     "hoistingLimits": "dependencies"
@@ -32,5 +36,19 @@
     "ts-node": "^10.9.1",
     "typechain": "^8.1.1",
     "typescript": "^4.9.3"
+  },
+  "dependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.59.8",
+    "@typescript-eslint/parser": "^5.59.8",
+    "eslint": "^8.41.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-n": "^16.0.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-promise": "^6.1.1",
+    "eslint-plugin-standard": "^5.0.0",
+    "prettier": "^2.8.8"
   }
 }
