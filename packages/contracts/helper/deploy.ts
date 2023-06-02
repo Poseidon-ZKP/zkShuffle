@@ -1,6 +1,6 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethers } from "hardhat";
-import { DecryptVerifier__factory, Shuffle_encryptVerifier__factory, ShuffleManager__factory, Shuffle_encryptVerifier5Card__factory, Shuffle_encryptVerifier30Card__factory } from "../types";
+import { DecryptVerifier__factory, Shuffle_encryptVerifier__factory, ShuffleManager__factory, Shuffle_encryptVerifier5Card__factory, Shuffle_encryptVerifier30Card__factory, Test__factory } from "../types";
 
 
 // Depploys contract for decryption.
@@ -43,3 +43,23 @@ export async function deploy_shuffle_manager(owner : SignerWithAddress) {
     return ShuffleManager__factory.connect(sm.address, owner)
 }
 
+export async function deploy_shuffle_test(owner : SignerWithAddress) {
+
+    const encrypt52 = await deployShuffleEncrypt(owner);
+    const encrypt30 = await deployShuffleEncryptCARD30(owner);
+    const encrypt5  = await deployShuffleEncryptCARD5(owner)
+    const decrypt = await deployDecrypt(owner);
+
+    const crypto = await (await ethers.getContractFactory('zkShuffleCrypto')).deploy();
+    const sm = await (await ethers.getContractFactory('Test', {
+        libraries: {
+            zkShuffleCrypto: crypto.address,
+        }
+    })).deploy(
+        decrypt.address,
+        encrypt52.address,
+        encrypt30.address,
+        encrypt5.address
+    );
+    return Test__factory.connect(sm.address, owner)
+}

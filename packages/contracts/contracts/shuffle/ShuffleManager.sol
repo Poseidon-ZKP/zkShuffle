@@ -12,12 +12,7 @@ import "./Storage.sol";
  * @title Shuffle Manager
  * @dev manage all ZK Games
  */
-// #if SHUFFLE_UNIT_TEST
-import "../debug/Debug.sol";
-contract ShuffleManager is IShuffleStateManager, Debug, Ownable {
-// #else
 contract ShuffleManager is IShuffleStateManager, Storage, Ownable {
-// #endif
     // invalid card index or player index
     uint256 public constant override INVALID_INDEX = 999999;
 
