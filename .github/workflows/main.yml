@@ -2,13 +2,12 @@ name: Node.js CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     strategy:
@@ -20,21 +19,21 @@ jobs:
         uses: actions/checkout@v3
         with:
           lfs: true
-      
+
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      
-      - name: Activate Yarn v2
-        run: npm i -g corepack && corepack prepare yarn@stable --activate && yarn plugin import workspace-tools
-      
+
+      - name: Activate Yarn v1
+        run: npm i -g corepack && corepack prepare yarn@1.22.10 --activate && yarn plugin import workspace-tools
+
       - name: Install latest nightly
         uses: actions-rs/toolchain@v1
         with:
-            toolchain: nightly
-            override: true
-            components: rustfmt, clippy
+          toolchain: nightly
+          override: true
+          components: rustfmt, clippy
 
       - name: Install dependencies
         run: yarn
@@ -44,6 +43,6 @@ jobs:
 
       - name: Run all unit tests
         run: yarn test
-      
+
       - name: Generate docs
         run: yarn doc
