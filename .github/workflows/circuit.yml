@@ -41,7 +41,7 @@ jobs:
           circom --version
 
       - name: Install dependencies
-        run: YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn
+        run: yarn
 
       - name: Compile all packages
         run: cd packages/proof; yarn compile; cd - ; cd packages/circuits; yarn compile; cd - # TODO : compile all after fix circuit

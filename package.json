@@ -16,7 +16,6 @@
     "prettier:fix": "npm run prettier:fix --workspaces --if-present",
     "prettier:check": "npm run prettier:check --workspaces --if-present"
   },
-  
   "installConfig": {
     "hoistingLimits": "dependencies"
   },
