@@ -1161,13 +1161,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@poseidon-zkp/poseidon-zk-circuits@0.0.1, @poseidon-zkp/poseidon-zk-circuits@workspace:packages/circuits":
+"@poseidon-zkp/poseidon-zk-circuits@1.0.0, @poseidon-zkp/poseidon-zk-circuits@workspace:packages/circuits":
   version: 0.0.0-use.local
   resolution: "@poseidon-zkp/poseidon-zk-circuits@workspace:packages/circuits"
   dependencies:
     "@nomiclabs/hardhat-ethers": ^2.2.1
     "@nomiclabs/hardhat-waffle": ^2.0.3
-    "@poseidon-zkp/poseidon-zk-proof": 0.0.1
+    "@poseidon-zkp/poseidon-zk-proof": 1.0.0
     "@typechain/ethers-v5": ^10.1.1
     "@typechain/hardhat": ^6.1.4
     "@types/chai": ^4.3.4
@@ -1198,9 +1198,9 @@ __metadata:
     "@nomicfoundation/hardhat-chai-matchers": ^1.0.6
     "@nomiclabs/hardhat-ethers": ^2.2.1
     "@nomiclabs/hardhat-solpp": ^2.0.1
-    "@poseidon-zkp/poseidon-zk-circuits": 0.0.1
-    "@poseidon-zkp/poseidon-zk-jssdk": 0.0.1
-    "@poseidon-zkp/poseidon-zk-proof": 0.0.1
+    "@poseidon-zkp/poseidon-zk-circuits": 1.0.0
+    "@poseidon-zkp/poseidon-zk-jssdk": 1.0.0
+    "@poseidon-zkp/poseidon-zk-proof": 1.0.0
     "@semaphore-protocol/contracts": ^2.6.1
     "@typechain/ethers-v5": ^10.1.1
     "@typechain/hardhat": ^6.1.4
@@ -1225,13 +1225,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@poseidon-zkp/poseidon-zk-jssdk@0.0.1, @poseidon-zkp/poseidon-zk-jssdk@workspace:packages/jssdk":
+"@poseidon-zkp/poseidon-zk-jssdk@1.0.0, @poseidon-zkp/poseidon-zk-jssdk@workspace:packages/jssdk":
   version: 0.0.0-use.local
   resolution: "@poseidon-zkp/poseidon-zk-jssdk@workspace:packages/jssdk"
   dependencies:
     "@nomiclabs/hardhat-ethers": ^2.2.1
     "@nomiclabs/hardhat-waffle": ^2.0.3
-    "@poseidon-zkp/poseidon-zk-proof": 0.0.1
+    "@poseidon-zkp/poseidon-zk-proof": 1.0.0
     "@typechain/ethers-v5": ^10.1.1
     "@typechain/hardhat": ^6.1.4
     "@types/chai": ^4.3.4
@@ -1250,7 +1250,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@poseidon-zkp/poseidon-zk-proof@0.0.1, @poseidon-zkp/poseidon-zk-proof@workspace:packages/proof":
+"@poseidon-zkp/poseidon-zk-proof@1.0.0, @poseidon-zkp/poseidon-zk-proof@workspace:packages/proof":
   version: 0.0.0-use.local
   resolution: "@poseidon-zkp/poseidon-zk-proof@workspace:packages/proof"
   dependencies:

@@ -7,11 +7,6 @@ import "./ECC.sol";
 import "./IBaseGame.sol";
 import "./BitMaps.sol";
 
-// #if SHUFFLE_UNIT_TEST
-import "hardhat/console.sol";
-
-// #endif
-
 /// @title Storage Layout
 contract Storage {
     // currently, all the decks shares the same decrypt circuits
