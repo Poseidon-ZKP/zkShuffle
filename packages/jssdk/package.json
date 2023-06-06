@@ -5,6 +5,7 @@
   "license": "MIT",
   "description": "A Typescript SDK for NodeJS and frontend ZK ability integration",
   "scripts": {
+    "compile": "tsc",
     "pub2npmjs": "npm publish --access=public",
     "lint:check": "eslint -c '../../.eslintrc' './**/*.ts'",
     "lint:fix": "eslint -c '../../.eslintrc' --fix './**/*.ts'",
