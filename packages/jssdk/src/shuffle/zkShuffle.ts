@@ -64,11 +64,11 @@ export class ZKShuffle implements IZKShuffle {
   pk: EC;
 
   // static (local storage cache)
-  sk: bigint;
-  encrypt_wasm: FileType;
-  encrypt_zkey: FileType;
-  decrypt_wasm: FileType;
-  decrypt_zkey: FileType;
+  sk: bigint | undefined;
+  encrypt_wasm: FileType | undefined;
+  encrypt_zkey: FileType | undefined;
+  decrypt_wasm: FileType | undefined;
+  decrypt_zkey: FileType | undefined;
 
   // per game
   nextBlockPerGame: Map<number, number>;
@@ -257,7 +257,7 @@ export class ZKShuffle implements IZKShuffle {
       numCards,
       gameId,
       cards,
-      this.sk,
+      this.sk as bigint,
       this.pk,
       this.smc,
       this.decrypt_wasm as string,
@@ -309,7 +309,7 @@ export class ZKShuffle implements IZKShuffle {
           deck.X1[cardId].toBigInt(),
           deck.Y1[cardId].toBigInt(),
         ],
-        this.sk,
+        this.sk as bigint,
         this.pk,
         this.decrypt_wasm as string,
         this.decrypt_zkey as string,

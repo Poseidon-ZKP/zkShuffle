@@ -16,7 +16,7 @@ export function dnld_aws(file_name: string) {
     if (!fs.existsSync(resolve(P0X_DIR, file_name))) {
       const file = fs.createWriteStream(resolve(P0X_DIR, file_name));
 
-      https.get(P0X_AWS_URL + file_name, (resp) => {
+      https.get(P0X_AWS_URL + file_name, (resp: any) => {
         file.on("finish", () => {
           file.close();
           reslv(0);
