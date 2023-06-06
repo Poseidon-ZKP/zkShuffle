@@ -40,7 +40,7 @@ export function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export async function dnld_crypto_files(cardNum: number) {
+export async function dnld_crypto_files(cardNum: 5 | 30 | 52) {
   try {
     let wasmFileName = "";
     let zkeyFileName = "";
