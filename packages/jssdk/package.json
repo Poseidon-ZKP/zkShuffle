@@ -1,11 +1,11 @@
 {
   "name": "@poseidon-zkp/poseidon-zk-jssdk",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "lib/index.js",
   "license": "MIT",
   "description": "A Typescript SDK for NodeJS and frontend ZK ability integration",
   "scripts": {
-    "compile": "tsc",
+    "compile": "tsc -p tsconfig.json",
     "pub2npmjs": "npm publish --access=public",
     "lint:check": "eslint -c '../../.eslintrc' './**/*.ts'",
     "lint:fix": "eslint -c '../../.eslintrc' --fix './**/*.ts'",
@@ -15,7 +15,7 @@
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.2.1",
     "@nomiclabs/hardhat-waffle": "^2.0.3",
-    "@poseidon-zkp/poseidon-zk-proof": "1.0.0",
+    "@poseidon-zkp/poseidon-zk-proof": "1.1.0",
     "@typechain/ethers-v5": "^10.1.1",
     "@typechain/hardhat": "^6.1.4",
     "@types/chai": "^4.3.4",

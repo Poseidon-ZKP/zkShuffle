@@ -12,7 +12,7 @@ export function dnld_aws(file_name: string) {
   fs.mkdir(P0X_DIR, () => {});
   fs.mkdir(resolve(P0X_DIR, "./wasm"), () => {});
   fs.mkdir(resolve(P0X_DIR, "./zkey"), () => {});
-  return new Promise((reslv, reject) => {
+  return new Promise((reslv) => {
     if (!fs.existsSync(resolve(P0X_DIR, file_name))) {
       const file = fs.createWriteStream(resolve(P0X_DIR, file_name));
 
@@ -79,5 +79,6 @@ export async function dnld_crypto_files(cardNum: 5 | 30 | 52) {
     };
   } catch (e) {
     console.log("download error", e);
+    return null;
   }
 }
