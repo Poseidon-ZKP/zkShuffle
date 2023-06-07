@@ -34,7 +34,7 @@
     "@typechain/ethers-v5": "^10.1.1",
     "circomlibjs": "^0.1.7",
     "ethers": "^5.7.2",
-    "axios": "^1.5.0",
+    "axios": "^1.4.0",
     "patch-package": "^7.0.0"
   },
   "files": [
