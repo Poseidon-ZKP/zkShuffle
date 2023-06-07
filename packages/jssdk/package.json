@@ -40,6 +40,6 @@
   "files": [
     "src",
     "dist",
-    "lib"
+    "esm"
   ]
 }
