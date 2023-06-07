@@ -1,6 +1,6 @@
 {
   "name": "@poseidon-zkp/poseidon-zk-jssdk",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "main": "lib/index.js",
   "module": "lib.esm/index.js",
   "license": "MIT",
@@ -32,7 +32,7 @@
     "typescript": "^4.9.3"
   },
   "dependencies": {
-    "@poseidon-zkp/poseidon-zk-proof": "1.5.0",
+    "@poseidon-zkp/poseidon-zk-proof": "1.6.0",
     "@typechain/ethers-v5": "^10.1.1",
     "circomlibjs": "^0.1.7",
     "ethers": "^5.7.2",
