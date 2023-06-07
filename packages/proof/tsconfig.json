@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    // "baseUrl": ".",
+    "baseUrl": ".",
     "declaration": true,
     "declarationMap": true,
     "emitDecoratorMetadata": true,
@@ -16,7 +16,7 @@
     "sourceMap": true,
     "strict": true,
     "target": "es2020",
-    "outDir": "./lib"
+    "outDir": "dist"
   },
   "exclude": ["node_modules"],
   "include": ["tests", "src"]
