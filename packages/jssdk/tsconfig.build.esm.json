@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.build.json",
+  "compilerOptions": {
+    "strictNullChecks": false,
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "outDir": "./lib.esm"
+  }
+}
