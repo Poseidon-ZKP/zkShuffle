@@ -1,20 +1,25 @@
-import { resolve } from "path";
-import axios from "axios";
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.dnld_crypto_files = exports.sleep = exports.dnld_file = exports.dnld_aws = exports.P0X_AWS_URL = exports.P0X_DIR = void 0;
+const path_1 = require("path");
+const axios_1 = __importDefault(require("axios"));
 const fs = require("fs");
 const https = require("https");
 const HOME_DIR = require("os").homedir();
-export const P0X_DIR = resolve(HOME_DIR, "./.poseidon-zkp/zkShuffle");
-export const P0X_AWS_URL = "https://p0x-labs.s3.amazonaws.com/zkShuffle/";
-export function dnld_aws(file_name) {
-    // fs.mkdir(P0X_DIR, () => {}, { recursive: true })
-    fs.mkdir(resolve(HOME_DIR, "./.poseidon-zkp"), () => { });
-    fs.mkdir(P0X_DIR, () => { });
-    fs.mkdir(resolve(P0X_DIR, "./wasm"), () => { });
-    fs.mkdir(resolve(P0X_DIR, "./zkey"), () => { });
+exports.P0X_DIR = (0, path_1.resolve)(HOME_DIR, "./.poseidon-zkp/zkShuffle");
+exports.P0X_AWS_URL = "https://p0x-labs.s3.amazonaws.com/zkShuffle/";
+function dnld_aws(file_name) {
+    fs.mkdir((0, path_1.resolve)(HOME_DIR, "./.poseidon-zkp"), () => { });
+    fs.mkdir(exports.P0X_DIR, () => { });
+    fs.mkdir((0, path_1.resolve)(exports.P0X_DIR, "./wasm"), () => { });
+    fs.mkdir((0, path_1.resolve)(exports.P0X_DIR, "./zkey"), () => { });
     return new Promise((reslv) => {
-        if (!fs.existsSync(resolve(P0X_DIR, file_name))) {
-            const file = fs.createWriteStream(resolve(P0X_DIR, file_name));
-            https.get(P0X_AWS_URL + file_name, (resp) => {
+        if (!fs.existsSync((0, path_1.resolve)(exports.P0X_DIR, file_name))) {
+            const file = fs.createWriteStream((0, path_1.resolve)(exports.P0X_DIR, file_name));
+            https.get(exports.P0X_AWS_URL + file_name, (resp) => {
                 file.on("finish", () => {
                     file.close();
                     reslv(0);
@@ -27,16 +32,19 @@ export function dnld_aws(file_name) {
         }
     });
 }
-export async function dnld_file(path) {
-    const res = await axios.get(P0X_AWS_URL + path, {
+exports.dnld_aws = dnld_aws;
+async function dnld_file(path) {
+    const res = await axios_1.default.get(exports.P0X_AWS_URL + path, {
         responseType: "arraybuffer",
     });
     return res.data;
 }
-export function sleep(ms) {
+exports.dnld_file = dnld_file;
+function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
-export async function dnld_crypto_files(cardNum) {
+exports.sleep = sleep;
+async function dnld_crypto_files(cardNum) {
     try {
         let wasmFileName = "";
         let zkeyFileName = "";
@@ -66,7 +74,6 @@ export async function dnld_crypto_files(cardNum) {
             decryptWasmPromise,
             decryptZkeyPromise,
         ]);
-        //  developer can use this to cache the files
         return {
             encrypt_wasm,
             encrypt_zkey,
@@ -79,4 +86,5 @@ export async function dnld_crypto_files(cardNum) {
         return null;
     }
 }
+exports.dnld_crypto_files = dnld_crypto_files;
 //# sourceMappingURL=utility.js.map

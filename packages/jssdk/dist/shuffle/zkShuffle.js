@@ -1,12 +1,18 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 var _a;
-import { shuffleEncryptV2Plaintext } from "@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/plaintext";
-import { dealMultiCompressedCard, generateDecryptProof, generateShuffleEncryptV2Proof, packToSolidityProof, } from "@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/proof";
-import { initDeck, prepareShuffleDeck, sampleFieldElements, samplePermutation, } from "@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/utilities";
-import { ethers } from "ethers";
-import shuffleManagerJson from "./ABI/ShuffleManager.json";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ZKShuffle = exports.GameTurn = exports.BaseState = void 0;
+const plaintext_1 = require("@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/plaintext");
+const proof_1 = require("@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/proof");
+const utilities_1 = require("@poseidon-zkp/poseidon-zk-proof/dist/src/shuffle/utilities");
+const ethers_1 = require("ethers");
+const ShuffleManager_json_1 = __importDefault(require("./ABI/ShuffleManager.json"));
 const buildBabyjub = require("circomlibjs").buildBabyjub;
 const Scalar = require("ffjavascript").Scalar;
-export var BaseState;
+var BaseState;
 (function (BaseState) {
     BaseState[BaseState["Uncreated"] = 0] = "Uncreated";
     BaseState[BaseState["Created"] = 1] = "Created";
@@ -16,8 +22,8 @@ export var BaseState;
     BaseState[BaseState["Open"] = 5] = "Open";
     BaseState[BaseState["GameError"] = 6] = "GameError";
     BaseState[BaseState["Complete"] = 7] = "Complete";
-})(BaseState || (BaseState = {}));
-export var GameTurn;
+})(BaseState = exports.BaseState || (exports.BaseState = {}));
+var GameTurn;
 (function (GameTurn) {
     GameTurn[GameTurn["NOP"] = 0] = "NOP";
     GameTurn[GameTurn["Shuffle"] = 1] = "Shuffle";
@@ -25,11 +31,11 @@ export var GameTurn;
     GameTurn[GameTurn["Open"] = 3] = "Open";
     GameTurn[GameTurn["Complete"] = 4] = "Complete";
     GameTurn[GameTurn["Error"] = 5] = "Error";
-})(GameTurn || (GameTurn = {}));
-export class ZKShuffle {
+})(GameTurn = exports.GameTurn || (exports.GameTurn = {}));
+class ZKShuffle {
     constructor(shuffleManagerContract, signer) {
         this.signer = signer;
-        this.smc = new ethers.Contract(shuffleManagerContract, shuffleManagerJson.abi, signer);
+        this.smc = new ethers_1.ethers.Contract(shuffleManagerContract, ShuffleManager_json_1.default.abi, signer);
         this.nextBlockPerGame = new Map();
     }
     async init(seed, decrypt_wasm, decrypt_zkey, encrypt_wasm, encrypt_zkey) {
@@ -59,13 +65,11 @@ export class ZKShuffle {
         await (await this.smc.playerRegister(gameId, address, this.pk[0], this.pk[1])).wait();
         return await this.getPlayerId(gameId);
     }
-    // pull player's Id for gameId
     async getPlayerId(gameId) {
         const address = await this.signer.getAddress();
         return (await this.smc.getPlayerIdx(gameId, address)).toNumber();
     }
     async checkTurn(gameId, startBlock = 0) {
-        var _b, _c;
         if (startBlock === undefined || startBlock === 0) {
             startBlock = this.nextBlockPerGame.get(gameId);
             if (startBlock === undefined) {
@@ -76,9 +80,9 @@ export class ZKShuffle {
         const events = await this.smc.queryFilter(filter, startBlock);
         for (let i = 0; i < events.length; i++) {
             const e = events[i];
-            startBlock = e.blockNumber + 1; // TODO : probably missing event in same block
-            if (((_b = e === null || e === void 0 ? void 0 : e.args) === null || _b === void 0 ? void 0 : _b.gameId.toNumber()) !== gameId ||
-                ((_c = e === null || e === void 0 ? void 0 : e.args) === null || _c === void 0 ? void 0 : _c.playerIndex.toNumber()) !== (await this.getPlayerId(gameId))) {
+            startBlock = e.blockNumber + 1;
+            if (e?.args?.gameId.toNumber() !== gameId ||
+                e?.args?.playerIndex.toNumber() !== (await this.getPlayerId(gameId))) {
                 continue;
             }
             this.nextBlockPerGame.set(gameId, startBlock);
@@ -108,17 +112,16 @@ export class ZKShuffle {
         const aggrPK = [key[0].toBigInt(), key[1].toBigInt()];
         const aggrPKEC = [this.babyjub.F.e(aggrPK[0]), this.babyjub.F.e(aggrPK[1])];
         const deck = await this.smc.queryDeck(gameId);
-        const preprocessedDeck = prepareShuffleDeck(this.babyjub, deck, numCards);
-        const A = samplePermutation(Number(numCards));
-        const R = sampleFieldElements(this.babyjub, numBits, BigInt(numCards));
-        const plaintext_output = shuffleEncryptV2Plaintext(this.babyjub, numCards, A, R, aggrPKEC, preprocessedDeck.X0, preprocessedDeck.X1, preprocessedDeck.Delta[0], preprocessedDeck.Delta[1], preprocessedDeck.Selector);
-        return await generateShuffleEncryptV2Proof(aggrPK, A, R, preprocessedDeck.X0, preprocessedDeck.X1, preprocessedDeck.Delta[0], preprocessedDeck.Delta[1], preprocessedDeck.Selector, plaintext_output.X0, plaintext_output.X1, plaintext_output.delta0, plaintext_output.delta1, plaintext_output.selector, this.encrypt_wasm, this.encrypt_zkey);
+        const preprocessedDeck = (0, utilities_1.prepareShuffleDeck)(this.babyjub, deck, numCards);
+        const A = (0, utilities_1.samplePermutation)(Number(numCards));
+        const R = (0, utilities_1.sampleFieldElements)(this.babyjub, numBits, BigInt(numCards));
+        const plaintext_output = (0, plaintext_1.shuffleEncryptV2Plaintext)(this.babyjub, numCards, A, R, aggrPKEC, preprocessedDeck.X0, preprocessedDeck.X1, preprocessedDeck.Delta[0], preprocessedDeck.Delta[1], preprocessedDeck.Selector);
+        return await (0, proof_1.generateShuffleEncryptV2Proof)(aggrPK, A, R, preprocessedDeck.X0, preprocessedDeck.X1, preprocessedDeck.Delta[0], preprocessedDeck.Delta[1], preprocessedDeck.Selector, plaintext_output.X0, plaintext_output.X1, plaintext_output.delta0, plaintext_output.delta1, plaintext_output.selector, this.encrypt_wasm, this.encrypt_zkey);
     }
-    // Queries the current deck from contract, shuffles & generates ZK proof locally, and updates the deck on contract.
     async _shuffle(gameId) {
         const numCards = (await this.smc.getNumCards(gameId)).toNumber();
         const shuffleFullProof = await this.generate_shuffle_proof(gameId);
-        const solidityProof = packToSolidityProof(shuffleFullProof.proof);
+        const solidityProof = (0, proof_1.packToSolidityProof)(shuffleFullProof.proof);
         await (await this.smc.playerShuffle(gameId, solidityProof, {
             config: await this.smc.cardConfig(gameId),
             X0: shuffleFullProof.publicSignals.slice(3 + numCards * 2, 3 + numCards * 3),
@@ -135,7 +138,7 @@ export class ZKShuffle {
     }
     async decrypt(gameId, cards) {
         const numCards = (await this.smc.getNumCards(gameId)).toNumber();
-        await dealMultiCompressedCard(this.babyjub, numCards, gameId, cards, this.sk, this.pk, this.smc, this.decrypt_wasm, this.decrypt_zkey);
+        await (0, proof_1.dealMultiCompressedCard)(this.babyjub, numCards, gameId, cards, this.sk, this.pk, this.smc, this.decrypt_wasm, this.decrypt_zkey);
     }
     getSetBitsPositions(num) {
         const binaryString = num.toString(2);
@@ -155,9 +158,7 @@ export class ZKShuffle {
         return true;
     }
     async getOpenProof(gameId, cardIds) {
-        // remove duplicate card ids
         cardIds = cardIds.filter((v, i, a) => a.indexOf(v) === i);
-        // sort card ids
         cardIds = cardIds.sort((n1, n2) => n1 - n2);
         const start = Date.now();
         const deck = await this.smc.queryDeck(gameId);
@@ -167,7 +168,7 @@ export class ZKShuffle {
         for (let i = 0; i < cardIds.length; i++) {
             const cardId = cardIds[i];
             cardMap += 1 << cardId;
-            const decryptProof = await generateDecryptProof([
+            const decryptProof = await (0, proof_1.generateDecryptProof)([
                 deck.X0[cardId].toBigInt(),
                 deck.Y0[cardId].toBigInt(),
                 deck.X1[cardId].toBigInt(),
@@ -177,7 +178,7 @@ export class ZKShuffle {
                 X: decryptProof.publicSignals[0],
                 Y: decryptProof.publicSignals[1],
             });
-            proofs.push(packToSolidityProof(decryptProof.proof));
+            proofs.push((0, proof_1.packToSolidityProof)(decryptProof.proof));
         }
         console.log("generate open card proof in ", Date.now() - start, "ms");
         return {
@@ -187,7 +188,7 @@ export class ZKShuffle {
         };
     }
     queryCardsPerX(px, numCards) {
-        const deck = initDeck(this.babyjub, numCards);
+        const deck = (0, utilities_1.initDeck)(this.babyjub, numCards);
         for (let i = 0; i < numCards; i++) {
             if (BigInt(px) === deck[2 * numCards + i]) {
                 return i;
@@ -220,6 +221,7 @@ export class ZKShuffle {
         return await this.queryCards(gameId, cardIds);
     }
 }
+exports.ZKShuffle = ZKShuffle;
 _a = ZKShuffle;
 ZKShuffle.create = async (shuffleManagerContract, signer, seed, decrypt_wasm = "", decrypt_zkey = "", encrypt_wasm = "", encrypt_zkey = "") => {
     const ctx = new ZKShuffle(shuffleManagerContract, signer);

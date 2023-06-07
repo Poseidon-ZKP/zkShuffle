@@ -66,3 +66,4 @@ export declare class ZKShuffle implements IZKShuffle {
     open(gameId: number, cardIds: number[]): Promise<number[]>;
 }
 export {};
+//# sourceMappingURL=zkShuffle.d.ts.map
