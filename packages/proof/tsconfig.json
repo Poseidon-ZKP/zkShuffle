@@ -1,23 +1,23 @@
 {
-    "compilerOptions": {
-      "baseUrl": ".",
-      "declaration": true,
-      "declarationMap": true,
-      "emitDecoratorMetadata": true,
-      "esModuleInterop": true,
-      "experimentalDecorators": true,
-      "forceConsistentCasingInFileNames": true,
-      "lib": ["ES2020", "ESNext"],
-      "module": "commonjs",
-      "moduleResolution": "node",
-      "noImplicitAny": true,
-      "removeComments": true,
-      "resolveJsonModule": true,
-      "sourceMap": true,
-      "strict": true,
-      "target": "es2020",
-      "outDir": "dist"
-    },
-    "exclude": ["node_modules"],
-    "include": ["tests", "src"]
-  }
+  "compilerOptions": {
+    // "baseUrl": ".",
+    "declaration": true,
+    "declarationMap": true,
+    "emitDecoratorMetadata": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "forceConsistentCasingInFileNames": true,
+    "lib": ["ES2020", "ESNext"],
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noImplicitAny": true,
+    "removeComments": true,
+    "resolveJsonModule": true,
+    "sourceMap": true,
+    "strict": true,
+    "target": "es2020",
+    "outDir": "./lib"
+  },
+  "exclude": ["node_modules"],
+  "include": ["tests", "src"]
+}
