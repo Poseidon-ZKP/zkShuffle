@@ -39,7 +39,7 @@ jobs:
         run: yarn
 
       - name: Compile all packages
-        run: cd packages/proof; yarn compile; cd - ; cd packages/jssdk; yarn compile; cd - # TODO : compile all after fix circuit
+        run: cd packages/proof; yarn compile; cd - ; cd packages/jssdk; yarn build; cd - # TODO : compile all after fix circuit
 
       - name: Run all unit tests
         run: yarn test
