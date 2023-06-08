@@ -16,12 +16,7 @@
     "strictNullChecks": true,
     "baseUrl": "./",
     "outDir": "./dist",
-    "paths": {
-      "@poseidon-zkp/poseidon-zk-jssdk": ["src"],
-      "@poseidon-zkp/poseidon-zk-jssdk/*": ["src/*"]
-    },
     "skipLibCheck": true
   },
-
   "include": ["src", "types", ".*.js", "*.js", "*.ts"]
 }
