@@ -4,6 +4,6 @@
     "strictNullChecks": false,
     "module": "ESNext",
     "moduleResolution": "Node",
-    "outDir": "./lib.esm"
+    "outDir": "./dist.esm"
   }
 }

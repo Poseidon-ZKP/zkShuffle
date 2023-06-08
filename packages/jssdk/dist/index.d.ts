@@ -1,3 +1,2 @@
-import { ZKShuffle } from "./shuffle/zkShuffle";
-export { ZKShuffle };
-//# sourceMappingURL=index.d.ts.map
+export * from "./shuffle/zkShuffle";
+export * from "./shuffle/utility";

@@ -1,13 +1,17 @@
 {
   "name": "@poseidon-zkp/poseidon-zk-jssdk",
   "version": "1.6.0",
-  "main": "lib/index.js",
-  "module": "lib.esm/index.js",
+  "main": "dist/index.js",
+  "module": "dist.esm/index.js",
+  "types": "src/index.ts",
+  "publishConfig": {
+    "types": "dist/index.d.ts"
+  },
   "license": "MIT",
   "description": "A Typescript SDK for NodeJS and frontend ZK ability integration",
   "scripts": {
     "build": "npm run clear && npm run build:esm && npm run build:commonjs",
-    "clear": "rm -rf ./lib/ ./lib.esm/",
+    "clear": "rm -rf ./dist/ ./dist.esm/",
     "build:commonjs": "tsc -p tsconfig.build.json",
     "build:esm": "tsc -p tsconfig.build.esm.json",
     "pub2npmjs": "npm publish --access=public",
@@ -39,12 +43,9 @@
     "axios": "^1.4.0",
     "patch-package": "^7.0.0"
   },
-  "publishConfig": {
-    "types": "lib/index.d.ts"
-  },
   "files": [
     "src",
-    "lib",
-    "lib.esm"
+    "dist",
+    "dist.esm"
   ]
 }

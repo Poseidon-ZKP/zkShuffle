@@ -6,7 +6,6 @@
     "removeComments": true,
     "noLib": false,
     "lib": ["esnext", "dom"],
-    "types": ["node"],
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "esModuleInterop": true,
@@ -16,14 +15,13 @@
     "allowJs": true,
     "strictNullChecks": true,
     "baseUrl": "./",
-    "outDir": "./lib",
+    "outDir": "./dist",
+    "paths": {
+      "@poseidon-zkp/poseidon-zk-jssdk": ["src"],
+      "@poseidon-zkp/poseidon-zk-jssdk/*": ["src/*"]
+    },
     "skipLibCheck": true
   },
 
-  "include": ["src"],
-  "exclude": [
-    "**/*.spec.ts",
-    "packages/**/lib.esm", // For some unclear reason, they will affect webstorm's type definition. We have to exclude them.
-    "packages/**/lib"
-  ]
+  "include": ["src", "types", ".*.js", "*.js", "*.ts"]
 }
