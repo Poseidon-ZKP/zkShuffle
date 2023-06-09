@@ -1,6 +1,6 @@
 {
   "name": "@poseidon-zkp/poseidon-zk-contracts",
-  "version": "1.1.0",
+  "version": "1.17.0",
   "main": "index.js",
   "license": "MIT",
   "description": "Out-of-box smart contracts library enabling DApps to easily integrate ZK stacks",
@@ -25,9 +25,9 @@
   "dependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.6",
     "@nomiclabs/hardhat-solpp": "^2.0.1",
-    "@poseidon-zkp/poseidon-zk-circuits": "1.1.0",
-    "@poseidon-zkp/poseidon-zk-jssdk": "1.1.0",
-    "@poseidon-zkp/poseidon-zk-proof": "1.1.0",
+    "@poseidon-zkp/poseidon-zk-circuits": "1.17.0",
+    "@poseidon-zkp/poseidon-zk-jssdk": "1.17.0",
+    "@poseidon-zkp/poseidon-zk-proof": "1.17.0",
     "@semaphore-protocol/contracts": "^2.6.1",
     "circomlibjs": "^0.1.7",
     "node-pandoc": "^0.3.0",
@@ -36,6 +36,7 @@
     "solidity-docgen": "^0.6.0-beta.32"
   },
   "scripts": {
+    "build": "tsc -p tsconfig.json",
     "compile": "hardhat compile --verbose",
     "lint:check": "solhint --config ./.solhint.json  \"contracts/**/*.sol\"",
     "lint:fix": "solhint --config ./.solhint.json  \"contracts/**/*.sol\" --fix",
@@ -44,5 +45,21 @@
     "deploy": "hardhat deploy",
     "contract-size": "hardhat size-contracts",
     "doc": "hardhat docgen"
-  }
+  },
+  "files": [
+    "src",
+    "dist",
+    "types",
+    "artifacts",
+    "artifacts/cache",
+    "types/artifacts/cache",
+    "types/factories/artifacts/cache",
+    "dist/types/factories/artifacts/cache",
+    "dist/types/artifacts/cache",
+    "contracts",
+    "hardhat.config.js",
+    "helper",
+    "convert.js",
+    "adocs"
+  ]
 }

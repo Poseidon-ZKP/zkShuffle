@@ -341,7 +341,7 @@ export class ZKShuffle implements IZKShuffle {
 
   async openOffchain(gameId: number, cardIds: number[]): Promise<number[]> {
     const numCards = (await this.smc.getNumCards(gameId)).toNumber();
-    const { cardMap, decryptedCards, proofs } = await this.getOpenProof(gameId, cardIds);
+    const { decryptedCards } = await this.getOpenProof(gameId, cardIds);
     const cards: number[] = [];
     for (let i = 0; i < decryptedCards.length; i++) {
       cards.push(this.queryCardsPerX(decryptedCards[i].X, numCards));
