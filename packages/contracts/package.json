@@ -53,6 +53,7 @@
     "artifacts",
     "artifacts/cache",
     "types/artifacts/cache",
+    "types/factories/artifacts/cache",
     "contracts",
     "hardhat.config.js",
     "helper",
