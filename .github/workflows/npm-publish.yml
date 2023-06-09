@@ -23,7 +23,7 @@ jobs:
       - run: yarn
 
       - name: Compile all packages
-        run: cd packages/proof; yarn compile; cd - ; cd packages/jssdk; yarn build; cd -; cd packages/contracts; yarn compile; cd - ; cd packages/contracts; yarn build; cd - ; cd packages/circuits; yarn compile; cd - ; cd packages/circuits; yarn build; cd - ; # TODO : compile all after fix circuit
+        run: cd packages/proof; yarn compile; cd - ; cd packages/jssdk; yarn build; cd -; cd packages/contracts; yarn compile; cd - ; cd packages/contracts; yarn build; cd - ; # TODO : compile all after fix circuit
 
       - run: yarn run publish
         env:
