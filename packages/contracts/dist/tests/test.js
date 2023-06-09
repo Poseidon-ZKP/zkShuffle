@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const chai_1 = require("chai");
 const hardhat_1 = require("hardhat");
@@ -20,46 +11,44 @@ describe("ZKShuffle State Less Unit Test", function () {
     let sm_owner;
     let game_owner;
     let signers;
-    before(() => __awaiter(this, void 0, void 0, function* () {
-        signers = yield hardhat_1.ethers.getSigners();
+    before(async () => {
+        signers = await hardhat_1.ethers.getSigners();
         sm_owner = signers[10];
         game_owner = signers[11];
-        yield Promise.all([
+        await Promise.all([
             "wasm/decrypt.wasm",
             "zkey/decrypt.zkey",
             "wasm/encrypt.wasm.5",
             "zkey/encrypt.zkey.5",
             "wasm/encrypt.wasm",
             "zkey/encrypt.zkey",
-        ].map((e) => __awaiter(this, void 0, void 0, function* () {
-            yield (0, utility_1.dnld_aws)(e);
-        })));
-    }));
-    it("Player Register StateLess", () => __awaiter(this, void 0, void 0, function* () {
-        const SM = yield (0, deploy_1.deploy_shuffle_test)(sm_owner);
+        ].map(async (e) => {
+            await (0, utility_1.dnld_aws)(e);
+        }));
+    });
+    it("Player Register StateLess", async () => {
+        const SM = await (0, deploy_1.deploy_shuffle_test)(sm_owner);
         const gameId = 1;
         const numCards = 5;
         const numPlayers = 2;
         let players = [];
         for (let i = 0; i < 9; i++) {
-            players.push(yield zkShuffle_1.ZKShuffle.create(SM.address, signers[i], yield zkShuffle_1.ZKShuffle.generateShuffleSecret(), (0, path_1.resolve)(utility_1.P0X_DIR, "./wasm/decrypt.wasm"), (0, path_1.resolve)(utility_1.P0X_DIR, "./zkey/decrypt.zkey"), (0, path_1.resolve)(utility_1.P0X_DIR, "./wasm/encrypt.wasm.5"), (0, path_1.resolve)(utility_1.P0X_DIR, "./zkey/encrypt.zkey.5")));
+            players.push(await zkShuffle_1.ZKShuffle.create(SM.address, signers[i], await zkShuffle_1.ZKShuffle.generateShuffleSecret(), (0, path_1.resolve)(utility_1.P0X_DIR, "./wasm/decrypt.wasm"), (0, path_1.resolve)(utility_1.P0X_DIR, "./zkey/decrypt.zkey"), (0, path_1.resolve)(utility_1.P0X_DIR, "./wasm/encrypt.wasm.5"), (0, path_1.resolve)(utility_1.P0X_DIR, "./zkey/encrypt.zkey.5")));
         }
-        yield SM.set_gameInfo(gameId, numCards, numPlayers);
-        yield SM.set_gameState(gameId, zkShuffle_1.BaseState.Registration);
-        (0, chai_1.expect)((yield SM.gameState(gameId)).toNumber()).equal(zkShuffle_1.BaseState.Registration);
-        function playerRegister(pid) {
-            return __awaiter(this, void 0, void 0, function* () {
-                const player = players[pid];
-                return yield types_1.ShuffleManager__factory.connect(SM.address, player.signer).playerRegister(gameId, yield player.signer.getAddress(), player.pk[0], player.pk[1]);
-            });
+        await SM.set_gameInfo(gameId, numCards, numPlayers);
+        await SM.set_gameState(gameId, zkShuffle_1.BaseState.Registration);
+        (0, chai_1.expect)((await SM.gameState(gameId)).toNumber()).equal(zkShuffle_1.BaseState.Registration);
+        async function playerRegister(pid) {
+            const player = players[pid];
+            return await types_1.ShuffleManager__factory.connect(SM.address, player.signer).playerRegister(gameId, await player.signer.getAddress(), player.pk[0], player.pk[1]);
         }
-        yield (0, chai_1.expect)(playerRegister(0))
+        await (0, chai_1.expect)(playerRegister(0))
             .to.emit(SM, "Register")
-            .withArgs(gameId, 0, yield players[0].signer.getAddress());
-        yield (0, chai_1.expect)(playerRegister(1))
+            .withArgs(gameId, 0, await players[0].signer.getAddress());
+        await (0, chai_1.expect)(playerRegister(1))
             .to.emit(SM, "Register")
-            .withArgs(gameId, 1, yield players[1].signer.getAddress());
-        yield (0, chai_1.expect)(playerRegister(2)).to.be.revertedWith("Game full");
-    }));
+            .withArgs(gameId, 1, await players[1].signer.getAddress());
+        await (0, chai_1.expect)(playerRegister(2)).to.be.revertedWith("Game full");
+    });
 });
 //# sourceMappingURL=test.js.map

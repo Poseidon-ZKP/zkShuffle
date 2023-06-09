@@ -6,9 +6,9 @@ name: Node.js Package
 on:
   pull_request:
     branches:
-      - main                # when PR merge to main
-    paths :
-      - '.version'          # when .version modified in PR
+      - main # when PR merge to main
+    paths:
+      - ".version" # when .version modified in PR
 
 jobs:
   publish-npm:
@@ -21,6 +21,10 @@ jobs:
           registry-url: https://registry.npmjs.org/
       - run: npm i -g corepack && corepack prepare yarn@stable --activate && yarn plugin import workspace-tools
       - run: yarn
+
+      - name: Compile all packages
+        run: cd packages/proof; yarn compile; cd - ; cd packages/jssdk; yarn build; cd -; cd packages/contracts; yarn compile; cd - ; cd packages/contracts; yarn build; cd - ; cd packages/circuits; yarn compile; cd - ; cd packages/circuits; yarn build; cd - ; # TODO : compile all after fix circuit
+
       - run: yarn run publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_AUTH_TOKEN}}

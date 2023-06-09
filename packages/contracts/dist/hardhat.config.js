@@ -55,7 +55,10 @@ const config = {
         timeout: 100000000,
     },
 };
-exports.default = Object.assign(Object.assign({}, config), { docgen: {
+exports.default = {
+    ...config,
+    docgen: {
         pages: (contracts) => `${contracts.name}.md`,
-    } });
+    },
+};
 //# sourceMappingURL=hardhat.config.js.map

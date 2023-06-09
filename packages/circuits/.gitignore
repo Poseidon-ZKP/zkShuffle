@@ -5,3 +5,4 @@ node_modules
 .DS_STORE
 wasm
 zkey
+dist
