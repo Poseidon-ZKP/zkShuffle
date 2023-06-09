@@ -1,13 +1,13 @@
 {
   "name": "@poseidon-zkp/poseidon-zk-circuits",
-  "version": "1.16.0",
+  "version": "1.17.0",
   "main": "index.js",
   "license": "MIT",
   "description": "A Circom circuits library for ZK Applications",
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.2.1",
     "@nomiclabs/hardhat-waffle": "^2.0.3",
-    "@poseidon-zkp/poseidon-zk-proof": "1.16.0",
+    "@poseidon-zkp/poseidon-zk-proof": "1.17.0",
     "@typechain/ethers-v5": "^10.1.1",
     "@typechain/hardhat": "^6.1.4",
     "@types/chai": "^4.3.4",
