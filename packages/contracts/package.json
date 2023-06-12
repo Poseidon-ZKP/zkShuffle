@@ -25,10 +25,10 @@
   "dependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.6",
     "@nomiclabs/hardhat-solpp": "^2.0.1",
+    "@semaphore-protocol/contracts": "^2.6.1",
     "@zkShuffle/circuits": "1.18.0",
     "@zkShuffle/jssdk": "1.18.0",
     "@zkShuffle/proof": "1.18.0",
-    "@semaphore-protocol/contracts": "^2.6.1",
     "circomlibjs": "^0.1.7",
     "node-pandoc": "^0.3.0",
     "snarkjs": "^0.7.0",

@@ -1142,126 +1142,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@poseidon-zkp/poseidon-zk-circuits@1.18.0, @poseidon-zkp/poseidon-zk-circuits@workspace:packages/circuits":
-  version: 0.0.0-use.local
-  resolution: "@poseidon-zkp/poseidon-zk-circuits@workspace:packages/circuits"
-  dependencies:
-    "@nomiclabs/hardhat-ethers": ^2.2.1
-    "@nomiclabs/hardhat-waffle": ^2.0.3
-    "@poseidon-zkp/poseidon-zk-proof": 1.18.0
-    "@typechain/ethers-v5": ^10.1.1
-    "@typechain/hardhat": ^6.1.4
-    "@types/chai": ^4.3.4
-    "@types/mocha": ^10.0.0
-    "@types/node": ^18.11.9
-    chai: ^4.3.7
-    circom_tester: ^0.0.19
-    circomlib: ^2.0.5
-    circomlibjs: ^0.1.7
-    dotenv: ^16.0.3
-    ethereum-waffle: ^3.4.4
-    ethers: ^5.7.2
-    ffjavascript: ^0.2.57
-    hardhat: ^2.12.2
-    keccak: ^3.0.3
-    log4js: ^6.7.1
-    snarkjs: ^0.7.0
-    ts-node: ^10.9.1
-    typechain: ^8.1.1
-    typescript: ^4.9.3
-  languageName: unknown
-  linkType: soft
-
-"@poseidon-zkp/poseidon-zk-contracts@workspace:packages/contracts":
-  version: 0.0.0-use.local
-  resolution: "@poseidon-zkp/poseidon-zk-contracts@workspace:packages/contracts"
-  dependencies:
-    "@nomicfoundation/hardhat-chai-matchers": ^1.0.6
-    "@nomiclabs/hardhat-ethers": ^2.2.1
-    "@nomiclabs/hardhat-solpp": ^2.0.1
-    "@poseidon-zkp/poseidon-zk-circuits": 1.18.0
-    "@poseidon-zkp/poseidon-zk-jssdk": 1.18.0
-    "@poseidon-zkp/poseidon-zk-proof": 1.18.0
-    "@semaphore-protocol/contracts": ^2.6.1
-    "@typechain/ethers-v5": ^10.1.1
-    "@typechain/hardhat": ^6.1.4
-    "@types/chai": ^4.3.4
-    "@types/mocha": ^10.0.0
-    "@types/node": ^18.11.9
-    chai: ^4.3.7
-    circomlibjs: ^0.1.7
-    dotenv: ^16.0.3
-    ethereum-waffle: ^3.4.4
-    ethers: ^5.7.2
-    hardhat: ^2.12.5
-    hardhat-contract-sizer: ^2.6.1
-    node-pandoc: ^0.3.0
-    snarkjs: ^0.7.0
-    solhint: ^3.3.7
-    solidity-coverage: ^0.8.2
-    solidity-docgen: ^0.6.0-beta.32
-    ts-node: ^10.9.1
-    typechain: ^8.1.1
-    typescript: ^4.9.3
-  languageName: unknown
-  linkType: soft
-
-"@poseidon-zkp/poseidon-zk-jssdk@1.18.0, @poseidon-zkp/poseidon-zk-jssdk@workspace:packages/jssdk":
-  version: 0.0.0-use.local
-  resolution: "@poseidon-zkp/poseidon-zk-jssdk@workspace:packages/jssdk"
-  dependencies:
-    "@nomiclabs/hardhat-ethers": ^2.2.1
-    "@nomiclabs/hardhat-waffle": ^2.0.3
-    "@poseidon-zkp/poseidon-zk-proof": 1.18.0
-    "@typechain/ethers-v5": ^10.1.1
-    "@typechain/hardhat": ^6.1.4
-    "@types/chai": ^4.3.4
-    "@types/mocha": ^10.0.0
-    "@types/node": ^18.11.9
-    axios: ^1.4.0
-    chai: ^4.3.7
-    circomlibjs: ^0.1.7
-    dotenv: ^16.0.3
-    ethereum-waffle: ^3.4.4
-    ethers: ^5.7.2
-    hardhat: ^2.12.2
-    patch-package: ^7.0.0
-    ts-node: ^10.9.1
-    typechain: ^8.1.1
-    typescript: ^4.9.3
-  languageName: unknown
-  linkType: soft
-
-"@poseidon-zkp/poseidon-zk-proof@1.18.0, @poseidon-zkp/poseidon-zk-proof@workspace:packages/proof":
-  version: 0.0.0-use.local
-  resolution: "@poseidon-zkp/poseidon-zk-proof@workspace:packages/proof"
-  dependencies:
-    "@nomiclabs/hardhat-ethers": ^2.2.1
-    "@nomiclabs/hardhat-waffle": ^2.0.3
-    "@semaphore-protocol/group": ^2.6.1
-    "@semaphore-protocol/identity": ^2.6.1
-    "@semaphore-protocol/proof": ^2.6.1
-    "@typechain/ethers-v5": ^10.1.1
-    "@typechain/hardhat": ^6.1.4
-    "@types/chai": ^4.3.4
-    "@types/debug": ^4.1.7
-    "@types/mocha": ^10.0.0
-    "@types/node": ^18.11.9
-    "@zk-kit/incremental-merkle-tree": ^1.0.0
-    chai: ^4.3.7
-    circomlibjs-0-1-7: "npm:circomlibjs@^0.1.7"
-    dotenv: ^16.0.3
-    ethereum-waffle: ^3.4.4
-    ethers: ^5.7.2
-    hardhat: ^2.12.2
-    patch-package: ^6.5.0
-    snarkjs: ^0.7.0
-    ts-node: ^10.9.1
-    typechain: ^8.1.1
-    typescript: ^4.9.3
-  languageName: unknown
-  linkType: soft
-
 "@resolver-engine/core@npm:^0.3.3":
   version: 0.3.3
   resolution: "@resolver-engine/core@npm:0.3.3"
@@ -1983,6 +1863,126 @@ __metadata:
   checksum: 5f2d6dd2a4898aa75f72d5b3811ab965c369f0a51561250313849fb9a6a1163064c4887da3bea298d25e80a4bc79b3c6997edf6492a6a8fc157512bc3fcb5e23
   languageName: node
   linkType: hard
+
+"@zkShuffle/circuits@1.18.0, @zkShuffle/circuits@workspace:packages/circuits":
+  version: 0.0.0-use.local
+  resolution: "@zkShuffle/circuits@workspace:packages/circuits"
+  dependencies:
+    "@nomiclabs/hardhat-ethers": ^2.2.1
+    "@nomiclabs/hardhat-waffle": ^2.0.3
+    "@typechain/ethers-v5": ^10.1.1
+    "@typechain/hardhat": ^6.1.4
+    "@types/chai": ^4.3.4
+    "@types/mocha": ^10.0.0
+    "@types/node": ^18.11.9
+    "@zkShuffle/proof": 1.18.0
+    chai: ^4.3.7
+    circom_tester: ^0.0.19
+    circomlib: ^2.0.5
+    circomlibjs: ^0.1.7
+    dotenv: ^16.0.3
+    ethereum-waffle: ^3.4.4
+    ethers: ^5.7.2
+    ffjavascript: ^0.2.57
+    hardhat: ^2.12.2
+    keccak: ^3.0.3
+    log4js: ^6.7.1
+    snarkjs: ^0.7.0
+    ts-node: ^10.9.1
+    typechain: ^8.1.1
+    typescript: ^4.9.3
+  languageName: unknown
+  linkType: soft
+
+"@zkShuffle/contracts@workspace:packages/contracts":
+  version: 0.0.0-use.local
+  resolution: "@zkShuffle/contracts@workspace:packages/contracts"
+  dependencies:
+    "@nomicfoundation/hardhat-chai-matchers": ^1.0.6
+    "@nomiclabs/hardhat-ethers": ^2.2.1
+    "@nomiclabs/hardhat-solpp": ^2.0.1
+    "@semaphore-protocol/contracts": ^2.6.1
+    "@typechain/ethers-v5": ^10.1.1
+    "@typechain/hardhat": ^6.1.4
+    "@types/chai": ^4.3.4
+    "@types/mocha": ^10.0.0
+    "@types/node": ^18.11.9
+    "@zkShuffle/circuits": 1.18.0
+    "@zkShuffle/jssdk": 1.18.0
+    "@zkShuffle/proof": 1.18.0
+    chai: ^4.3.7
+    circomlibjs: ^0.1.7
+    dotenv: ^16.0.3
+    ethereum-waffle: ^3.4.4
+    ethers: ^5.7.2
+    hardhat: ^2.12.5
+    hardhat-contract-sizer: ^2.6.1
+    node-pandoc: ^0.3.0
+    snarkjs: ^0.7.0
+    solhint: ^3.3.7
+    solidity-coverage: ^0.8.2
+    solidity-docgen: ^0.6.0-beta.32
+    ts-node: ^10.9.1
+    typechain: ^8.1.1
+    typescript: ^4.9.3
+  languageName: unknown
+  linkType: soft
+
+"@zkShuffle/jssdk@1.18.0, @zkShuffle/jssdk@workspace:packages/jssdk":
+  version: 0.0.0-use.local
+  resolution: "@zkShuffle/jssdk@workspace:packages/jssdk"
+  dependencies:
+    "@nomiclabs/hardhat-ethers": ^2.2.1
+    "@nomiclabs/hardhat-waffle": ^2.0.3
+    "@typechain/ethers-v5": ^10.1.1
+    "@typechain/hardhat": ^6.1.4
+    "@types/chai": ^4.3.4
+    "@types/mocha": ^10.0.0
+    "@types/node": ^18.11.9
+    "@zkShuffle/proof": 1.18.0
+    axios: ^1.4.0
+    chai: ^4.3.7
+    circomlibjs: ^0.1.7
+    dotenv: ^16.0.3
+    ethereum-waffle: ^3.4.4
+    ethers: ^5.7.2
+    hardhat: ^2.12.2
+    patch-package: ^7.0.0
+    ts-node: ^10.9.1
+    typechain: ^8.1.1
+    typescript: ^4.9.3
+  languageName: unknown
+  linkType: soft
+
+"@zkShuffle/proof@1.18.0, @zkShuffle/proof@workspace:packages/proof":
+  version: 0.0.0-use.local
+  resolution: "@zkShuffle/proof@workspace:packages/proof"
+  dependencies:
+    "@nomiclabs/hardhat-ethers": ^2.2.1
+    "@nomiclabs/hardhat-waffle": ^2.0.3
+    "@semaphore-protocol/group": ^2.6.1
+    "@semaphore-protocol/identity": ^2.6.1
+    "@semaphore-protocol/proof": ^2.6.1
+    "@typechain/ethers-v5": ^10.1.1
+    "@typechain/hardhat": ^6.1.4
+    "@types/chai": ^4.3.4
+    "@types/debug": ^4.1.7
+    "@types/mocha": ^10.0.0
+    "@types/node": ^18.11.9
+    "@zk-kit/incremental-merkle-tree": ^1.0.0
+    chai: ^4.3.7
+    circomlibjs-0-1-7: "npm:circomlibjs@^0.1.7"
+    dotenv: ^16.0.3
+    ethereum-waffle: ^3.4.4
+    ethers: ^5.7.2
+    hardhat: ^2.12.2
+    patch-package: ^6.5.0
+    snarkjs: ^0.7.0
+    ts-node: ^10.9.1
+    typechain: ^8.1.1
+    typescript: ^4.9.3
+  languageName: unknown
+  linkType: soft
 
 "abbrev@npm:1, abbrev@npm:^1.0.0":
   version: 1.1.1
