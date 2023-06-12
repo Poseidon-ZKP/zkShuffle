@@ -1,3 +1,4 @@
+import { HardhatUserConfig } from "hardhat/config";
 import "@nomiclabs/hardhat-ethers";
 import "@nomiclabs/hardhat-waffle";
 import "@typechain/hardhat";
@@ -7,7 +8,7 @@ import { resolve } from "path";
 // setup the environment variables
 dotenvConfig({ path: resolve(__dirname, "./.env") });
 
-const config: any = {
+const config: HardhatUserConfig = {
   solidity: "0.8.4",
   typechain: {
     outDir: "types",
