@@ -1142,13 +1142,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@poseidon-zkp/poseidon-zk-circuits@1.17.0, @poseidon-zkp/poseidon-zk-circuits@workspace:packages/circuits":
+"@poseidon-zkp/poseidon-zk-circuits@1.18.0, @poseidon-zkp/poseidon-zk-circuits@workspace:packages/circuits":
   version: 0.0.0-use.local
   resolution: "@poseidon-zkp/poseidon-zk-circuits@workspace:packages/circuits"
   dependencies:
     "@nomiclabs/hardhat-ethers": ^2.2.1
     "@nomiclabs/hardhat-waffle": ^2.0.3
-    "@poseidon-zkp/poseidon-zk-proof": 1.17.0
+    "@poseidon-zkp/poseidon-zk-proof": 1.18.0
     "@typechain/ethers-v5": ^10.1.1
     "@typechain/hardhat": ^6.1.4
     "@types/chai": ^4.3.4
@@ -1179,9 +1179,9 @@ __metadata:
     "@nomicfoundation/hardhat-chai-matchers": ^1.0.6
     "@nomiclabs/hardhat-ethers": ^2.2.1
     "@nomiclabs/hardhat-solpp": ^2.0.1
-    "@poseidon-zkp/poseidon-zk-circuits": 1.17.0
-    "@poseidon-zkp/poseidon-zk-jssdk": 1.17.0
-    "@poseidon-zkp/poseidon-zk-proof": 1.17.0
+    "@poseidon-zkp/poseidon-zk-circuits": 1.18.0
+    "@poseidon-zkp/poseidon-zk-jssdk": 1.18.0
+    "@poseidon-zkp/poseidon-zk-proof": 1.18.0
     "@semaphore-protocol/contracts": ^2.6.1
     "@typechain/ethers-v5": ^10.1.1
     "@typechain/hardhat": ^6.1.4
@@ -1206,13 +1206,13 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@poseidon-zkp/poseidon-zk-jssdk@1.17.0, @poseidon-zkp/poseidon-zk-jssdk@workspace:packages/jssdk":
+"@poseidon-zkp/poseidon-zk-jssdk@1.18.0, @poseidon-zkp/poseidon-zk-jssdk@workspace:packages/jssdk":
   version: 0.0.0-use.local
   resolution: "@poseidon-zkp/poseidon-zk-jssdk@workspace:packages/jssdk"
   dependencies:
     "@nomiclabs/hardhat-ethers": ^2.2.1
     "@nomiclabs/hardhat-waffle": ^2.0.3
-    "@poseidon-zkp/poseidon-zk-proof": 1.17.0
+    "@poseidon-zkp/poseidon-zk-proof": 1.18.0
     "@typechain/ethers-v5": ^10.1.1
     "@typechain/hardhat": ^6.1.4
     "@types/chai": ^4.3.4
@@ -1232,7 +1232,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@poseidon-zkp/poseidon-zk-proof@1.17.0, @poseidon-zkp/poseidon-zk-proof@workspace:packages/proof":
+"@poseidon-zkp/poseidon-zk-proof@1.18.0, @poseidon-zkp/poseidon-zk-proof@workspace:packages/proof":
   version: 0.0.0-use.local
   resolution: "@poseidon-zkp/poseidon-zk-proof@workspace:packages/proof"
   dependencies:
@@ -1748,9 +1748,9 @@ __metadata:
   linkType: hard
 
 "@types/node@npm:*":
-  version: 20.2.5
-  resolution: "@types/node@npm:20.2.5"
-  checksum: 38ce7c7e9d76880dc632f71d71e0d5914fcda9d5e9a7095d6c339abda55ca4affb0f2a882aeb29398f8e09d2c5151f0b6586c81c8ccdfe529c34b1ea3337425e
+  version: 20.3.0
+  resolution: "@types/node@npm:20.3.0"
+  checksum: 613e878174febc0104dae210088645cbb5096a19ae5fdf57fbc06fa6ef71755b839858c2b313fb8c1df8b7c6660e1b5f7a64db2126af9d47d1d9238e2bc0a86d
   languageName: node
   linkType: hard
 
@@ -1762,9 +1762,9 @@ __metadata:
   linkType: hard
 
 "@types/node@npm:^18.11.9":
-  version: 18.16.16
-  resolution: "@types/node@npm:18.16.16"
-  checksum: 0efad726dd1e0bef71c392c708fc5d78c5b39c46b0ac5186fee74de4ccb1b2e847b3fa468da67d62812f56569da721b15bf31bdc795e6c69b56c73a45079ed2d
+  version: 18.16.17
+  resolution: "@types/node@npm:18.16.17"
+  checksum: 2f7e3a552d525ef4b7a2620ef5ef59b3fdfb1d8ab20627b537e090732b35c2bd103944933d347a319cc7d478b3866b0d1bc3d629ee5899ca663a4547ca078cee
   languageName: node
   linkType: hard
 
@@ -3931,9 +3931,9 @@ __metadata:
   linkType: hard
 
 "caniuse-lite@npm:^1.0.30000844":
-  version: 1.0.30001497
-  resolution: "caniuse-lite@npm:1.0.30001497"
-  checksum: 6721120f9a588c442a81cf32f911b4e97a88cb129c27bd2cb0fce6447ad058baa12affa1ee09c517f9e088c7ce74964154d032b6631f66d75dd37c6bc59a67f6
+  version: 1.0.30001499
+  resolution: "caniuse-lite@npm:1.0.30001499"
+  checksum: 3ff07cb04f5a3b93e01f6bc87dbf8e6c704b72c1389930b1ebd0527ee0bf23dfdd7129d147b439616dc17384b516519cda965f62f8c02c73aadf0339dcf2dc73
   languageName: node
   linkType: hard
 
@@ -4555,9 +4555,9 @@ __metadata:
   linkType: hard
 
 "core-js-pure@npm:^3.0.1":
-  version: 3.30.2
-  resolution: "core-js-pure@npm:3.30.2"
-  checksum: e0e012fe94e38663d837410baac62efe05d0c7431e3fbaa70c65f51eb980da9c3add225eca04208d576bc0d92cefeca9a4f7671a65fd84fd7dfc92d8618dddfd
+  version: 3.31.0
+  resolution: "core-js-pure@npm:3.31.0"
+  checksum: 2bc5d2f6c3c9732fd5c066529b8d41fae9c746206ddf7614712dc4120a9efd47bf894df4fc600fde8c04324171c1999869798b48b23fca128eff5f09f58cd2f6
   languageName: node
   linkType: hard
 
@@ -5141,9 +5141,9 @@ __metadata:
   linkType: hard
 
 "electron-to-chromium@npm:^1.3.47":
-  version: 1.4.425
-  resolution: "electron-to-chromium@npm:1.4.425"
-  checksum: 1ec2e80601eb49982c51f562f74dc9fa1a80f3006c7d508f3bc37d2d12c726df99ff60d7f013e38c374ae81414e0b76d5e7a97f406cdea8b5e8e3dfb51c23f72
+  version: 1.4.427
+  resolution: "electron-to-chromium@npm:1.4.427"
+  checksum: 5f8493e6071bed2f34c701a62bd81453e41cee7ab9bda0f93b6039d1456d15f9aa6a4b59eda4e5afe5e035311b6b9043c7c9275c631c690bd202ae3226a1df66
   languageName: node
   linkType: hard
 
@@ -11130,17 +11130,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"punycode@npm:1.3.2":
-  version: 1.3.2
-  resolution: "punycode@npm:1.3.2"
-  checksum: b8807fd594b1db33335692d1f03e8beeddde6fda7fbb4a2e32925d88d20a3aa4cd8dcc0c109ccaccbd2ba761c208dfaaada83007087ea8bfb0129c9ef1b99ed6
-  languageName: node
-  linkType: hard
-
 "punycode@npm:2.1.0":
   version: 2.1.0
   resolution: "punycode@npm:2.1.0"
   checksum: d125d8f86cd89303c33bad829388c49ca23197e16ccf8cd398dcbd81b026978f6543f5066c66825b25b1dfea7790a42edbeea82908e103474931789714ab86cd
+  languageName: node
+  linkType: hard
+
+"punycode@npm:^1.4.1":
+  version: 1.4.1
+  resolution: "punycode@npm:1.4.1"
+  checksum: fa6e698cb53db45e4628559e557ddaf554103d2a96a1d62892c8f4032cd3bc8871796cae9eabc1bc700e2b6677611521ce5bb1d9a27700086039965d0cf34518
   languageName: node
   linkType: hard
 
@@ -11160,7 +11160,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"qs@npm:^6.7.0":
+"qs@npm:^6.11.0, qs@npm:^6.7.0":
   version: 6.11.2
   resolution: "qs@npm:6.11.2"
   dependencies:
@@ -11184,13 +11184,6 @@ __metadata:
     object-assign: ^4.1.0
     strict-uri-encode: ^1.0.0
   checksum: 4ac760d9778d413ef5f94f030ed14b1a07a1708dd13fd3bc54f8b9ef7b425942c7577f30de0bf5a7d227ee65a9a0350dfa3a43d1d266880882fb7ce4c434a4dd
-  languageName: node
-  linkType: hard
-
-"querystring@npm:0.2.0":
-  version: 0.2.0
-  resolution: "querystring@npm:0.2.0"
-  checksum: 8258d6734f19be27e93f601758858c299bdebe71147909e367101ba459b95446fbe5b975bf9beb76390156a592b6f4ac3a68b6087cea165c259705b8b4e56a69
   languageName: node
   linkType: hard
 
@@ -13696,12 +13689,12 @@ __metadata:
   linkType: hard
 
 "url@npm:^0.11.0":
-  version: 0.11.0
-  resolution: "url@npm:0.11.0"
+  version: 0.11.1
+  resolution: "url@npm:0.11.1"
   dependencies:
-    punycode: 1.3.2
-    querystring: 0.2.0
-  checksum: 50d100d3dd2d98b9fe3ada48cadb0b08aa6be6d3ac64112b867b56b19be4bfcba03c2a9a0d7922bfd7ac17d4834e88537749fe182430dfd9b68e520175900d90
+    punycode: ^1.4.1
+    qs: ^6.11.0
+  checksum: a7de4b37bbcbe60ef199acda4ce437ef843c0ef3a4b34ec3e3d97e0446a5f50dc7bfeafbe33ad118cf4e5aa04805e1328f0d0126e254f2b77bb8498fa395c596
   languageName: node
   linkType: hard
 
