@@ -1,5 +1,5 @@
 {
-  "name": "@zkShuffle/proof",
+  "name": "@zkshuffle/proof",
   "version": "1.18.0",
   "main": "./index.js",
   "types": "./dist/index.d.ts",

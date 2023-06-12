@@ -1,15 +1,15 @@
-# @zkShuffle/circuits
+# @zkshuffle/circuits
 
 Poseidon ZK circuits
 
 ## Usage
 
 ### Install this package
-`yarn add @zkShuffle/circuits`
+`yarn add @zkshuffle/circuits`
 
 ### Use in your own circuits
 
-`import "path/to/node_modules/@zkShuffle/circuits/group/group.circom"` 
+`import "path/to/node_modules/@zkshuffle/circuits/group/group.circom"` 
 
 ## Developement
 

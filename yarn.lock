@@ -1864,9 +1864,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@zkShuffle/circuits@1.18.0, @zkShuffle/circuits@workspace:packages/circuits":
+"@zkshuffle/circuits@1.18.0, @zkshuffle/circuits@workspace:packages/circuits":
   version: 0.0.0-use.local
-  resolution: "@zkShuffle/circuits@workspace:packages/circuits"
+  resolution: "@zkshuffle/circuits@workspace:packages/circuits"
   dependencies:
     "@nomiclabs/hardhat-ethers": ^2.2.1
     "@nomiclabs/hardhat-waffle": ^2.0.3
@@ -1875,7 +1875,7 @@ __metadata:
     "@types/chai": ^4.3.4
     "@types/mocha": ^10.0.0
     "@types/node": ^18.11.9
-    "@zkShuffle/proof": 1.18.0
+    "@zkshuffle/proof": 1.18.0
     chai: ^4.3.7
     circom_tester: ^0.0.19
     circomlib: ^2.0.5
@@ -1894,9 +1894,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@zkShuffle/contracts@workspace:packages/contracts":
+"@zkshuffle/contracts@workspace:packages/contracts":
   version: 0.0.0-use.local
-  resolution: "@zkShuffle/contracts@workspace:packages/contracts"
+  resolution: "@zkshuffle/contracts@workspace:packages/contracts"
   dependencies:
     "@nomicfoundation/hardhat-chai-matchers": ^1.0.6
     "@nomiclabs/hardhat-ethers": ^2.2.1
@@ -1907,9 +1907,9 @@ __metadata:
     "@types/chai": ^4.3.4
     "@types/mocha": ^10.0.0
     "@types/node": ^18.11.9
-    "@zkShuffle/circuits": 1.18.0
-    "@zkShuffle/jssdk": 1.18.0
-    "@zkShuffle/proof": 1.18.0
+    "@zkshuffle/circuits": 1.18.0
+    "@zkshuffle/jssdk": 1.18.0
+    "@zkshuffle/proof": 1.18.0
     chai: ^4.3.7
     circomlibjs: ^0.1.7
     dotenv: ^16.0.3
@@ -1928,9 +1928,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@zkShuffle/jssdk@1.18.0, @zkShuffle/jssdk@workspace:packages/jssdk":
+"@zkshuffle/jssdk@1.18.0, @zkshuffle/jssdk@workspace:packages/jssdk":
   version: 0.0.0-use.local
-  resolution: "@zkShuffle/jssdk@workspace:packages/jssdk"
+  resolution: "@zkshuffle/jssdk@workspace:packages/jssdk"
   dependencies:
     "@nomiclabs/hardhat-ethers": ^2.2.1
     "@nomiclabs/hardhat-waffle": ^2.0.3
@@ -1939,7 +1939,7 @@ __metadata:
     "@types/chai": ^4.3.4
     "@types/mocha": ^10.0.0
     "@types/node": ^18.11.9
-    "@zkShuffle/proof": 1.18.0
+    "@zkshuffle/proof": 1.18.0
     axios: ^1.4.0
     chai: ^4.3.7
     circomlibjs: ^0.1.7
@@ -1954,9 +1954,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@zkShuffle/proof@1.18.0, @zkShuffle/proof@workspace:packages/proof":
+"@zkshuffle/proof@1.18.0, @zkshuffle/proof@workspace:packages/proof":
   version: 0.0.0-use.local
-  resolution: "@zkShuffle/proof@workspace:packages/proof"
+  resolution: "@zkshuffle/proof@workspace:packages/proof"
   dependencies:
     "@nomiclabs/hardhat-ethers": ^2.2.1
     "@nomiclabs/hardhat-waffle": ^2.0.3

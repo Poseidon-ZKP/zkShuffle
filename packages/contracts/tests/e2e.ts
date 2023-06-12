@@ -1,10 +1,10 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { ethers } from "hardhat";
 import { exit } from "process";
-import { GameTurn, ZKShuffle } from "@zkShuffle/jssdk/src/shuffle/zkShuffle";
+import { GameTurn, ZKShuffle } from "@zkshuffle/jssdk/src/shuffle/zkShuffle";
 import { Hilo, Hilo__factory, ShuffleManager } from "../types";
 import { deploy_shuffle_manager } from "../helper/deploy";
-import { dnld_aws, P0X_DIR, sleep } from "@zkShuffle/jssdk/src/shuffle/utility";
+import { dnld_aws, P0X_DIR, sleep } from "@zkshuffle/jssdk/src/shuffle/utility";
 import { resolve } from "path";
 
 async function player_run(SM: ShuffleManager, owner: SignerWithAddress, gameId: number) {
