@@ -10,7 +10,7 @@
   "scripts": {
     "compile": "yarn workspaces foreach run compile",
     "test": "cd packages/contracts && yarn test && cd ../proof && yarn test",
-    "publish": "yarn workspaces foreach run pub2npmjs",
+    "publish": "npm run pub2npmjs --workspaces --if-present",
     "doc": "cd packages/contracts && yarn doc",
     "lint:fix": "npm run lint:fix --workspaces --if-present",
     "lint:check": "npm run lint:check --workspaces --if-present",
