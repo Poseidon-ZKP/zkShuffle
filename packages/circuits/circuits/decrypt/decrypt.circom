@@ -38,6 +38,7 @@ template Decrypt() {
     for(var i = 0; i < 4; i++) {
         decrypt.Y[i] <== Y[i];
     }
+
     decrypt.pkP[0] <== pkP[0];
     decrypt.pkP[1] <== pkP[1];
     decrypt.skP <== skP;
