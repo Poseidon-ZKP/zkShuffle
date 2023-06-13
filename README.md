@@ -31,13 +31,13 @@ After installation, the dependencies of all the packages will be installed.
 
 ## Packages
 
-**`💡 @zkShuffle/circuits`**
+**`💡 @zk-shuffle/circuits`**
 
 This package contains all the Circom circuit components with related unit test cases. Circuit integrators can directly import the circuits in this package.
 
 **Install**
 
-`yarn install @zkShuffle/circuits`
+`yarn install @zk-shuffle/circuits`
 
 If you want to develop based on this package, it's highly recommended to change the default `ptau` setting in `hardhat.config.ts` to your own generated trust setup.
 
@@ -51,13 +51,13 @@ After running compilation, zkey files, wasm files, verifier Solidity contracts w
 
 `yarn test`
 
-**`⛓ @zkShuffle/contracts`**
+**`⛓ @zk-shuffle/contracts`**
 
 This package depends on circuit package and its generated verifier contracts. It extends the contract of verifier contracts and can be integrated by user-end developers.
 
 **Install**
 
-`yarn install @zkShuffle/contracts`
+`yarn install @zk-shuffle/contracts`
 
 **Compile**
 
@@ -69,20 +69,20 @@ This package depends on circuit package and its generated verifier contracts. It
 
 The unit tests in contracts package use proof generation utilities from `proof` package and perform some e2e tests.
 
-**`🛠 @zkShuffle/jssdk`**
+**`🛠 @zk-shuffle/jssdk`**
 
 **Install**
 
-`yarn install @zkShuffle/jssdk`
+`yarn install @zk-shuffle/jssdk`
 
 
-**`🧾 @zkShuffle/proof`**
+**`🧾 @zk-shuffle/proof`**
 
 This package provides some utilities for generating zk proofs and is depended by contracts package to do some unit tests.
 
 **Install**
 
-`yarn install @zkShuffle/proof`
+`yarn install @zk-shuffle/proof`
 
 **Compile**
 
