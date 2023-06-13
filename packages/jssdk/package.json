@@ -1,6 +1,6 @@
 {
   "name": "@zkshuffle/jssdk",
-  "version": "0.0.9",
+  "version": "1.0.0",
   "main": "dist/index.js",
   "module": "dist.esm/index.js",
   "types": "src/index.ts",
@@ -38,7 +38,7 @@
   },
   "dependencies": {
     "@typechain/ethers-v5": "^10.1.1",
-    "@zkshuffle/proof": "0.0.9",
+    "@zkshuffle/proof": "1.0.0",
     "axios": "^1.4.0",
     "circomlibjs": "^0.1.7",
     "ethers": "^5.7.2",
