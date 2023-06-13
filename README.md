@@ -45,14 +45,6 @@ If you want to develop based on this package, it's highly recommended to change 
 
 `yarn compile`
 
-Compile circuits only
-
-`yarn compile:circuits`
-
-Compile generated contracts only:
-
-`yarn compile:contracts`
-
 After running compilation, zkey files, wasm files, verifier Solidity contracts will be generated, and can be imported by JavaScript users and contract users.
 
 **Testing**
@@ -77,17 +69,12 @@ This package depends on circuit package and its generated verifier contracts. It
 
 The unit tests in contracts package use proof generation utilities from `proof` package and perform some e2e tests.
 
-**Deploy**
-
-`yarn deploy`
-
 **`🛠 @zkShuffle/jssdk`**
 
 **Install**
 
 `yarn install @zkShuffle/jssdk`
 
-todo
 
 **`🧾 @zkShuffle/proof`**
 
