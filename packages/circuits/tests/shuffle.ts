@@ -1,7 +1,7 @@
 import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address';
-import { shuffleEncryptV2Plaintext } from '@zkshuffle/proof/src/shuffle/plaintext';
-import { generateDecryptProof, generateShuffleEncryptV2Proof } from '@zkshuffle/proof/src/shuffle/proof';
-import { initDeck, keyGen, sampleFieldElements, samplePermutation, compressDeck, recoverDeck, string2Bigint, assert } from '@zkshuffle/proof/src/shuffle/utilities';
+import { shuffleEncryptV2Plaintext } from '@zk-shuffle/proof/src/shuffle/plaintext';
+import { generateDecryptProof, generateShuffleEncryptV2Proof } from '@zk-shuffle/proof/src/shuffle/proof';
+import { initDeck, keyGen, sampleFieldElements, samplePermutation, compressDeck, recoverDeck, string2Bigint, assert } from '@zk-shuffle/proof/src/shuffle/utilities';
 import { ethers } from 'hardhat';
 import { resolve } from 'path';
 import { readFileSync } from 'fs';
