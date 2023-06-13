@@ -1,11 +1,11 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { BaseState, ZKShuffle } from "@poseidon-zkp/poseidon-zk-jssdk/src/shuffle/zkShuffle";
+import { BaseState, ZKShuffle } from "@zkshuffle/jssdk/src/shuffle/zkShuffle";
 import { deploy_shuffle_test } from "../helper/deploy";
 import { ShuffleManager__factory } from "../types";
 import { resolve } from "path";
-import { dnld_aws, P0X_DIR } from "@poseidon-zkp/poseidon-zk-jssdk/src/shuffle/utility";
+import { dnld_aws, P0X_DIR } from "@zkshuffle/jssdk/src/shuffle/utility";
 
 describe("ZKShuffle State Less Unit Test", function () {
   let sm_owner: SignerWithAddress;

@@ -1,6 +1,6 @@
 import type { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signer-with-address';
-import { assert, ecCompress } from '@poseidon-zkp/poseidon-zk-proof/src/shuffle/utilities';
-import { elgamalDecrypt, elgamalEncrypt } from '@poseidon-zkp/poseidon-zk-proof/src/shuffle/plaintext';
+import { assert, ecCompress } from '@zkshuffle/proof/src/shuffle/utilities';
+import { elgamalDecrypt, elgamalEncrypt } from '@zkshuffle/proof/src/shuffle/plaintext';
 import { ethers } from 'hardhat';
 import { resolve } from 'path';
 import { readFileSync } from 'fs';

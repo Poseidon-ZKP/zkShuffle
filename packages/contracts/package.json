@@ -1,5 +1,5 @@
 {
-  "name": "@poseidon-zkp/poseidon-zk-contracts",
+  "name": "@zkshuffle/contracts",
   "version": "1.18.0",
   "main": "index.js",
   "license": "MIT",
@@ -25,10 +25,10 @@
   "dependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^1.0.6",
     "@nomiclabs/hardhat-solpp": "^2.0.1",
-    "@poseidon-zkp/poseidon-zk-circuits": "1.18.0",
-    "@poseidon-zkp/poseidon-zk-jssdk": "1.18.0",
-    "@poseidon-zkp/poseidon-zk-proof": "1.18.0",
     "@semaphore-protocol/contracts": "^2.6.1",
+    "@zkshuffle/circuits": "1.18.0",
+    "@zkshuffle/jssdk": "1.18.0",
+    "@zkshuffle/proof": "1.18.0",
     "circomlibjs": "^0.1.7",
     "node-pandoc": "^0.3.0",
     "snarkjs": "^0.7.0",

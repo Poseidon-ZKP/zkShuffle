@@ -31,13 +31,13 @@ After installation, the dependencies of all the packages will be installed.
 
 ## Packages
 
-**`💡 @poseidon-zkp/poseidon-zk-circuits`**
+**`💡 @zkShuffle/circuits`**
 
 This package contains all the Circom circuit components with related unit test cases. Circuit integrators can directly import the circuits in this package.
 
 **Install**
 
-`yarn install @poseidon-zkp/poseidon-zk-circuits`
+`yarn install @zkShuffle/circuits`
 
 If you want to develop based on this package, it's highly recommended to change the default `ptau` setting in `hardhat.config.ts` to your own generated trust setup.
 
@@ -59,13 +59,13 @@ After running compilation, zkey files, wasm files, verifier Solidity contracts w
 
 `yarn test`
 
-**`⛓ @poseidon-zkp/poseidon-zk-contracts`**
+**`⛓ @zkShuffle/contracts`**
 
 This package depends on circuit package and its generated verifier contracts. It extends the contract of verifier contracts and can be integrated by user-end developers.
 
 **Install**
 
-`yarn install @poseidon-zkp/poseidon-zk-contracts`
+`yarn install @zkShuffle/contracts`
 
 **Compile**
 
@@ -81,21 +81,21 @@ The unit tests in contracts package use proof generation utilities from `proof` 
 
 `yarn deploy`
 
-**`🛠 @poseidon-zkp/poseidon-zk-jssdk`**
+**`🛠 @zkShuffle/jssdk`**
 
 **Install**
 
-`yarn install @poseidon-zkp/poseidon-zk-jssdk`
+`yarn install @zkShuffle/jssdk`
 
 todo
 
-**`🧾 @poseidon-zkp/poseidon-zk-proof`**
+**`🧾 @zkShuffle/proof`**
 
 This package provides some utilities for generating zk proofs and is depended by contracts package to do some unit tests.
 
 **Install**
 
-`yarn install @poseidon-zkp/poseidon-zk-proof`
+`yarn install @zkShuffle/proof`
 
 **Compile**
 

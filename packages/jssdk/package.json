@@ -1,5 +1,5 @@
 {
-  "name": "@poseidon-zkp/poseidon-zk-jssdk",
+  "name": "@zkshuffle/jssdk",
   "version": "1.18.0",
   "main": "dist/index.js",
   "module": "dist.esm/index.js",
@@ -37,8 +37,8 @@
     "typescript": "^4.9.3"
   },
   "dependencies": {
-    "@poseidon-zkp/poseidon-zk-proof": "1.18.0",
     "@typechain/ethers-v5": "^10.1.1",
+    "@zkshuffle/proof": "1.18.0",
     "axios": "^1.4.0",
     "circomlibjs": "^0.1.7",
     "ethers": "^5.7.2",
