@@ -2,10 +2,10 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import {
   packToSolidityProof,
   SolidityProof,
-} from "@zkshuffle/proof/src/shuffle/proof";
+} from "@zk-shuffle/proof/src/shuffle/proof";
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { BaseState, ZKShuffle } from "@zkshuffle/jssdk/src/shuffle/zkShuffle";
+import { BaseState, ZKShuffle } from "@zk-shuffle/jssdk/src/shuffle/zkShuffle";
 import { deploy_shuffle_manager } from "../helper/deploy";
 import { tx_to_contract } from "../helper/utility";
 import {
@@ -15,7 +15,7 @@ import {
   ShuffleTest__factory,
 } from "../types";
 import { resolve } from "path";
-import { dnld_aws, P0X_DIR } from "@zkshuffle/jssdk/src/shuffle/utility";
+import { dnld_aws, P0X_DIR } from "@zk-shuffle/jssdk/src/shuffle/utility";
 import { Signer } from "ethers";
 
 describe("ZKShuffle Unit Test", function () {

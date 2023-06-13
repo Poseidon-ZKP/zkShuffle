@@ -1857,16 +1857,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@zk-kit/incremental-merkle-tree@npm:^1.0.0":
+"@zk-kit/incremental-merkle-tree@npm:^1.0":
   version: 1.1.0
   resolution: "@zk-kit/incremental-merkle-tree@npm:1.1.0"
   checksum: 5f2d6dd2a4898aa75f72d5b3811ab965c369f0a51561250313849fb9a6a1163064c4887da3bea298d25e80a4bc79b3c6997edf6492a6a8fc157512bc3fcb5e23
   languageName: node
   linkType: hard
 
-"@zkshuffle/circuits@1.0.0, @zkshuffle/circuits@workspace:packages/circuits":
+"@zk-shuffle/circuits@1.0.0, @zk-shuffle/circuits@workspace:packages/circuits":
   version: 0.0.0-use.local
-  resolution: "@zkshuffle/circuits@workspace:packages/circuits"
+  resolution: "@zk-shuffle/circuits@workspace:packages/circuits"
   dependencies:
     "@nomiclabs/hardhat-ethers": ^2.2.1
     "@nomiclabs/hardhat-waffle": ^2.0.3
@@ -1875,7 +1875,7 @@ __metadata:
     "@types/chai": ^4.3.4
     "@types/mocha": ^10.0.0
     "@types/node": ^18.11.9
-    "@zkshuffle/proof": 1.0.0
+    "@zk-shuffle/proof": 1.0.0
     chai: ^4.3.7
     circom_tester: ^0.0.19
     circomlib: ^2.0.5
@@ -1894,9 +1894,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@zkshuffle/contracts@workspace:packages/contracts":
+"@zk-shuffle/contracts@workspace:packages/contracts":
   version: 0.0.0-use.local
-  resolution: "@zkshuffle/contracts@workspace:packages/contracts"
+  resolution: "@zk-shuffle/contracts@workspace:packages/contracts"
   dependencies:
     "@nomicfoundation/hardhat-chai-matchers": ^1.0.6
     "@nomiclabs/hardhat-ethers": ^2.2.1
@@ -1907,9 +1907,9 @@ __metadata:
     "@types/chai": ^4.3.4
     "@types/mocha": ^10.0.0
     "@types/node": ^18.11.9
-    "@zkshuffle/circuits": 1.0.0
-    "@zkshuffle/jssdk": 1.0.0
-    "@zkshuffle/proof": 1.0.0
+    "@zk-shuffle/circuits": 1.0.0
+    "@zk-shuffle/jssdk": 1.0.0
+    "@zk-shuffle/proof": 1.0.0
     chai: ^4.3.7
     circomlibjs: ^0.1.7
     dotenv: ^16.0.3
@@ -1928,9 +1928,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@zkshuffle/jssdk@1.0.0, @zkshuffle/jssdk@workspace:packages/jssdk":
+"@zk-shuffle/jssdk@1.0.0, @zk-shuffle/jssdk@workspace:packages/jssdk":
   version: 0.0.0-use.local
-  resolution: "@zkshuffle/jssdk@workspace:packages/jssdk"
+  resolution: "@zk-shuffle/jssdk@workspace:packages/jssdk"
   dependencies:
     "@nomiclabs/hardhat-ethers": ^2.2.1
     "@nomiclabs/hardhat-waffle": ^2.0.3
@@ -1939,7 +1939,7 @@ __metadata:
     "@types/chai": ^4.3.4
     "@types/mocha": ^10.0.0
     "@types/node": ^18.11.9
-    "@zkshuffle/proof": 1.0.0
+    "@zk-shuffle/proof": 1.0.0
     axios: ^1.4.0
     chai: ^4.3.7
     circomlibjs: ^0.1.7
@@ -1954,9 +1954,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@zkshuffle/proof@1.0.0, @zkshuffle/proof@workspace:packages/proof":
+"@zk-shuffle/proof@1.0.0, @zk-shuffle/proof@workspace:packages/proof":
   version: 0.0.0-use.local
-  resolution: "@zkshuffle/proof@workspace:packages/proof"
+  resolution: "@zk-shuffle/proof@workspace:packages/proof"
   dependencies:
     "@nomiclabs/hardhat-ethers": ^2.2.1
     "@nomiclabs/hardhat-waffle": ^2.0.3
@@ -1969,7 +1969,7 @@ __metadata:
     "@types/debug": ^4.1.7
     "@types/mocha": ^10.0.0
     "@types/node": ^18.11.9
-    "@zk-kit/incremental-merkle-tree": ^1.0.0
+    "@zk-kit/incremental-merkle-tree": ^1.0
     chai: ^4.3.7
     circomlibjs-0-1-7: "npm:circomlibjs@^0.1.7"
     dotenv: ^16.0.3

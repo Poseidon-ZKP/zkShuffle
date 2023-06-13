@@ -1,5 +1,5 @@
 {
-  "name": "@zkshuffle/proof",
+  "name": "@zk-shuffle/proof",
   "version": "1.0.0",
   "main": "./index.js",
   "types": "./dist/index.d.ts",
@@ -38,7 +38,7 @@
     "@semaphore-protocol/identity": "^2.6.1",
     "@semaphore-protocol/proof": "^2.6.1",
     "@types/debug": "^4.1.7",
-    "@zk-kit/incremental-merkle-tree": "^1.0.0",
+    "@zk-kit/incremental-merkle-tree": "^1.0",
     "dotenv": "^16.0.3",
     "ethers": "^5.7.2",
     "snarkjs": "^0.7.0"
