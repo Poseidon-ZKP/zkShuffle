@@ -1,6 +1,6 @@
-# Poseidon ZKP
+# zkShffule
 
-Poseidon ZK scales and make easy of zkDApp development in Ethereum. Poseidon ZKP contains the ZK Primitives that Poseidon offers/supports. A ZK Primitives include:
+zkShuffle is a ZKP primitive that helps developers building fully onchain ([why fully onchain?](https://0xparc.org/blog/autonomous-worlds)) trading card games (TCG):
 - ZKP circuit (usually written in Circom)
 - Solidity smart contract, containing the verifier and other functions
 - TypeScript SDK, containing functions to help DApp Devs generating ZKP and doing other crypptogrpahic operations on their DApp.
