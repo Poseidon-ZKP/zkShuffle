@@ -25,7 +25,7 @@ const Scalar = require("ffjavascript").Scalar;
 export type BabyJub = any;
 export type EC = any;
 export type Deck = any;
-export type FileType = ArrayBuffer | string;
+export type FileType = any;
 
 export enum BaseState {
   Uncreated, // Important to keep this to avoid EVM default 0 value
