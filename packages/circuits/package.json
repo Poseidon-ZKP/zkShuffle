@@ -1,6 +1,6 @@
 {
   "name": "@zk-shuffle/circuits",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "index.js",
   "license": "MIT",
   "description": "A Circom circuits library for ZK Applications",

@@ -1,6 +1,6 @@
 {
   "name": "@zk-shuffle/contracts",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "index.js",
   "license": "MIT",
   "description": "Out-of-box smart contracts library enabling DApps to easily integrate ZK stacks",
