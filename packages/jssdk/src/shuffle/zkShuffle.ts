@@ -442,11 +442,11 @@ export class ZKShuffle implements IZKShuffle {
         numCards,
         gameId,
         cards,
-        this.sk,
+        this.sk as any,
         this.pk,
         this.smc,
-        this.decrypt_wasm,
-        this.decrypt_zkey
+        this.decrypt_wasm as any,
+        this.decrypt_zkey as any
       );
     } else {
       res = await dealUncompressedCard(
@@ -473,5 +473,5 @@ export class ZKShuffle implements IZKShuffle {
     console.log('Batch Drawed in ', Date.now() - start, 'ms');
     return true;
   }
-  
+
 }
