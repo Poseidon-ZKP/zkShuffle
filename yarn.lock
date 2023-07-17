@@ -1864,7 +1864,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@zk-shuffle/circuits@1.0.0, @zk-shuffle/circuits@workspace:packages/circuits":
+"@zk-shuffle/circuits@npm:1.0.0":
+  version: 1.0.0
+  resolution: "@zk-shuffle/circuits@npm:1.0.0"
+  dependencies:
+    circomlib: ^2.0.5
+    dotenv: ^16.0.3
+  checksum: e6163ac231b9980c4c31485315c9143be3fe54adfbfa63209063eceafad5745722c13faf432648ad35b8e48aad7ffa7c548060e125c1f10ca7a646ac7e9953ce
+  languageName: node
+  linkType: hard
+
+"@zk-shuffle/circuits@workspace:packages/circuits":
   version: 0.0.0-use.local
   resolution: "@zk-shuffle/circuits@workspace:packages/circuits"
   dependencies:
@@ -1928,7 +1938,21 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@zk-shuffle/jssdk@1.0.0, @zk-shuffle/jssdk@workspace:packages/jssdk":
+"@zk-shuffle/jssdk@npm:1.0.0":
+  version: 1.0.0
+  resolution: "@zk-shuffle/jssdk@npm:1.0.0"
+  dependencies:
+    "@typechain/ethers-v5": ^10.1.1
+    "@zk-shuffle/proof": 1.0.0
+    axios: ^1.4.0
+    circomlibjs: ^0.1.7
+    ethers: ^5.7.2
+    patch-package: ^7.0.0
+  checksum: d88ff906fdbb6569815f5bc78cfffe1ace90ae3cd640a6b932b42d3bc12893985850882bb838d39e21e39003d41b408f0c9c09c5c3c71a9e2cf18ac264158dfb
+  languageName: node
+  linkType: hard
+
+"@zk-shuffle/jssdk@workspace:packages/jssdk":
   version: 0.0.0-use.local
   resolution: "@zk-shuffle/jssdk@workspace:packages/jssdk"
   dependencies:
@@ -1954,7 +1978,23 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@zk-shuffle/proof@1.0.0, @zk-shuffle/proof@workspace:packages/proof":
+"@zk-shuffle/proof@npm:1.0.0":
+  version: 1.0.0
+  resolution: "@zk-shuffle/proof@npm:1.0.0"
+  dependencies:
+    "@semaphore-protocol/group": ^2.6.1
+    "@semaphore-protocol/identity": ^2.6.1
+    "@semaphore-protocol/proof": ^2.6.1
+    "@types/debug": ^4.1.7
+    "@zk-kit/incremental-merkle-tree": ^1.0
+    dotenv: ^16.0.3
+    ethers: ^5.7.2
+    snarkjs: ^0.7.0
+  checksum: 20224353309b8baf5492c42135e7a3e3f8d415a760799df6545d32ee0d05de6767f79393334fbab0e09c5f0cefad29e34e0ff88ad84073bcb157d2fccff50d14
+  languageName: node
+  linkType: hard
+
+"@zk-shuffle/proof@workspace:packages/proof":
   version: 0.0.0-use.local
   resolution: "@zk-shuffle/proof@workspace:packages/proof"
   dependencies:
