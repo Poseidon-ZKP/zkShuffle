@@ -5,12 +5,15 @@ import {
   generateShuffleEncryptV2Proof,
   packToSolidityProof,
   SolidityProof,
+  dealUncompressedCard,
 } from "@zk-shuffle/proof/dist/src/shuffle/proof";
 import {
   initDeck,
   prepareShuffleDeck,
   sampleFieldElements,
   samplePermutation,
+  prepareDecryptData,
+  ecX2Delta
 } from "@zk-shuffle/proof/dist/src/shuffle/utilities";
 
 import { Contract, ethers, Signer } from "ethers";
@@ -373,4 +376,102 @@ export class ZKShuffle implements IZKShuffle {
 
     return await this.queryCards(gameId, cardIds);
   }
+
+  async dealMultiCompressedCard(
+    babyjub: BabyJub,
+    numCards: number,
+    gameId: number,
+    cards: number[],
+    sk: bigint,
+    pk: bigint[],
+    stateMachineContract: Contract,
+    decryptWasmFile: string,
+    decryptZkeyFile: string
+  ) {
+    let proofs:any = [];
+    let decryptedDatas:any = [];
+    let initDeltas:any = [];
+    for (let i = 0; i < cards.length; i++) {
+      let deck = await stateMachineContract.queryDeck(gameId);
+      let Y = prepareDecryptData(
+        babyjub,
+        deck.X0[cards[i]],
+        deck.X1[cards[i]],
+        deck.selector0._data,
+        deck.selector1._data,
+        Number(numCards),
+        cards[i]
+      );
+      let decryptProof = await generateDecryptProof(
+        Y,
+        sk,
+        pk,
+        decryptWasmFile,
+        decryptZkeyFile
+      );
+      let solidityProof: SolidityProof = packToSolidityProof(
+        decryptProof.proof
+      );
+
+      proofs[i] = solidityProof;
+      decryptedDatas[i] = {
+        X: decryptProof.publicSignals[0],
+        Y: decryptProof.publicSignals[1],
+      };
+      initDeltas[i] = [ecX2Delta(babyjub, Y[0]), ecX2Delta(babyjub, Y[2])];
+    }
+    await (
+      await stateMachineContract.playerDealCards(
+        gameId,
+        proofs,
+        decryptedDatas,
+        initDeltas
+      )
+    ).wait();
+  }
+
+
+  async batchDecrypt(gameId: number, cards: number[]): Promise<bigint[]> {
+    const numCards = (await this.smc.getNumCards(gameId)).toNumber();
+    const isFirstDecryption =
+      (await this.smc.getDecryptRecord(gameId, cards[0]))._data.toNumber() == 0;
+    let res: bigint[] = [];
+    if (isFirstDecryption) {
+      await this.dealMultiCompressedCard(
+        this.babyjub,
+        numCards,
+        gameId,
+        cards,
+        this.sk,
+        this.pk,
+        this.smc,
+        this.decrypt_wasm,
+        this.decrypt_zkey
+      );
+    } else {
+      res = await dealUncompressedCard(
+        gameId,
+        cards[0],
+        this.sk,
+        this.pk,
+        this.smc,
+        this.decrypt_wasm,
+        this.decrypt_zkey
+      );
+    }
+    //console.log("decrypting card", cardIdx, " DONE!")
+    return res;
+  }
+
+  async batchDraw(gameId: number): Promise<boolean> {
+    const start = Date.now();
+    let cardsToDeal = (
+      await this.smc.queryDeck(gameId)
+    ).cardsToDeal._data.toNumber();
+
+    await this.batchDecrypt(gameId, this.getSetBitsPositions(cardsToDeal));
+    console.log('Batch Drawed in ', Date.now() - start, 'ms');
+    return true;
+  }
+  
 }
